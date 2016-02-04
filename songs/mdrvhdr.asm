@@ -49,22 +49,38 @@ DATA_BANK .equ 0
 	dw    opl3tbl_data_table ; adr opl3 table
 
 pcm_flags:
-	db    $00 ; Packed PCM into MDR if 1
-	db    $00 ; Size of packed PCM in banks
+	; pos: 0x2a  PCM Flag
+
+	; 0 = no use PCM 
+	; 1 = PCM is packed into the MDR file.
+	db    $00
+	db    $00
+
+	; pos: 0x2c  PCM string address (if not zero)
 
 	.if	(SOUND_USERPCM = 1)
 	dw  userpcm_string
 	.else
 	dw  $0000
 	.endif
+	
+	; pos: 0x2e reserved
+	dw  $0000
+	
+	; pos: 0x30 
+	db $00 ; start address (x * 0x10000) 
+	db $00 ; start bank of PCM
+	db $00 ; size of PCM banks
+	db $00 ; size of last bank(x * 0x100)
 
-	.org $8080	
+	; pos: 0x40 (PCM filename; the format should be 8.3)
+	.org $8040
 
 	.if	(SOUND_USERPCM = 1)
 userpcm_string:
 	PCMFILE
 	.endif
-	
+
+	.org $8080
+
 	.include "effect.h"
-
-
