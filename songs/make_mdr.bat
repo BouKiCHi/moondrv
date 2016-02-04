@@ -1,35 +1,47 @@
+@echo off
+
 rem
 rem make_mdr.bat
 rem
 
-@echo off
+rem echo MODE IS %MODE%
 
+SETLOCAL
 
-..\bin\mmckc -i %~n1.MML
+rem ルート設定
+SET MOONDIR=..\
 
-if not exist %~n1.h goto fail_compile
+rem 各ディレクトリ設定
+SET BINDIR=%MOONDIR%\bin
+SET SONGDIR=%MOONDIR%\songs
+
+rem MMLNAME = ディレクトリ名とファイル名（拡張子含まず)
+set MMLNAME=%~p1%~n1
+
+%BINDIR%\mmckc -i %MMLNAME%.MML
+
+if not exist %MMLNAME%.h goto failed
 
 rem
 rem assemble
 rem
 
-..\bin\pceas -raw mdrvhdr.asm
+%BINDIR%\pceas -raw %SONGDIR%\mdrvhdr.asm
 
-copy mdrvhdr.pce %~n1.MDR
+copy %SONGDIR%\mdrvhdr.pce %MMLNAME%.MDR
 
 :success_end
 echo 正常終了
-del %~n1.h
+if "%MODE%" == "DEBUG" goto batch_end
+del %MMLNAME%.h
 del define.inc
 del effect.h
-del mdrvhdr.pce
-del mdrvhdr.sym
+del %SONGDIR%\mdrvhdr.pce
+del %SONGDIR%\mdrvhdr.sym
+
+:batch_end
 exit /b
 
-
-:fail_compile
+:failed
 echo コンパイル失敗
 exit /b
-
-end
-

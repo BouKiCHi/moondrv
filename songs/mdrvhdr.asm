@@ -1,8 +1,9 @@
-; MDRV file header ver 0004 by BKC
+; MDRV file header ver 0005 by BKC
 ; 2007/04/21 first version
 ; 2007/05/15 second version
 ; 2007/05/22 third version
 ; 2015/03/02 Added PCMFILE definition.
+; 2016/02/04 Improved packed PCM definition. 
 
 	.include "define.inc"
 
@@ -51,7 +52,7 @@ DATA_BANK .equ 0
 pcm_flags:
 	; pos: 0x2a  PCM Flag
 
-	; 0 = no use PCM 
+	; 0 = no use PCM
 	; 1 = PCM is packed into the MDR file.
 	db    $00
 	db    $00
@@ -63,12 +64,12 @@ pcm_flags:
 	.else
 	dw  $0000
 	.endif
-	
+
 	; pos: 0x2e reserved
 	dw  $0000
-	
-	; pos: 0x30 
-	db $00 ; start address (x * 0x10000) 
+
+	; pos: 0x30
+	db $00 ; start address (x * 0x10000)
 	db $00 ; start bank of PCM
 	db $00 ; size of PCM banks
 	db $00 ; size of last bank(x * 0x100)
