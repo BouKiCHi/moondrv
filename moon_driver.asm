@@ -27,6 +27,9 @@
 ; defines
 ;********************************************
 
+MOON_VERNUM: equ $0002
+
+
 MOON_BASE:	equ	$00C4
 MOON_REG1:	equ	MOON_BASE
 MOON_DAT1:	equ	MOON_BASE+1
@@ -34,17 +37,30 @@ MOON_REG2:	equ	MOON_BASE+2
 MOON_DAT2:	equ	MOON_BASE+3
 MOON_STAT:	equ	MOON_BASE
 
-MOON_WREG:	equ	$007E
+; I/O
+MOON_WREG:	equ	$7E
 MOON_WDAT:	equ	MOON_WREG+1
-RAM_PAGE3:	equ	$00FE
+
+RAM_PAGE3:	equ	$FE
 
 
 USE_CH: 	equ	24+18
 FM_BASECH:	equ	24
 
+
+
 ;********************************************
 ; MDR file format
 ;********************************************
+
+MDR_ID:     equ $8000
+MDR_PACKED: equ $802A ; 1 if packed
+
+MDR_DSTPCM: equ $8030 ; destination address of PCM
+MDR_STPCM:  equ $8031 ; PCM start bank
+MDR_BANKS:  equ $8032 ; PCM banks
+MDR_LASTS:  equ $8033 ; PCM size of lastbank
+
 
 S_DEVICE_FLAGS:	equ	$8007
 
@@ -88,14 +104,18 @@ S_OPL3_TABLE:	equ	S_TRACK_TABLE + 24
 	ret
 
 	; $400F MOONDRIVER version number
-	dw	$0001
+	dw	MOON_VERNUM
+
 	; $4011 MOONDRIVER version string
 	dw	str_moondrv
+
+	; $4013 LoadPCM
+	jp  moon_load_pcm
 
 	org	$4020
 
 str_moondrv:
-	db	"MOONDRIVER VER 160201",$0d,$0a,'$'
+	db	"MOONDRIVER VER 160205",$0d,$0a,'$'
 
 
 ;********************************************
@@ -108,7 +128,7 @@ moon_init_all:
 	xor		a
 	ld		(hl), a
 	ldir
-	
+
 	call	moon_init
 	jp	moon_seq_init
 
@@ -499,7 +519,7 @@ change_page3:
 
 	srl	a
 	add	a, $04 ; The system uses 4pages for initial work area
-  out	(RAM_PAGE3), a
+	out	(RAM_PAGE3), a
 	ret
 
 ;********************************************
@@ -2987,6 +3007,131 @@ moon_key_fmfreq:
 	ret nz
 
 	jp	moon_write_fmreg ; key-on
+
+
+;********************************************
+;  load pcm
+
+moon_load_pcm:
+	xor	a
+	call change_page3
+
+	; is PCM packed song file?
+	ld	a, (MDR_PACKED)
+	or	a
+	ret	z
+
+	; memory write mode
+	ld	de,$0211 
+	call	moon_wave_out
+
+	; PCM destination address
+	ld	a, (MDR_DSTPCM)
+	ld	e, a
+	ld	d, $03
+	call	moon_wave_out
+
+	ld	de,$0400
+	call	moon_wave_out
+
+	ld	de,$0500
+	call	moon_wave_out
+
+
+	; PCM number of banks
+	ld	a, (MDR_BANKS)
+	dec	a
+	ld	(moon_pcm_numbanks), a
+	
+	; size of lastbank
+	ld	a, (MDR_LASTS)
+	ld	(moon_pcm_lastsize), a
+
+	; size of start page
+	ld	a, (MDR_STPCM)
+	ld	(moon_pcm_bank), a
+	
+	; start of source address
+	ld  hl, $8000
+
+	; address = $A000 if (start_bank & 1) != 0
+	and $01
+	or	a
+	jr	z, moon_pcm_copy
+	; bank1 = $A000
+	ld	h, $A0
+
+	; ram to PCM 
+moon_pcm_copy:
+
+	ld	bc, $2000
+
+	; bank change
+	ld	 a, (moon_pcm_bank)
+	push af
+	call change_page3
+	pop  af
+
+	inc  a
+	ld   (moon_pcm_bank), a
+
+
+	; HL >= $C000
+	ld	a, h
+	cp	$C0
+	jr	c, moon_pcm_chk_last
+
+	ld	hl, $8000
+	
+	; lastbank is smaller than other banks.
+
+moon_pcm_chk_last:
+
+	ld	a, (moon_pcm_numbanks)
+	dec	a
+	ld	(moon_pcm_numbanks), a
+	or	a
+	jr	nz, moon_pcm_copy_lp
+
+	; set size of lastbank
+	ld	a, (moon_pcm_lastsize)
+	ld	b, a
+
+moon_pcm_copy_lp:
+	ld	a, (hl)
+	ld	e, a
+	ld	d, $06
+	inc	hl
+
+	call	moon_wave_out
+	
+	dec	bc
+	
+	; loop if BC > 0
+	ld	a, b
+	or	c
+	jr	nz, moon_pcm_copy_lp
+
+	; check bank	
+	ld	a, (moon_pcm_numbanks)
+	or	a
+	jr	nz, moon_pcm_copy
+
+moon_pcm_end:
+
+	; normal mode
+	ld	de, $0210 
+	jp	moon_wave_out
+
+
+moon_pcm_bank:
+	db	$00
+
+moon_pcm_numbanks:
+	db	$00
+	
+moon_pcm_lastsize:
+	db	$00
 
 
 ;********************************************

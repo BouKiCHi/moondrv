@@ -120,6 +120,11 @@
 ; * Changed to load MOON.BIN from disk
 ; * Improved strings for infomation
 ;
+; 2016/02/05
+;
+; * try to load song file without extension.
+;
+;
 ;********************************************
 ; Memory usage
 ; Page 0 ( $0000 - $3FFF ) : Utility
@@ -139,15 +144,23 @@
 BDOS:		equ	$0005
 FCB:		equ	$005C
 
-MOON_BASE:	equ	$00C4
+MOON_BASE:   equ  $00C4
 
-MDRV_INIT:	equ	$4000
-MDRV_INT:	equ	$4003
-MDRV_ALLOFF:	equ	$4006
-MDRV_VERSTR:	equ	$4011
+MDRV_INIT:	 equ	$4000
+MDRV_INT:	   equ	$4003
+MDRV_ALLOFF: equ	$4006
+MDRV_VERSTR: equ	$4011
+MDRV_LOADPCM: equ	$4013
 
-RAM_PAGE3:	equ	$00FE
+RAM_PAGE3:	equ	$FE
 
+MDR_ID:     equ $8000
+MDR_PACKED: equ $802A ; 1 if packed
+
+MDR_DSTPCM: equ $8030 ; destination address of PCM
+MDR_STPCM:  equ $8031 ; PCM start bank
+MDR_BANKS:  equ $8032 ; PCM banks
+MDR_LASTS:  equ $8033 ; PCM size of lastbank
 
 ;********************************************
 ; Entry point
@@ -162,12 +175,12 @@ x86_trap:
 	call	BDOS
 
 
-	; check and init
+	; check MoonSound and initalize it
 
 	call	check_moon
 	jr	nz, found_moon
 
-	; moonsound is not found
+	; MoonSound is not found
 
 	ld	de, str_moon_not
 	ld	c,$09
@@ -175,24 +188,24 @@ x86_trap:
 
 found_moon:
 
-; moonsound is found
+; MoonSound is found
 
 	ld	de, str_moon_fnd
 	ld	c, $09
 	call	BDOS
 
-; load driver
+; Load driver
 	call	load_driver
 	or	a
 	jr	nz, file_error
 
-	ld	hl,MDRV_VERSTR
-	ld	e,(hl)
+	ld	hl, MDRV_VERSTR
+	ld	e, (hl)
 	inc	hl
-	ld	d,(hl)
+	ld	d, (hl)
 
 	; skip if DE = 0x0000
-	ld	a,e
+	ld	a, e
 	or	d
 	jr	z, skip_verstr
 
@@ -200,6 +213,7 @@ found_moon:
 	call	BDOS
 
 skip_verstr:
+
 ; load song
 	call	load_file
 	or	a
@@ -222,12 +236,32 @@ main_check_file:
 	jp	BDOS
 
 
+;********************************************
+; load_pcm
+; Load user pcm
+;
+load_pcm:
+	xor	a
+	call change_page3
+	ld	a, (MDR_PACKED)
+	or	a
+	ret	z
+	ld	de, str_loading_pcm
+	call out_str
+
+	; load pcm
+	call	MDRV_LOADPCM
+
+	ld	 de, str_ok
+	call out_str
+	jp   out_lf
 
 ;********************************************
 ;start_play
 ;Initialize workarea
 ;
 start_play:
+	call	load_pcm
 
 	call	MDRV_INIT
 
@@ -269,7 +303,7 @@ start_play_fin:
 ; check the file format is valid
 check_file:
 	ld	hl, $8000
-	ld	de, check_file_id
+	ld	de, str_file_id
 	ld	c, $4
 	xor	a
 	call	change_page3
@@ -285,9 +319,6 @@ check_file_lp:
 	ret
 
 
-check_file_id:
-	db  "MDRV"
-
 
 ;********************************************
 ; load_file
@@ -297,16 +328,31 @@ check_file_id:
 ; dest : DE
 
 load_file:
-	ld	de, str_loading_song
-	ld	c, $09 ; output string
-	call	BDOS
+	ld	 de, str_loading_song
+	call out_str
 
+	; try with fullname
 	ld	de, FCB
 	ld	c, $0f ; file open
 	call	BDOS
 	or	a
+	jr	z, load_file_start
+
+	; with .MDR extension
+	ld	hl, str_mdrext
+	ld	de, FCB + 9
+	ld	bc, $0003
+	ldir
+
+	; open..
+	ld	de, FCB
+	ld	c, $0f ; file open
+	call	BDOS
+	or	a
+	; failed if nz
 	ret	nz
 
+load_file_start:
 	ld	de, dos_dta
 	ld	c, $1a   ; set DTA
 	call	BDOS
@@ -318,7 +364,7 @@ load_file:
 load_file_lp01:
 
 	push	hl
-	ld	de,FCB
+	ld	de, FCB
 	ld	c, $14   ; sequencial read
 	call	BDOS
 	pop	hl
@@ -337,7 +383,7 @@ load_file_lp01:
 	jr	nz, load_file_eof
 	ld	a, h
 	cp	$c0
-	jr	c, load_file_lp01 ; hl > $c000
+	jr	c, load_file_lp01 ; hl >= $c000
 
 
 	ld	hl, $8000
@@ -348,6 +394,10 @@ load_file_lp01:
 	jr	load_file_lp01
 
 load_file_eof:
+	ld	de, str_ok
+	call out_str
+	call out_lf
+
 	ld	de, FCB
 	ld	c, $10  ; close
 	jp	BDOS
@@ -394,9 +444,13 @@ load_driver_lp01:
 	jr	nz, load_driver_eof
 	ld	a, h
 	cp	$80
-	jr	c, load_driver_lp01 ; hl > $8000
+	jr	c, load_driver_lp01 ; hl >= $8000
 
 load_driver_eof:
+	ld	de, str_ok
+	call out_str
+	call out_lf
+
 	ld	de, driver_fcb
 	ld	c, $10  ; close
 	jp	BDOS
@@ -404,7 +458,7 @@ load_driver_eof:
 
 ;********************************************
 ; changes page3
-; in   : A = page
+; in   : A = bank number(0 = start of song file)
 ; dest : AF
 change_page3:
 
@@ -416,6 +470,15 @@ change_page3:
 ;//////////////////////////////////////
 ; routines for debugging
 ;//////////////////////////////////////
+
+;********************************************
+; out_str
+; output string
+; in : DE = string
+; dest: all
+out_str:
+	ld	c, $09 ; output string
+	jp	BDOS
 
 ;********************************************
 ; out_ch
@@ -597,7 +660,9 @@ driver_fcb:
 ;********************************************
 ; Strings
 str_loader_name:
-	db "MOONLOADER VER 150301",$0d,$0a,'$'
+	db "MOONLOADER"
+	db "VER 160205"
+	db  $0d,$0a,'$'
 
 str_moon_fnd:
 	db "MOONSOUND DETECTED",$0d,$0a,'$'
@@ -606,10 +671,20 @@ str_moon_not:
 	db "MOONSOUND IS NOT FOUND",$0d,$0a,'$'
 
 str_loading_song:
-	db "LOADING SONG...",$0d,$0a,'$'
+	db "LOADING SONG...",'$'
 
 str_loading_driver:
-	db "LOADING DRIVER...",$0d,$0a,'$'
+	db "LOADING DRIVER...",'$'
+
+str_loading_pcm:
+	db "LOADING PCM...",'$'
+
+str_lf:
+	db $0d,$0a,'$'
+
+str_ok:
+	db "OK",'$'
+
 
 str_play:
 	db "PLAY",$0d,$0a,'$'
@@ -622,6 +697,12 @@ str_format_error:
 
 str_hextbl:
 	db "0123456789ABCDEF"
+
+str_mdrext:
+	db "MDR"
+
+str_file_id:
+	db  "MDRV"
 
 
 dos_dta:
