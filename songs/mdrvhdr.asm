@@ -3,7 +3,7 @@
 ; 2007/05/15 second version
 ; 2007/05/22 third version
 ; 2015/03/02 Added PCMFILE definition.
-; 2016/02/04 Improved packed PCM definition. 
+; 2016/02/04 Improved packed PCM definition.
 
 	.include "define.inc"
 
@@ -73,6 +73,7 @@ pcm_flags:
 	db $00 ; start bank of PCM
 	db $00 ; size of PCM banks
 	db $00 ; size of last bank(x * 0x100)
+	db $00 ; large count of PCM banks
 
 	; pos: 0x40 (PCM filename; the format should be 8.3)
 	.org $8040

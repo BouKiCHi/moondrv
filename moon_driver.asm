@@ -3021,6 +3021,9 @@ moon_load_pcm:
 	or	a
 	ret	z
 
+	; initialize to enable OPL4 function
+	call moon_init
+
 	; memory write mode
 	ld	de,$0211 
 	call	moon_wave_out
@@ -3040,8 +3043,8 @@ moon_load_pcm:
 
 	; PCM number of banks
 	ld	a, (MDR_BANKS)
-	dec	a
 	ld	(moon_pcm_numbanks), a
+	ld	(moon_pcm_bank_count), a 
 	
 	; size of lastbank
 	ld	a, (MDR_LASTS)
@@ -3087,9 +3090,9 @@ moon_pcm_copy:
 
 moon_pcm_chk_last:
 
-	ld	a, (moon_pcm_numbanks)
+	ld	a, (moon_pcm_bank_count)
 	dec	a
-	ld	(moon_pcm_numbanks), a
+	ld	(moon_pcm_bank_count), a
 	or	a
 	jr	nz, moon_pcm_copy_lp
 
@@ -3112,8 +3115,8 @@ moon_pcm_copy_lp:
 	or	c
 	jr	nz, moon_pcm_copy_lp
 
-	; check bank	
-	ld	a, (moon_pcm_numbanks)
+	; loop if count > 0
+	ld	a, (moon_pcm_bank_count)
 	or	a
 	jr	nz, moon_pcm_copy
 
@@ -3123,6 +3126,9 @@ moon_pcm_end:
 	ld	de, $0210 
 	jp	moon_wave_out
 
+
+moon_pcm_bank_count:
+	db	$00
 
 moon_pcm_bank:
 	db	$00

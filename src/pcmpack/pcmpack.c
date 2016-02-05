@@ -30,6 +30,8 @@ typedef struct {
   int pcm_startbank; // pos:0x31 start bank (* 8192)
   int pcm_banks; // pos:0x32 number of PCM banks (* 8192)
   int pcm_lastsize; // pos:0x32 size of last bank (* 0x100)
+
+  // actual size = (pcm_banks * 0x2000) + (pcm_lastsize * 0x100)
 } _mdr;
 
 
@@ -245,7 +247,7 @@ int packPCMintoMDR(const char *file, const char *pcm, _mdr *m)
   m->pcm_packed = 1;
   m->pcm_startadrs = 0x20; // SRAM開始アドレス
   m->pcm_startbank = start_pos / BANK_SIZE; // 開始バンク
-  m->pcm_banks = pcm_blocks; // ブロック数
+  m->pcm_banks = pcm_blocks - 1; // ブロック数
   m->pcm_lastsize = (block_len + 0xff) / 0x100; // 最後のブロックサイズ
 
   printf("PCM StartAdrs:%02xh\n", m->pcm_startadrs);
