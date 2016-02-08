@@ -3046,6 +3046,7 @@ MDB_ADRHI:	equ MDB_BASE + 1
 MDB_ADRMI:	equ MDB_BASE + 2
 MDB_ADRLO:	equ MDB_BASE + 3
 MDB_RESULT:	equ MDB_BASE + 4
+MDB_ROM:	equ MDB_BASE + 5
 
 
 ; reset R/W address pointer
@@ -3096,6 +3097,42 @@ moon_set_sram_adrs:
 	ld		d, $05
 	jp		moon_wave_out
 	
+
+; check ROM
+moon_check_rom:
+
+	xor		a
+	ld		(MDB_ADRHI), a
+	ld		(MDB_ADRLO), a
+	ld		a, $12
+	ld		(MDB_ADRMI), a
+	
+	; A <- (001200h)
+	call	moon_set_sram_adrs
+	ld		b, $08
+	ld		hl, str_romchk
+
+	; check loop
+moon_check_rom_lp:
+	ld		a, (hl)
+	ld		e, a
+
+	; A <- (SRAM)
+	ld		d, $06
+	call	moon_wave_in
+	ld		(MDB_ROM), a
+	cp		e
+	ret		nz
+	inc		hl
+	djnz	moon_check_rom_lp
+	ret
+	
+str_romchk:
+	db "Copyright"
+
+
+
+
 
 ; check SRAM
 moon_check_sram:
@@ -3148,7 +3185,7 @@ moon_check_sram:
 	ret
 
 
-; load pcm
+; Load User PCM
 moon_load_pcm:
 	xor		a
 	call	change_page3
@@ -3168,8 +3205,21 @@ moon_load_pcm:
 	ld		de, $0211 
 	call	moon_wave_out
 
+	; check ROM
+	call	moon_check_rom
+	jr		z, check_sram_start
+
+	; failed to check ROM
+	ld		a, $03
+	ld		(MDB_LDFLAG), a
+	; address reset
+	call	moon_reset_sram_adrs
+	ret
+
+check_sram_start:
+	; check sram
 	call	moon_check_sram
-	jr		z, moon_sram_found
+	jr		z, sram_found
 	
 	; result
 	ld		(MDB_RESULT), a
@@ -3179,96 +3229,98 @@ moon_load_pcm:
 	ld		(MDB_LDFLAG), a
 	ret
 	
-moon_sram_found:
+sram_found:
 	; reset SRAM address
 	call	moon_reset_sram_adrs
 
 
 	; PCM number of banks
-	ld	a, (MDR_BANKS)
-	ld	(moon_pcm_numbanks), a
-	ld	(moon_pcm_bank_count), a 
+	ld		a, (MDR_BANKS)
+	ld		(moon_pcm_numbanks), a
+	ld		(moon_pcm_bank_count), a 
 	
 	; size of lastbank
-	ld	a, (MDR_LASTS)
-	ld	(moon_pcm_lastsize), a
+	ld		a, (MDR_LASTS)
+	ld		(moon_pcm_lastsize), a
 
 	; size of start page
-	ld	a, (MDR_STPCM)
-	ld	(moon_pcm_bank), a
+	ld		a, (MDR_STPCM)
+	ld		(moon_pcm_bank), a
 	
 	; start of source address
-	ld  hl, $8000
+	ld		hl, $8000
 
 	; address = $A000 if (start_bank & 1) != 0
-	and $01
-	or	a
-	jr	z, moon_pcm_copy
+	and		$01
+	or		a
+	jr		z, pcm_copy_bank
+
 	; bank1 = $A000
-	ld	h, $A0
+	ld		h, $A0
 
 	; RAM to PCM 
-moon_pcm_copy:
+pcm_copy_bank:
 
-	ld	bc, $2000
+	; bank size = $2000
+	ld		bc, $2000
 
-	; bank change
-	ld	 a, (moon_pcm_bank)
-	push af
-	call change_page3
-	pop  af
+	; Change to user pcm bank
+	ld		a, (moon_pcm_bank)
+	push	af
+	call	change_page3
+	pop 	af
 
-	inc  a
-	ld   (moon_pcm_bank), a
+	inc		a
+	ld		(moon_pcm_bank), a
 
 	; HL >= $C000
-	ld	a, h
-	cp	$C0
-	jr	c, moon_pcm_chk_last
+	ld		a, h
+	cp		$C0
+	jr		c, pcm_chk_last
 
-	ld	hl, $8000
-	
+	ld		hl, $8000
+
 	; lastbank is smaller than other banks.
 
-moon_pcm_chk_last:
+pcm_chk_last:
 
-	ld	a, (moon_pcm_bank_count)
-	dec	a
-	ld	(moon_pcm_bank_count), a
-	or	a
-	jr	nz, moon_pcm_copy_lp
+	ld		a, (moon_pcm_bank_count)
+	dec		a
+	ld		(moon_pcm_bank_count), a
+	or		a
+	jr		nz, pcm_copy_lp
 
 	; set size of lastbank
-	ld	a, (moon_pcm_lastsize)
-	ld	b, a
+	ld		a, (moon_pcm_lastsize)
+	ld		b, a
 
-moon_pcm_copy_lp:
-	ld	a, (hl)
-	ld	e, a
-	ld	d, $06
+pcm_copy_lp:
+	ld		a, (hl)
+	ld		e, a
+	ld		d, $06
 
 	; A -> (PCM SRAM)
 	call	moon_wave_out
 
-	inc	hl	
-	dec	bc
+	inc		hl
+	dec		bc
 	
 	; loop if BC > 0
-	ld	a, b
-	or	c
-	jr	nz, moon_pcm_copy_lp
+	ld		a, b
+	or		c
+	jr		nz, pcm_copy_lp
 
 	; loop if count > 0
-	ld	a, (moon_pcm_bank_count)
-	or	a
-	jr	nz, moon_pcm_copy
+	ld		a, (moon_pcm_bank_count)
+	or		a
+	jr		nz, pcm_copy_bank
 
-moon_pcm_end:
+	; end of PCM copy
+pcm_copy_end:
 
 	; normal mode
-	ld	de, $0210 
-	jp	moon_wave_out
-
+	ld		de, $0210 
+	jp		moon_wave_out
 
 moon_pcm_bank_count:
 	db	$00
