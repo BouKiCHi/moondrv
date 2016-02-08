@@ -115,7 +115,22 @@ S_OPL3_TABLE:	equ	S_TRACK_TABLE + 24
 	org	$4020
 
 str_moondrv:
-	db	"MOONDRIVER VER 160205",$0d,$0a,'$'
+	db	"MOONDRIVER VER 160208",$0d,$0a,'$'
+
+
+;********************************************
+; work for debug 
+	IF DEFINED MOON_HOOT
+	
+MDB_BASE: equ $2F0
+
+	ELSE
+	
+MDB_BASE:
+	ds		$08
+
+	ENDIF
+
 
 
 ;********************************************
@@ -2572,6 +2587,19 @@ moon_wave_out:
 	out	(MOON_WDAT),a
 	ret
 
+;********************************************
+; read moonsound wave register
+; in   : D = an address of register
+; out : A = read register
+
+moon_wave_in:
+	; call	moon_wait
+	ld	a, d
+	out	(MOON_WREG),a
+	; call	moon_wait
+	in	a, (MOON_WDAT)
+	ret
+
 ;
 ;********************************************
 ; add number of channel to the index of register
@@ -3012,33 +3040,148 @@ moon_key_fmfreq:
 ;********************************************
 ;  load pcm
 
+
+MDB_LDFLAG: equ MDB_BASE 
+MDB_ADRHI:	equ MDB_BASE + 1
+MDB_ADRMI:	equ MDB_BASE + 2
+MDB_ADRLO:	equ MDB_BASE + 3
+MDB_RESULT:	equ MDB_BASE + 4
+
+
+; reset R/W address pointer
+moon_reset_sram_adrs:
+	ld		a, (MDR_DSTPCM)
+	ld		(MDB_ADRHI), a
+	xor		a
+	ld		(MDB_ADRMI), a
+	ld		(MDB_ADRLO), a
+	jp		moon_set_sram_adrs
+
+
+; incliments address pointer
+moon_inc_sram_adrs:
+	ld		a, (MDB_ADRLO)
+	inc		a
+	ld		(MDB_ADRLO), a
+	ret		nz
+
+	ld		a, (MDB_ADRMI)
+	inc		a
+	ld		(MDB_ADRMI), a
+	ret		nz
+
+	ld		a, (MDB_ADRHI)
+	inc		a
+	ld		(MDB_ADRHI), a
+	ret
+	
+
+; set SRAM address
+moon_set_sram_adrs:
+
+	ld		a, (MDB_ADRHI)
+	ld		e, a
+	ld		d, $03
+	call	moon_wave_out
+
+	ld		a, (MDB_ADRMI)
+	ld		e, a
+	ld		d, $04
+	call	moon_wave_out
+
+	; the last should be lowest to set chip's internal pointer.
+	; (trigger to set)
+	ld		a, (MDB_ADRLO)
+	ld		e, a
+	ld		d, $05
+	jp		moon_wave_out
+	
+
+; check SRAM
+moon_check_sram:
+
+	; $77 -> ($200000)
+	call	moon_reset_sram_adrs
+	ld		de, $0677
+	call	moon_wave_out
+
+	; ok if $77 <- ($200000)
+	call	moon_set_sram_adrs
+	ld		d, $06
+	call	moon_wave_in
+	cp		$77
+	ret		nz
+
+	; $88 -> ($200000)
+	call	moon_set_sram_adrs
+	ld		de, $0688
+	call	moon_wave_out
+
+	; ok if $88 <- ($200000)
+	call	moon_set_sram_adrs
+	ld		d, $06
+	call	moon_wave_in
+	cp		$88
+	ret		nz
+
+	; $99 -> ($200001)
+	ld		a, $01
+	ld		(MDB_ADRLO), a
+	call	moon_set_sram_adrs
+	ld		de, $0699
+	call	moon_wave_out
+
+	; ok if $99 <- ($200001)
+	call	moon_set_sram_adrs
+	ld		d, $06
+	call	moon_wave_in
+	cp		$99
+	ret		nz
+
+	; ok if $88 <- ($200000)
+	xor		a
+	ld		(MDB_ADRLO), a
+	call	moon_set_sram_adrs
+	ld		d, $06
+	call	moon_wave_in
+	cp		$88
+	ret
+
+
+; load pcm
 moon_load_pcm:
-	xor	a
-	call change_page3
+	xor		a
+	call	change_page3
 
 	; is PCM packed song file?
-	ld	a, (MDR_PACKED)
-	or	a
-	ret	z
+	ld		a, (MDR_PACKED)
+	; output status for debug
+	ld		(MDB_LDFLAG), a
+
+	or		a
+	ret		z
 
 	; initialize to enable OPL4 function
-	call moon_init
+	call 	moon_init
 
 	; memory write mode
-	ld	de,$0211 
+	ld		de, $0211 
 	call	moon_wave_out
 
-	; PCM destination address
-	ld	a, (MDR_DSTPCM)
-	ld	e, a
-	ld	d, $03
-	call	moon_wave_out
-
-	ld	de,$0400
-	call	moon_wave_out
-
-	ld	de,$0500
-	call	moon_wave_out
+	call	moon_check_sram
+	jr		z, moon_sram_found
+	
+	; result
+	ld		(MDB_RESULT), a
+	
+	; SRAM is not found
+	ld		a, $02
+	ld		(MDB_LDFLAG), a
+	ret
+	
+moon_sram_found:
+	; reset SRAM address
+	call	moon_reset_sram_adrs
 
 
 	; PCM number of banks
@@ -3064,7 +3207,7 @@ moon_load_pcm:
 	; bank1 = $A000
 	ld	h, $A0
 
-	; ram to PCM 
+	; RAM to PCM 
 moon_pcm_copy:
 
 	ld	bc, $2000
@@ -3077,7 +3220,6 @@ moon_pcm_copy:
 
 	inc  a
 	ld   (moon_pcm_bank), a
-
 
 	; HL >= $C000
 	ld	a, h
@@ -3104,10 +3246,11 @@ moon_pcm_copy_lp:
 	ld	a, (hl)
 	ld	e, a
 	ld	d, $06
-	inc	hl
 
+	; A -> (PCM SRAM)
 	call	moon_wave_out
-	
+
+	inc	hl	
 	dec	bc
 	
 	; loop if BC > 0
@@ -3138,6 +3281,9 @@ moon_pcm_numbanks:
 	
 moon_pcm_lastsize:
 	db	$00
+
+
+
 
 
 ;********************************************
