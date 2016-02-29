@@ -115,7 +115,7 @@ S_OPL3_TABLE:	equ	S_TRACK_TABLE + 24
 	org	$4020
 
 str_moondrv:
-	db	"MOONDRIVER VER 160208",$0d,$0a,'$'
+	db	"MOONDRIVER VER 160229",$0d,$0a,'$'
 
 
 ;********************************************
@@ -742,6 +742,8 @@ seq_init_fmbase_lp1:
 ;this makes all keys off
 ;
 moon_seq_all_keyoff:
+	call moon_seq_all_release_fm
+
 	ld	ix,seq_work
 	xor	a
 	ld	(seq_cur_ch), a
@@ -763,20 +765,38 @@ seq_all_keyoff_lp:
 	jr	seq_all_keyoff_lp
 
 seq_all_keyoff_end:
-
+	ret
 ;
 ; set RR to all fm channnels.
 moon_seq_all_release_fm:
-  ; e = $80(reg adrs) d = (sl = $00, rr = $0f)
-	ld	de, $0F80
+  ; D = $80(reg adrs) E = (sl = $00, rr = $0f)
+	ld	de, $800F
 	ld	b, 18
-moon_seq_all_release_fm_lp:
-	ld	a, b
-	dec a
+	ld	hl, fm_opbtbl
+
+; channel loop
+moon_set_rr_ch_lp:
+	; read opsel tbl
+	ld	a, (hl)
+	ld  (seq_opsel), a
+	inc	hl
+
+	ld	c, 4
+moon_set_rr_op_lp:
+	; write fm op
 	push de
-	call moon_write_fmreg_nch
+	call moon_write_fmop
 	pop  de
-	djnz moon_seq_all_release_fm_lp
+
+	; add opsel
+	ld	a, (seq_opsel)
+	add	a, $03
+	ld	(seq_opsel), a
+
+	;
+	dec	c
+	jr	nz, moon_set_rr_op_lp
+	djnz moon_set_rr_ch_lp
 	ret
 
 
@@ -2105,6 +2125,7 @@ moon_set_fmtone2:
 	push	bc
 	push	hl
 
+	; repeat 2times
 	ld	c, $02
 
 	jr	moon_set_fmtone_start_lp
@@ -2120,7 +2141,8 @@ moon_set_fmtone:
 	push	bc
 	push	hl
 
-	ld	c,$04
+ ; repeat 4 times
+	ld	c, $04
 
 moon_set_fmtone_start_lp:
 	ld	l, (ix + IDX_TADR)
@@ -2274,8 +2296,8 @@ tonesel_skip01:
 	inc	hl
 tonesel_skip02:
 	push	de
-	ld	de,$000a
-	add	hl,de
+	ld	de, $000a
+	add	hl, de
 	pop	de
 
 	jr	tonesel_lp01

@@ -352,12 +352,8 @@ Reg.$60 =
 ((AR & 0x0f) << 4) |
 (DR & 0x0f)
 
-Reg.$60 =
-((AR & 0x0f) << 4) |
-(DR & 0x0f)
-
 Reg.$80 =
-((SR & 0x0f) << 4) |
+((SL & 0x0f) << 4) |
 (RR & 0x0f)
 
 Reg.$E0 =
@@ -367,7 +363,7 @@ Reg.$E0 =
 
 ■パラメータ詳細
 FB = FeedBack
-ST = CONNECTION(オペレータ接続)
+ST = CON(オペレータ接続)
 TR = AM (振幅変調) on/off
 VI = VIB (ビブラート) on/off
 SU = EGT(エンベロープタイプ) on/off : 1 = サスティーンレベル維持
