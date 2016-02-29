@@ -79,10 +79,10 @@ typedef struct st_line {
 // MoonDriver
 #define _SET_TONETBL    0x2E
 #define _SET_FMOP       0x2F
-#define _EX_OPL3        0x30
-#define _OPL4_NOUSE     0x31
-
-#define _PCM_FILE     0x32
+#define _SET_FMOP_FOUR  0x30
+#define _EX_OPL3        0x31
+#define _OPL4_NOUSE     0x32
+#define _PCM_FILE       0x33
 
 
 #define	_TRACK			0x40

@@ -79,9 +79,11 @@ int main( int argc , char *argv[] )
 	in = out = 0;
 
 // タイトル表示
-	printf( "MML to MCK Data Converter Ver %d.%02d by Manbow-J\n"
-		"Extended for MoonDriver ver 0.2 \n",
-			(VersionNo / 100), (VersionNo % 100) );
+	printf("MML to MCK Data Converter Ver %d.%02d by Manbow-J\n",
+				 (VersionNo / 100), (VersionNo % 100) );
+
+// サブタイトル表示
+	printf("Extended for MoonDriver ver 0.3 \n");
 	//printf("patches by [OK] and 2ch mck thread people\n");
 	printf("DATE: %s\n", __DATE__);
 	printf("%s", patchstr);

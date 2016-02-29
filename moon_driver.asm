@@ -119,13 +119,13 @@ str_moondrv:
 
 
 ;********************************************
-; work for debug 
+; work for debug
 	IF DEFINED MOON_HOOT
-	
+
 MDB_BASE: equ $2F0
 
 	ELSE
-	
+
 MDB_BASE:
 	ds		$08
 
@@ -763,8 +763,21 @@ seq_all_keyoff_lp:
 	jr	seq_all_keyoff_lp
 
 seq_all_keyoff_end:
-	ret
 
+;
+; set RR to all fm channnels.
+moon_seq_all_release_fm:
+  ; e = $80(reg adrs) d = (sl = $00, rr = $0f)
+	ld	de, $0F80
+	ld	b, 18
+moon_seq_all_release_fm_lp:
+	ld	a, b
+	dec a
+	push de
+	call moon_write_fmreg_nch
+	pop  de
+	djnz moon_seq_all_release_fm_lp
+	ret
 
 
 ;********************************************
@@ -2810,19 +2823,19 @@ moon_key_data_damp_off:
 moon_key_off:
 	; key off
 
-	ld	a,(ix + IDX_DSEL)
+	ld	a, (ix + IDX_DSEL)
 	or	a
-	jr	z,moon_key_opl4off
+	jr	z, moon_key_opl4off
 
 moon_key_fmoff:
-	ld	a,(ix + IDX_KEY)
+	ld	a, (ix + IDX_KEY)
 	and	$20
 	ret	z
-	ld	a,(ix + IDX_KEY)
+	ld	a, (ix + IDX_KEY)
 	and	$df
-	ld	e,a
-	ld	d,$b0
-	ld	(ix + IDX_KEY),e
+	ld	e, a
+	ld	d, $b0
+	ld	(ix + IDX_KEY), e
 
 	; skip if jump flag is true
 	ld	a, (seq_jump_flag)
@@ -2832,13 +2845,13 @@ moon_key_fmoff:
 	jp	moon_write_fmreg ; key-off
 
 moon_key_opl4off:
-	ld	a,(ix + IDX_KEY)
+	ld	a, (ix + IDX_KEY)
 	and	$80
 	ret	z
-	ld	a,(ix + IDX_KEY)
+	ld	a, (ix + IDX_KEY)
 	and	$7f
-	ld	e,a
-	ld	d,$68
+	ld	e, a
+	ld	d, $68
 	ld	(ix + IDX_KEY),e
 	call	moon_add_reg_ch
 	jp	moon_wave_out ; key-off
@@ -3041,7 +3054,7 @@ moon_key_fmfreq:
 ;  load pcm
 
 
-MDB_LDFLAG: equ MDB_BASE 
+MDB_LDFLAG: equ MDB_BASE
 MDB_ADRHI:	equ MDB_BASE + 1
 MDB_ADRMI:	equ MDB_BASE + 2
 MDB_ADRLO:	equ MDB_BASE + 3
@@ -3075,7 +3088,7 @@ moon_inc_sram_adrs:
 	inc		a
 	ld		(MDB_ADRHI), a
 	ret
-	
+
 
 ; set SRAM address
 moon_set_sram_adrs:
@@ -3096,7 +3109,7 @@ moon_set_sram_adrs:
 	ld		e, a
 	ld		d, $05
 	jp		moon_wave_out
-	
+
 
 ; check ROM
 moon_check_rom:
@@ -3106,7 +3119,7 @@ moon_check_rom:
 	ld		(MDB_ADRLO), a
 	ld		a, $12
 	ld		(MDB_ADRMI), a
-	
+
 	; A <- (001200h)
 	call	moon_set_sram_adrs
 	ld		b, $08
@@ -3126,7 +3139,7 @@ moon_check_rom_lp:
 	inc		hl
 	djnz	moon_check_rom_lp
 	ret
-	
+
 str_romchk:
 	db "Copyright"
 
@@ -3202,7 +3215,7 @@ moon_load_pcm:
 	call 	moon_init
 
 	; memory write mode
-	ld		de, $0211 
+	ld		de, $0211
 	call	moon_wave_out
 
 	; check ROM
@@ -3220,15 +3233,15 @@ check_sram_start:
 	; check sram
 	call	moon_check_sram
 	jr		z, sram_found
-	
+
 	; result
 	ld		(MDB_RESULT), a
-	
+
 	; SRAM is not found
 	ld		a, $02
 	ld		(MDB_LDFLAG), a
 	ret
-	
+
 sram_found:
 	; reset SRAM address
 	call	moon_reset_sram_adrs
@@ -3237,8 +3250,8 @@ sram_found:
 	; PCM number of banks
 	ld		a, (MDR_BANKS)
 	ld		(moon_pcm_numbanks), a
-	ld		(moon_pcm_bank_count), a 
-	
+	ld		(moon_pcm_bank_count), a
+
 	; size of lastbank
 	ld		a, (MDR_LASTS)
 	ld		(moon_pcm_lastsize), a
@@ -3246,7 +3259,7 @@ sram_found:
 	; size of start page
 	ld		a, (MDR_STPCM)
 	ld		(moon_pcm_bank), a
-	
+
 	; start of source address
 	ld		hl, $8000
 
@@ -3258,7 +3271,7 @@ sram_found:
 	; bank1 = $A000
 	ld		h, $A0
 
-	; RAM to PCM 
+	; RAM to PCM
 pcm_copy_bank:
 
 	; bank size = $2000
@@ -3304,7 +3317,7 @@ pcm_copy_lp:
 
 	inc		hl
 	dec		bc
-	
+
 	; loop if BC > 0
 	ld		a, b
 	or		c
@@ -3319,7 +3332,7 @@ pcm_copy_lp:
 pcm_copy_end:
 
 	; normal mode
-	ld		de, $0210 
+	ld		de, $0210
 	jp		moon_wave_out
 
 moon_pcm_bank_count:
@@ -3330,7 +3343,7 @@ moon_pcm_bank:
 
 moon_pcm_numbanks:
 	db	$00
-	
+
 moon_pcm_lastsize:
 	db	$00
 

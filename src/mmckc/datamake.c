@@ -101,6 +101,7 @@ int wtb_tone_tbl[_WTB_TONE_MAX][2+64];		// HuSIC WaveTable Tone
 
 int tonetbl_tbl[_TONETBL_MAX][1024+2];
 int opl3op_tbl[_OPL3TBL_MAX][1024+2];
+int opl3op_flag[_OPL3TBL_MAX]; // operator flag
 
 DPCMTBL	dpcm_tbl[_DPCM_MAX];				// DPCM
 DPCMTBL	xpcm_tbl[_DPCM_MAX];				// XPCM(for HuSIC)
@@ -384,10 +385,11 @@ const HEAD head[] = {
 
     // for MoonDriver
 	{ "@TONE",           _SET_TONETBL    },
+	{ "@OPF",            _SET_FMOP_FOUR  },
 	{ "@OPL",            _SET_FMOP       },
 	{ "#EX-OPL3",	     _EX_OPL3	     },
 	{ "#OPL4-NOUSE",     _OPL4_NOUSE      },
-    { "#PCMFILE",        _PCM_FILE },
+	{ "#PCMFILE",        _PCM_FILE },
 	
 	{ "@DPCM",           _SET_DPCM_DATA  },
 	{ "@MP",             _SET_PITCH_MOD  },
@@ -941,10 +943,13 @@ void getLineStatus(LINE *lptr, int inc_nest )
 				setEffectSub(lptr, line, &status_end_flag, 0, _WTB_TONE_MAX, WTB_TONE_DEFINITION_IS_WRONG);
 				break;
 			/* MoonDriver */
-			  case _SET_TONETBL:
+				// 波形音源音色
+				case _SET_TONETBL:
 				setEffectSub(lptr, line, &status_end_flag, 0, _TONETBL_MAX, TONETBL_DEFINITION_IS_WRONG);
 				break;
+				// FM音源音色
 			  case _SET_FMOP:
+				case _SET_FMOP_FOUR:
 				setEffectSub(lptr, line, &status_end_flag, 0, _OPL3TBL_MAX, FM_TONE_DEFINITION_IS_WRONG);
 				break;
 			/* MoonDriver OPL3 FM */
@@ -2354,13 +2359,23 @@ void getOPL3tbl( LINE *lptr )
 	char	*ptr;
 
 	cnt = 0;
+	
+	int op_flag = 0;
 
 	for( line = 1; line <= lptr->line; line++ ) {
 		/* 音色データ発見？ */
-		if( lptr[line].status == _SET_FMOP ) {
+		if(lptr[line].status == _SET_FMOP ||
+			 lptr[line].status == _SET_FMOP_FOUR)
+		{
+			// 4opモード
+			if (lptr[line].status == _SET_FMOP_FOUR)
+				op_flag = 1;
+			
 			no = lptr[line].param;		/* 音色番号取得 */
 			ptr = lptr[line].str;
 			ptr++;				/* '{'の分を飛ばす */
+
+			opl3op_flag[no] = op_flag; // op_flag
 			opl3op_tbl[no][0] = 0;
 			offset = 0;
 			i = 1;
@@ -2420,7 +2435,8 @@ void getOPL3tbl( LINE *lptr )
 
 
 		/* 音色定義だけど_SAME_LINEの時はエラー */
-		} else if( lptr[line].status == (_SET_FMOP|_SAME_LINE) ) {
+		} else if( lptr[line].status == (_SET_FMOP|_SAME_LINE) ||
+					     lptr[line].status == (_SET_FMOP_FOUR|_SAME_LINE)) {
 			dispError( FM_TONE_DEFINITION_IS_WRONG, lptr[line].filename, line );
 		/* インクルードファイル処理 */
 		} else if( lptr[line].status == _INCLUDE ) {
@@ -3410,14 +3426,14 @@ void writeToneTable( FILE *fp, int tbl[_TONETBL_MAX][1024+2], char *str, int max
  Output:
 	無し
 --------------------------------------------------------------*/
-void writeOpl3tbl( FILE *fp, int tbl[_OPL3TBL_MAX][1024+2], char *str, int max )
+void writeOPL3tbl( FILE *fp, char *str, int max )
 {
 	int		i, j, k, x;
 
 	fprintf( fp, "%s_data_table:\n", str );
 	if( max != 0 ) {
 		for( i = 0; i < max; i++ ) {
-			if( tbl[i][0] != 0 ) {
+			if( opl3op_tbl[i][0] != 0 ) {
 				fprintf( fp, "\tdw\t%s_%03d\n", str, i );
 			} else {
 				fprintf( fp, "\tdw\t0\n" );
@@ -3425,50 +3441,59 @@ void writeOpl3tbl( FILE *fp, int tbl[_OPL3TBL_MAX][1024+2], char *str, int max )
 		}
 
 		for( i = 0; i < max; i++ ) {
-			if( tbl[i][0] != 0 ) {
+			if( opl3op_tbl[i][0] != 0 ) {
 				fprintf( fp, "\n%s_%03d:\n", str, i );
 				x = 0;
-
+				
+				int cnt_val = opl3op_tbl[i][2] & 0x03;
+				
+				if (opl3op_flag[i])
+				{
+					// 4OPモード
+					int opf_table[]= { 0, 2, 1, 3 };
+					cnt_val = opf_table[cnt_val];
+				}
+				
 				// Reg.$C0
 				fprintf( fp , "\tdb\t$%02x\n",
-					((tbl[i][1]&0x07)<<1) |
-					((tbl[i][2]&0x02)>>1) );
-
+								((opl3op_tbl[i][1] & 0x07)<<1) |
+								((cnt_val & 0x01)) );
+				
 				// Reg.$C0 + 3
 				fprintf( fp , "\tdb\t$%02x\n",
-					((tbl[i][2]&0x01)) );
+								((cnt_val & 0x02)>>1) );
 
 				// Reg.$BD
-                fprintf( fp , "\tdb\t$00\n\n");
+				fprintf( fp , "\tdb\t$00\n\n");
                 
-				for( j = 0, k = 6; j < (tbl[i][0]-5)/12; k+=12,j++ )
+				for( j = 0, k = 6; j < (opl3op_tbl[i][0]-5)/12; k+=12,j++ )
 				{	
 					// Reg.$20
 					fprintf( fp , "\tdb\t$%02x\n",
-						((tbl[i][k]&0x1)<<7) |
-						((tbl[i][k+1]&0x1)<<6) |
-						((tbl[i][k+2]&0x1)<<5) |
-						((tbl[i][k+3]&0x1)<<4) |
-						((tbl[i][k+4]&0xf)) );
+						((opl3op_tbl[i][k]&0x1)<<7) |
+						((opl3op_tbl[i][k+1]&0x1)<<6) |
+						((opl3op_tbl[i][k+2]&0x1)<<5) |
+						((opl3op_tbl[i][k+3]&0x1)<<4) |
+						((opl3op_tbl[i][k+4]&0xf)) );
 
 					// Reg.$40
 					fprintf( fp , "\tdb\t$%02x\n",
-						((tbl[i][k+5]&0x3)<<6) |
-						((tbl[i][k+6]&0x3f)) );
+						((opl3op_tbl[i][k+5]&0x3)<<6) |
+						((opl3op_tbl[i][k+6]&0x3f)) );
 
 					// Reg.$60
 					fprintf( fp , "\tdb\t$%02x\n",
-						((tbl[i][k+7]&0x0f)<<4) |
-						((tbl[i][k+8]&0x0f)) );
+						((opl3op_tbl[i][k+7]&0x0f)<<4) |
+						((opl3op_tbl[i][k+8]&0x0f)) );
 
 					// Reg.$80
 					fprintf( fp , "\tdb\t$%02x\n",
-						((tbl[i][k+9]&0x0f)<<4) |
-						((tbl[i][k+10]&0x0f)) );
+						((opl3op_tbl[i][k+9]&0x0f)<<4) |
+						((opl3op_tbl[i][k+10]&0x0f)) );
 
 					// Reg.$E0
 					fprintf( fp , "\tdb\t$%02x\n\n",
-						((tbl[i][k+11]&0x07)) );
+						((opl3op_tbl[i][k+11]&0x07)) );
 
 				}
 			}
@@ -4303,7 +4328,7 @@ char *setCommandBufN1( CMD *cmd, int com_no, char *ptr, int line, int enable )
 	}
 	ptr += cnt;
 	// パラメータ範囲チェック
-	if( 0x0008 > freq && freq >= 0x07f2 ) {
+	if( 0x0008 <= freq || freq >= 0x07f2 ) {
 		dispError( ABNORMAL_PITCH_VALUE, cmd->filename, line );
 		return ptr+1;
 	}
@@ -7022,8 +7047,8 @@ int data_make( void )
 		// ToneTable
 		writeToneTable( fp, tonetbl_tbl, "ttbl", tonetbl_max );
 
-		// Opl3tbl
-		writeOpl3tbl( fp, opl3op_tbl, "opl3tbl", opl3tbl_max );
+		// OPL3 FM音色
+		writeOPL3tbl( fp, "opl3tbl", opl3tbl_max );
 
 		/* XPCM書き込み */
 		writeXPCM( fp, xpcm_tbl, "xpcm_data", xpcm_max );
