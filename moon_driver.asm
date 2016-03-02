@@ -115,7 +115,7 @@ S_OPL3_TABLE:	  equ	S_TRACK_TABLE + 24
 
 str_moondrv:
 	db	"MOONDRIVER "
-	db "VER 160229"
+	db "VER 160303"
 	db $0d,$0a,'$'
 
 ;********************************************
@@ -3316,16 +3316,13 @@ pcm_copy_bank:
 	; reset source address
 	ld		hl, $8000
 
-	; lastbank is smaller than other banks.
+	; is the bank last?
 pcm_chk_last:
-
 	ld		a, (moon_pcm_bank_count)
-	dec		a
-	ld		(moon_pcm_bank_count), a
 	or		a
 	jr		nz, pcm_copy_lp
 
-	; set size of lastbank
+	; use lastsize if the bank is last one.
 	ld		a, (moon_pcm_lastsize)
 	ld		b, a
 
@@ -3345,10 +3342,13 @@ pcm_copy_lp:
 	or		c
 	jr		nz, pcm_copy_lp
 
-	; loop if count > 0
+	; end if count is 0
 	ld		a, (moon_pcm_bank_count)
 	or		a
-	jr		nz, pcm_copy_bank
+	jr		z, pcm_copy_end
+	dec		a
+	ld		(moon_pcm_bank_count), a
+	jr		pcm_copy_bank
 
 	; end of PCM copy
 pcm_copy_end:

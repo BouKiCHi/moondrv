@@ -41,11 +41,11 @@ MDB_BASE:	equ 002F0H
 MDB_LDFLAG:	equ 002F0H
 MDB_RESULT:	equ 002F4H
 MDB_ROM:	equ 002F5H
-MDR_BANKS:	equ 08032H
 MDR_DSTPCM:	equ 08030H
 MDR_ID:		equ 08000H
 MDR_LASTS:	equ 08033H
 MDR_PACKED:	equ 0802AH
+MDR_PCMBANKS:	equ 08032H
 MDR_STPCM:	equ 08031H
 MOON_BASE:	equ 000C4H
 MOON_DAT1:	equ 000C5H
@@ -101,7 +101,7 @@ fm_opbtbl:	equ 0481DH
 fm_testtone:	equ 047F4H
 fmtone_set_tvp:	equ 04F77H
 fmtone_skip_set_fbs2: equ 04F6EH
-freq_table:	equ 054CCH
+freq_table:	equ 054CEH
 get_a_table:	equ 04865H
 get_hl_table:	equ 04854H
 get_table:	equ 0484FH
@@ -140,10 +140,10 @@ moon_load_fmvol: equ 04F90H
 moon_load_fmvol_lp: equ 04F98H
 moon_load_pcm:	equ 05437H
 moon_opl4_set_keyreg: equ 05311H
-moon_pcm_bank:	equ 054C9H
-moon_pcm_bank_count: equ 054C8H
-moon_pcm_lastsize: equ 054CBH
-moon_pcm_numbanks: equ 054CAH
+moon_pcm_bank:	equ 054CBH
+moon_pcm_bank_count: equ 054CAH
+moon_pcm_lastsize: equ 054CDH
+moon_pcm_numbanks: equ 054CCH
 moon_proc_tracks: equ 04982H
 moon_reset_sram_adrs: equ 05377H
 moon_seq_all_keyoff: equ 0493CH
@@ -185,8 +185,8 @@ oct_div_lp:	equ 04F0FH
 pause_venv:	equ 04E85H
 pcm_chk_last:	equ 054A1H
 pcm_copy_bank:	equ 0548AH
-pcm_copy_end:	equ 054C2H
-pcm_copy_lp:	equ 054AFH
+pcm_copy_end:	equ 054C4H
+pcm_copy_lp:	equ 054ABH
 penv_fm_dec_oct: equ 04B48H
 penv_fm_inc_oct: equ 04B53H
 penv_fm_inc_oct_lp: equ 04B56H

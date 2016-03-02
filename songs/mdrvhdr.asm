@@ -69,7 +69,7 @@ pcm_flags:
 	dw  $0000
 
 	; pos: 0x30
-	db $00 ; start address (x * 0x10000)
+	db $00 ; start address of OPL4 SRAM(x * 0x10000)
 	db $00 ; start bank of PCM
 	db $00 ; size of PCM banks
 	db $00 ; size of last bank(x * 0x100)

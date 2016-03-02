@@ -661,7 +661,7 @@ driver_fcb:
 ; Strings
 str_prog_title:
 	db "MOONLOADER "
-	db "VER 160205"
+	db "VER 160303"
 	db $0d,$0a,'$'
 
 str_moon_fnd:
