@@ -53,31 +53,30 @@ FM_BASECH:	equ	24
 ; MDR file format
 ;********************************************
 
-MDR_ID:     equ $8000
-MDR_PACKED: equ $802A ; 1 if packed
+MDR_ID:        equ $8000
+MDR_PACKED:    equ $802A ; 1 if packed
 
-MDR_DSTPCM: equ $8030 ; destination address of PCM
-MDR_STPCM:  equ $8031 ; PCM start bank
-MDR_BANKS:  equ $8032 ; PCM banks
-MDR_LASTS:  equ $8033 ; PCM size of lastbank
+MDR_DSTPCM:    equ $8030 ; destination address of PCM
+MDR_STPCM:     equ $8031 ; PCM start bank
+MDR_PCMBANKS:  equ $8032 ; PCM banks
+MDR_LASTS:     equ $8033 ; PCM size of lastbank
 
 
 S_DEVICE_FLAGS:	equ	$8007
 
 S_TRACK_TABLE:	equ	$8010
-S_TRACK_BANK:	equ	S_TRACK_TABLE + 2
-S_LOOP_TABLE:	equ	S_TRACK_TABLE + 4
-S_LOOP_BANK:	equ	S_TRACK_TABLE + 6
-S_VENV_TABLE:	equ	S_TRACK_TABLE + 8
-S_VENV_LOOP:	equ	S_TRACK_TABLE + 10
-S_PENV_TABLE:	equ	S_TRACK_TABLE + 12
-S_PENV_LOOP:	equ	S_TRACK_TABLE + 14
-S_NENV_TABLE:	equ	S_TRACK_TABLE + 16
-S_NENV_LOOP:	equ	S_TRACK_TABLE + 18
-S_LFO_TABLE:	equ	S_TRACK_TABLE + 20
-S_INST_TABLE:	equ	S_TRACK_TABLE + 22
-S_OPL3_TABLE:	equ	S_TRACK_TABLE + 24
-
+S_TRACK_BANK:	  equ	S_TRACK_TABLE + 2
+S_LOOP_TABLE:	  equ	S_TRACK_TABLE + 4
+S_LOOP_BANK:	  equ	S_TRACK_TABLE + 6
+S_VENV_TABLE:	  equ	S_TRACK_TABLE + 8
+S_VENV_LOOP:	  equ	S_TRACK_TABLE + 10
+S_PENV_TABLE:	  equ	S_TRACK_TABLE + 12
+S_PENV_LOOP:	  equ	S_TRACK_TABLE + 14
+S_NENV_TABLE:	  equ	S_TRACK_TABLE + 16
+S_NENV_LOOP:	  equ	S_TRACK_TABLE + 18
+S_LFO_TABLE:	  equ	S_TRACK_TABLE + 20
+S_INST_TABLE:	  equ	S_TRACK_TABLE + 22
+S_OPL3_TABLE:	  equ	S_TRACK_TABLE + 24
 
 	org	$4000
 
@@ -115,8 +114,9 @@ S_OPL3_TABLE:	equ	S_TRACK_TABLE + 24
 	org	$4020
 
 str_moondrv:
-	db	"MOONDRIVER VER 160229",$0d,$0a,'$'
-
+	db	"MOONDRIVER "
+	db "VER 160229"
+	db $0d,$0a,'$'
 
 ;********************************************
 ; work for debug
@@ -3270,7 +3270,7 @@ sram_found:
 
 
 	; PCM number of banks
-	ld		a, (MDR_BANKS)
+	ld		a, (MDR_PCMBANKS)
 	ld		(moon_pcm_numbanks), a
 	ld		(moon_pcm_bank_count), a
 
@@ -3308,15 +3308,15 @@ pcm_copy_bank:
 	inc		a
 	ld		(moon_pcm_bank), a
 
-	; HL >= $C000
+	; reset address if HL >= $C000
 	ld		a, h
 	cp		$C0
 	jr		c, pcm_chk_last
 
+	; reset source address
 	ld		hl, $8000
 
 	; lastbank is smaller than other banks.
-
 pcm_chk_last:
 
 	ld		a, (moon_pcm_bank_count)

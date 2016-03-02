@@ -170,10 +170,10 @@ MDR_LASTS:  equ $8033 ; PCM size of lastbank
 
 x86_trap:
 
-	ld	de, str_loader_name
+	; displays program title.
+	ld	de, str_prog_title
 	ld	c, $09
 	call	BDOS
-
 
 	; check MoonSound and initalize it
 
@@ -659,10 +659,10 @@ driver_fcb:
 
 ;********************************************
 ; Strings
-str_loader_name:
-	db "MOONLOADER"
+str_prog_title:
+	db "MOONLOADER "
 	db "VER 160205"
-	db  $0d,$0a,'$'
+	db $0d,$0a,'$'
 
 str_moon_fnd:
 	db "MOONSOUND DETECTED",$0d,$0a,'$'
