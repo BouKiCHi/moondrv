@@ -41,7 +41,7 @@ MOON_STAT:	equ	MOON_BASE
 MOON_WREG:	equ	$7E
 MOON_WDAT:	equ	MOON_WREG+1
 
-RAM_PAGE3:	equ	$FE
+RAM_PAGE3: 	equ	$FE
 
 
 USE_CH: 	equ	24+18
@@ -115,7 +115,7 @@ S_OPL3_TABLE:	  equ	S_TRACK_TABLE + 24
 
 str_moondrv:
 	db	"MOONDRIVER "
-	db "VER 160303"
+	db "VER 160305"
 	db $0d,$0a,'$'
 
 ;********************************************
