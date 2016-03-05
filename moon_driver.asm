@@ -2589,10 +2589,10 @@ moon_wait:
 ; dest : AF
 
 moon_fm1_out:
-	; call	moon_wait
+	call	moon_wait
 	ld	a, d
 	out	(MOON_REG1), a
-	; call	moon_wait
+	call	moon_wait
 	ld	a, e
 	out	(MOON_DAT1), a
 	ret
@@ -2603,10 +2603,10 @@ moon_fm1_out:
 ; dest : AF
 
 moon_fm2_out:
-	; call	moon_wait
+	call	moon_wait
 	ld	a, d
 	out	(MOON_REG2), a
-	; call	moon_wait
+	call	moon_wait
 	ld	a, e
 	out	(MOON_DAT2), a
 	ret
@@ -2618,10 +2618,10 @@ moon_fm2_out:
 ; dest : AF
 
 moon_wave_out:
-	; call	moon_wait
+	call	moon_wait
 	ld	a, d
 	out	(MOON_WREG),a
-	; call	moon_wait
+	call	moon_wait
 	ld	a, e
 	out	(MOON_WDAT),a
 	ret
@@ -2632,10 +2632,10 @@ moon_wave_out:
 ; out : A = read register
 
 moon_wave_in:
-	; call	moon_wait
+	call	moon_wait
 	ld	a, d
 	out	(MOON_WREG),a
-	; call	moon_wait
+	call	moon_wait
 	in	a, (MOON_WDAT)
 	ret
 
