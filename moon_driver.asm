@@ -805,6 +805,10 @@ moon_set_rr_op_lp:
 ; Process tracks in 1/60 interrupts
 ;
 moon_proc_tracks:
+	; reset mapper
+	xor	a
+	call	change_page3
+
 	ld	ix,seq_work
 	xor	a
 	ld	(seq_cur_ch),a
