@@ -228,12 +228,22 @@ file_error:
 	jp	BDOS
 
 main_check_file:
-	call	check_file
-	jp	z, start_play
 
+	ld	de, str_check
+	call out_str
+
+	call	check_file
+	jp	nz, check_ng
+
+	; ok
+	ld		de, str_ok
+	call  out_str
+	call  out_lf
+	jp	start_play
+
+check_ng:
 	ld	de, str_format_error
-	ld	c, $09
-	jp	BDOS
+	jp	out_str
 
 
 ;********************************************
@@ -265,13 +275,15 @@ start_play:
 
 	call	MDRV_INIT
 
-	ld	de, str_play
-	ld	c, $09
-	call	BDOS
-
 	xor	a
 	ld	(intr_cnt), a
 	call	set_timi	; set timer
+
+	ld	de, str_play
+	call out_str
+
+	; enable interrupt
+	ei
 
 start_play_lp1:
 	; check key
@@ -294,7 +306,6 @@ start_play_lp2:
 	jr	start_play_lp2
 
 start_play_fin:
-
 	call	restore_timi	; restore timer
 	jp	MDRV_ALLOFF
 
@@ -563,6 +574,7 @@ set_timi:
 	ld	hl, H_TIMI
 	ld	de, save_hook
 	ldir
+
 	di
 	ld	a, $f7 ; rst30
 	ld	(H_TIMI), a
@@ -570,7 +582,7 @@ set_timi:
 	ld	a, (PG2RAM)
 	ld	(H_TIMI + 1), a ; slot on RAM in page2
 	; use my interrupt routine
-	ld	hl,userint
+	ld	hl, userint
 	ld	a, l
 	ld	(H_TIMI + 2), a
 	ld	a, h
@@ -661,7 +673,7 @@ driver_fcb:
 ; Strings
 str_prog_title:
 	db "MOONLOADER "
-	db "VER 160303"
+	db "VER 160305"
 	db $0d,$0a,'$'
 
 str_moon_fnd:
@@ -684,6 +696,12 @@ str_lf:
 
 str_ok:
 	db "OK",'$'
+
+str_ng:
+	db "NG",'$'
+
+str_check:
+	db "CHECK ",'$'
 
 
 str_play:
