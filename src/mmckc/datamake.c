@@ -2370,6 +2370,8 @@ void getOPL3tbl( LINE *lptr )
 			// 4opモード
 			if (lptr[line].status == _SET_FMOP_FOUR)
 				op_flag = 1;
+			else
+				op_flag = 0;
 			
 			no = lptr[line].param;		/* 音色番号取得 */
 			ptr = lptr[line].str;
