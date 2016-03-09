@@ -83,7 +83,7 @@ int main( int argc , char *argv[] )
 				 (VersionNo / 100), (VersionNo % 100) );
 
 // サブタイトル表示
-	printf("Extended for MoonDriver ver 0.3 \n");
+	printf("Extended for MoonDriver ver 0.3a \n");
 	//printf("patches by [OK] and 2ch mck thread people\n");
 	printf("DATE: %s\n", __DATE__);
 	printf("%s", patchstr);
