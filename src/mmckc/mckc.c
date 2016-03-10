@@ -12,9 +12,12 @@ extern char *skipSpace( char *ptr );
 extern char *patchstr;
 extern char *hogereleasestr;
 
+extern char *moon_verstr;
+
 char	*mml_names[MML_MAX];
+char	*mml_short_names[MML_MAX];
 int		debug_flag = 0;
-char	ef_name[256]  = "effect.h";
+char	ef_name[256]	= "effect.h";
 char	inc_name[256] = "define.inc";
 char	out_name[256];
 int		warning_flag = 1;
@@ -37,25 +40,25 @@ void dispHelpMessage( void )
 		puts(	"使用方法:mmckc [switch] InputFile.mml [OutputFile.h]\n"
 			"もしくは:mmckc [switch] -u InputFile1.mml InputFile2.mml ... \n"
 				"\t[switch]\n"
-				"\t-h -?   : ヘルプを表示\n"
-				"\t-i      : 音色/エンベロープファイルに曲データを追加する\n"
+				"\t-h -?	 : ヘルプを表示\n"
+				"\t-i			: 音色/エンベロープファイルに曲データを追加する\n"
 				"\t-m<num> : エラー/ワーニング表示の選択(0:Jpn 1:Eng)\n"
 				"\t-o<str> : 音色/エンベロープファイルのファイル名を<str>にする\n"
-				"\t-w      : Warningメッセージを表示しません\n"
-				"\t-u      : 複数曲登録NSF作成\n"
-	    );
+				"\t-w			: Warningメッセージを表示しません\n"
+				"\t-u			: 複数曲登録NSF作成\n"
+			);
 
 	} else {
 		puts(	"Usage:mmckc [switch] InputFile.mml [OutputFile.h]\n"
-			"  or :mmckc [switch] -u InputFile1.mml InputFile2.mml ... \n"
+			"	or :mmckc [switch] -u InputFile1.mml InputFile2.mml ... \n"
 				"\t[switch]\n"
-				"\t-h -?   : Display this help message\n"
-				"\t-i      : Including song data in tone/envelope file\n"
+				"\t-h -?	 : Display this help message\n"
+				"\t-i			: Including song data in tone/envelope file\n"
 				"\t-m<num> : Select message language(0:Jpn 1:Eng)\n"
 				"\t-o<str> : Output tone/envelope file name is <str>\n"
-				"\t-w      : Don't display warning message\n"
-				"\t-u      : Multiple song NSF creation\n"
-	    );
+				"\t-w			: Don't display warning message\n"
+				"\t-u			: Multiple song NSF creation\n"
+			);
 	}
 	exit( 1 );
 }
@@ -65,7 +68,7 @@ void dispHelpMessage( void )
 /*--------------------------------------------------------------
 	メインルーチン
  Input:
-	int  argc		: コマンドライン引数の個数
+	int	argc		: コマンドライン引数の個数
 	char *argv[]	: コマンドライン引数のポインタ
  Output:
 	0:正常終了 0:以外以上終了
@@ -83,7 +86,7 @@ int main( int argc , char *argv[] )
 				 (VersionNo / 100), (VersionNo % 100) );
 
 // サブタイトル表示
-	printf("Extended for MoonDriver ver 0.3a \n");
+	printf("%s", moon_verstr);
 	//printf("patches by [OK] and 2ch mck thread people\n");
 	printf("DATE: %s\n", __DATE__);
 	printf("%s", patchstr);
@@ -98,36 +101,36 @@ int main( int argc , char *argv[] )
 		// スイッチ？
 		if ( argv[i][0] == '-' ) {
 			switch( toupper( argv[i][1] ) ) {
-			  case 'H':
-			  case '?':
+				case 'H':
+				case '?':
 				dispHelpMessage();
 				return 1;
-			  case 'X':
+				case 'X':
 				debug_flag = 1;
 				break;
-			  case 'I':
+				case 'I':
 				include_flag = 1;
 				break;
-			  case 'M':
+				case 'M':
 				message_flag = atoi( &(argv[i][2]) );
 				if( message_flag > 1 ) {
 					dispHelpMessage();
 					return 1;
 				}
 				break;
-			  case 'N':
+				case 'N':
 				//obsolete
 				break;
-			  case 'O':
+				case 'O':
 				strcpy( ef_name, skipSpace( &(argv[i][2]) ) );
 				break;
-			  case 'W':
+				case 'W':
 				warning_flag = 0;
 				break;
-			  case 'U':
+				case 'U':
 				multiple_song_nsf = 1;
 				break;
-			  default:
+				default:
 				if( message_flag == 0 ) {
 					puts( "スイッチの指定が違います\n" );
 				} else {
@@ -140,6 +143,19 @@ int main( int argc , char *argv[] )
 		} else {
 			if ( in < MML_MAX ) {
 				mml_names[in] = argv[i];
+				mml_short_names[in] = malloc(MML_MAX_NAME);
+
+				char *p = strrchr(argv[i],'/');
+				if (!p)
+					p = strrchr(argv[i], '\\');
+
+				if (p)
+					p++;
+				else
+					p = argv[i];
+
+				strcpy(mml_short_names[in], p);
+
 				in++;
 			} else {
 				if( message_flag == 0 ) {
@@ -159,11 +175,11 @@ int main( int argc , char *argv[] )
 	}
 	if (multiple_song_nsf) {
 		splitPath( mml_names[0], path, name, ext );
-		makePath(  out_name, path, name, ".h" );
+		makePath(	out_name, path, name, ".h" );
 	} else {
 		if (in == 1) {
 			splitPath( mml_names[0], path, name, ext );
-			makePath(  out_name, path, name, ".h" );
+			makePath(	out_name, path, name, ".h" );
 		} else if (in == 2) {
 			strcpy(out_name, mml_names[1]);
 			in--;
@@ -182,11 +198,15 @@ int main( int argc , char *argv[] )
 	for (i = 0; i < in - 1; i++) {
 		printf("%s + ", mml_names[i]);
 	}
-	printf( "%s -> %s\n" ,mml_names[i],  out_name );
+	printf( "%s -> %s\n" ,mml_names[i],	out_name );
 // コンバート
-	i = data_make();
+	int ret = data_make();
 // 終了
-	if (i == 0) {
+
+	for (i = 0; i < in; i++)
+		free(mml_short_names[i]);
+
+	if (ret == 0) {
 		if( message_flag == 0 ) {
 			puts( "\n終了しました\n" );
 		} else {

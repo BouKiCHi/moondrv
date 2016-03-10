@@ -33,8 +33,8 @@ char *skipSpaceOld( char *ptr )
 
 char *skipQuote( char *ptr )
 {
-	if (*ptr && 
-	    *ptr == '\"')
+	if (*ptr &&
+			*ptr == '\"')
 	{
 		ptr++; // skip start charactor
 		while( *ptr )
@@ -55,12 +55,12 @@ char *skipQuote( char *ptr )
 /*--------------------------------------------------------------
 	コメント文字のチェック
 --------------------------------------------------------------*/
-int  isComment( char *ptr )
+int	isComment( char *ptr )
 {
-	if (*ptr && 
-	    (*ptr == ';' ||
-//	   (*ptr == '/' && *(ptr+1) == '/') 
-	     *ptr == '/' ))
+	if (*ptr &&
+			(*ptr == ';' ||
+//		 (*ptr == '/' && *(ptr+1) == '/')
+			 *ptr == '/' ))
 		return 1;
 
 	return 0;
@@ -73,15 +73,15 @@ char *skipComment( char *ptr )
 {
 	if (isComment(ptr))
 	{
-		while(1) 
+		while(1)
 		{
 			// '\0' = EOL or EOF , '\n' = EOL
-			if (*ptr == '\0' || *ptr == '\n') 
+			if (*ptr == '\0' || *ptr == '\n')
 				break;
 			ptr++;
 		}
 	}
-	return  ptr;
+	return	ptr;
 }
 
 
@@ -174,8 +174,8 @@ int Asc2Int( char *ptr, int *cnt )
 	}
 	switch( *ptr ) {
 	/* 16進数 */
-	  case 'x':
-	  case '$':
+		case 'x':
+		case '$':
 		ptr++;
 		(*cnt)++;
 		while( 1 ) {
@@ -192,7 +192,7 @@ int Asc2Int( char *ptr, int *cnt )
 		}
 		break;
 	/* 2進数 */
-	  case '%':
+		case '%':
 		ptr++;
 		(*cnt)++;
 		while( 1 ) {
@@ -205,7 +205,7 @@ int Asc2Int( char *ptr, int *cnt )
 			ptr++;
 		}
 	/* 10進数 */
-	  default:
+		default:
 		while( 1 ) {
 			if( '0' <= *ptr && *ptr <= '9' ) {
 				num = num * 10 + (*ptr-'0');
@@ -221,4 +221,3 @@ int Asc2Int( char *ptr, int *cnt )
 	}
 	return num;
 }
-

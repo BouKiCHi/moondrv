@@ -7,6 +7,7 @@
 #include	"mckc.h"
 
 extern char	*mml_names[MML_MAX];
+extern char	*mml_short_names[MML_MAX];
 int		mml_idx = 0;
 extern	int	mml_num;
 char	songlabel[64];
@@ -20,7 +21,7 @@ extern int	include_flag;
 
 
 extern int	getFileSize( char *ptr );
-extern int  Asc2Int( char *ptr, int *cnt );
+extern int	Asc2Int( char *ptr, int *cnt );
 extern void strupper( char *ptr );
 extern char *readTextFile( char *filename );
 extern FILE *openDmc(char *name);
@@ -29,7 +30,7 @@ extern char *skipSpace( char *ptr );
 
 extern char *skipQuote( char *ptr );
 extern char *skipComment( char *ptr );
-extern int  isComment( char *ptr );
+extern int	isComment( char *ptr );
 
 void	putBankOrigin(FILE *fp, int bank);
 int checkBankRange(int bank);
@@ -86,12 +87,12 @@ int		bank_usage[128];		//bank_usage[0]は今のところ無意味
 int		bank_maximum = 0;		//8KB
 int		dpcm_extra_bank_num = 0;	//8KB
 
-int tone_tbl[          _TONE_MAX][1024];	// Tone
-int envelope_tbl[  _ENVELOPE_MAX][1024];	// Envelope
+int tone_tbl[					_TONE_MAX][1024];	// Tone
+int envelope_tbl[	_ENVELOPE_MAX][1024];	// Envelope
 int pitch_env_tbl[_PITCH_ENV_MAX][1024];	// Pitch Envelope
-int pitch_mod_tbl[_PITCH_MOD_MAX][   5];	// LFO
-int arpeggio_tbl[  _ARPEGGIO_MAX][1024];	// Arpeggio
-int fm_tone_tbl[    _FM_TONE_MAX][2+64];	// FM Tone
+int pitch_mod_tbl[_PITCH_MOD_MAX][	 5];	// LFO
+int arpeggio_tbl[	_ARPEGGIO_MAX][1024];	// Arpeggio
+int fm_tone_tbl[		_FM_TONE_MAX][2+64];	// FM Tone
 int vrc7_tone_tbl[_VRC7_TONE_MAX][2+64];	// VRC7 Tone(配列数は使用関数の関係)
 int n106_tone_tbl[_N106_TONE_MAX][2+64];	// NAMCO106 Tone
 int hard_effect_tbl[_HARD_EFFECT_MAX][5];	// FDS Hardware Effect
@@ -111,8 +112,8 @@ int	dpcm_size = 0;
 int	dpcm_reststop = 0;
 
 // HuSIC
-int     panvol = 0;					// 現在のパンボリューム 
-int     xpcm_size = 0;
+int		 panvol = 0;					// 現在のパンボリューム
+int		 xpcm_size = 0;
 
 int use_jump = 0; // jumpを行う
 
@@ -126,7 +127,7 @@ char	*programer = NULL;
 // MoonDriver
 // PCMファイル
 char	pcm_name[1024] = "";
-int     use_pcm = 0;
+int		 use_pcm = 0;
 
 const	char	str_track[] = _TRACK_STR;
 
@@ -183,7 +184,7 @@ enum {
 	CANT_USE_BANK_2_OR_3_WITH_DPCMBANKSWITCH,
 	CANT_USE_SHIFT_AMOUNT_WITHOUT_PITCH_CORRECTION,
 	UNUSE_COMMAND_IN_THIS_TRACK,
-	
+
 	/* for HuSIC */
 
 	WTB_TONE_DEFINITION_IS_WRONG,
@@ -194,14 +195,14 @@ enum {
 	XPCM_FILE_SIZE_OVER,
 	XPCM_FILE_TOTAL_SIZE_OVER,
 	FMLFO_PARAM_IS_WRONG,
-	
+
 	TONETBL_DEFINITION_IS_WRONG,
 	ABNORMAL_PARAMETERS_OF_TONETBL,
 
 	ABNORMAL_PARAMETERS,
-	
-    /* MoonDriver */
-    COMMAND_REDUNDANT,
+
+		/* MoonDriver */
+		COMMAND_REDUNDANT,
 
 };
 
@@ -260,9 +261,9 @@ const	char	*ErrorlMessage[] = {
 	"DPCMサイズが0x4000を超える場合はバンク2と3は使用できません",		"Cannot use bank 2 or 3 if DPCM size is greater than 0x4000",
 	"#PITCH-CORRECTIONを指定しない限りピッチシフト量コマンドは使用できません",		"Cannot use SA<num> without #PITCH-CORRECTION",
 	"このトラックでは使用できないコマンドです",				"Unuse command in this track",
-	
+
 	/* for HuSIC */
-    
+
 	"WaveTable音色設定に誤りがあります",					"WaveTable tone definition is wrong",
 	"WaveTable用音色のパラメータが異常です",				"Abnormal parameters of WaveTable tone",
 	"XPCM設定に誤りがあります",								"XPCM definition is wrong",
@@ -271,13 +272,13 @@ const	char	*ErrorlMessage[] = {
 	"XPCMデータのサイズが8192byteを超えました",				"XPCM file size over",
 	"XPCMデータのサイズが規定のサイズを超えました",			"XPCM file total size over",
 	"FMLFOパラメータに誤りがあります",						"FMLFO parameter is wrong",
-	
+
 	"ToneTable設定に誤りがあります",						"ToneTable definition is wrong",
 	"ToneTableパラメータが異常です",						"Abnormal parameters of ToneTable",
 
 	"パラメータが異常です",					"Abnormal parameters",
-    
-    "コマンドが重複しています",         "Command is redundant",
+
+		"コマンドが重複しています",				 "Command is redundant",
 };
 
 
@@ -356,53 +357,53 @@ int isVRC6Track(int trk)
 
 // ヘッダ
 const HEAD head[] = {
-	{ "#TITLE",          _TITLE          },
-	{ "#COMPOSER",       _COMPOSER       },
-	{ "#MAKER",          _MAKER          },
-	{ "#PROGRAMER",      _PROGRAMER      },
-	{ "#OCTAVE-REV",     _OCTAVE_REV     },
-	{ "#GATE-DENOM",        _GATE_DENOM  },
-	{ "#INCLUDE",        _INCLUDE        },
-    
-//		{ "#EX-DISKFM",      _EX_DISKFM      },
-//		{ "#EX-NAMCO106",    _EX_NAMCO106    },
+	{ "#TITLE",					_TITLE					},
+	{ "#COMPOSER",			 _COMPOSER			 },
+	{ "#MAKER",					_MAKER					},
+	{ "#PROGRAMER",			_PROGRAMER			},
+	{ "#OCTAVE-REV",		 _OCTAVE_REV		 },
+	{ "#GATE-DENOM",				_GATE_DENOM	},
+	{ "#INCLUDE",				_INCLUDE				},
+
+//		{ "#EX-DISKFM",			_EX_DISKFM			},
+//		{ "#EX-NAMCO106",		_EX_NAMCO106		},
 //		{ "#EX-VRC7",		 _EX_VRC7		 },
 //		{ "#EX-VRC6",		 _EX_VRC6		 },
 //		{ "#EX-FME7",		 _EX_FME7		 },
 //		{ "#EX-MMC5",		 _EX_MMC5		 },
-    
-	{ "#NO-BANKSWITCH",    _NO_BANKSWITCH    },
-	{ "#AUTO-BANKSWITCH",  _AUTO_BANKSWITCH    },
-	{ "#PITCH-CORRECTION", _PITCH_CORRECTION    },
-	{ "#BANK-CHANGE",      _BANK_CHANGE    },
-	{ "#SETBANK",    	   _SET_SBANK	     },
-	{ "#EFFECT-INCLUDE",   _EFFECT_INCLUDE },
-	{ "#DPCM-RESTSTOP",    _DPCM_RESTSTOP },
-	
-    // for HuSIC
-	// { "@XPCM",           _SET_XPCM_DATA  },
-	// { "@WT",             _SET_WTB_TONE   },
 
-    // for MoonDriver
-	{ "@TONE",           _SET_TONETBL    },
-	{ "@OPF",            _SET_FMOP_FOUR  },
-	{ "@OPL",            _SET_FMOP       },
-	{ "#EX-OPL3",	     _EX_OPL3	     },
-	{ "#OPL4-NOUSE",     _OPL4_NOUSE      },
-	{ "#PCMFILE",        _PCM_FILE },
-	
-	{ "@DPCM",           _SET_DPCM_DATA  },
-	{ "@MP",             _SET_PITCH_MOD  },
-	{ "@EN",             _SET_ARPEGGIO   },
-	{ "@EP",             _SET_PITCH_ENV  },
-	{ "@FM",             _SET_FM_TONE    },
-	{ "@MH",             _SET_HARD_EFFECT},
-	{ "@MW",             _SET_EFFECT_WAVE},
-	{ "@OP",             _SET_VRC7_TONE  },
-	{ "@N",              _SET_N106_TONE  },
-	{ "@V",              _SET_ENVELOPE   },
-	{ "@",               _SET_TONE       },
-	{ "",                -1              },
+	{ "#NO-BANKSWITCH",		_NO_BANKSWITCH		},
+	{ "#AUTO-BANKSWITCH",	_AUTO_BANKSWITCH		},
+	{ "#PITCH-CORRECTION", _PITCH_CORRECTION		},
+	{ "#BANK-CHANGE",			_BANK_CHANGE		},
+	{ "#SETBANK",				 _SET_SBANK			 },
+	{ "#EFFECT-INCLUDE",	 _EFFECT_INCLUDE },
+	{ "#DPCM-RESTSTOP",		_DPCM_RESTSTOP },
+
+		// for HuSIC
+	// { "@XPCM",					 _SET_XPCM_DATA	},
+	// { "@WT",						 _SET_WTB_TONE	 },
+
+		// for MoonDriver
+	{ "@TONE",					 _SET_TONETBL		},
+	{ "@OPF",						_SET_FMOP_FOUR	},
+	{ "@OPL",						_SET_FMOP			 },
+	{ "#EX-OPL3",			 _EX_OPL3			 },
+	{ "#OPL4-NOUSE",		 _OPL4_NOUSE			},
+	{ "#PCMFILE",				_PCM_FILE },
+
+	{ "@DPCM",					 _SET_DPCM_DATA	},
+	{ "@MP",						 _SET_PITCH_MOD	},
+	{ "@EN",						 _SET_ARPEGGIO	 },
+	{ "@EP",						 _SET_PITCH_ENV	},
+	{ "@FM",						 _SET_FM_TONE		},
+	{ "@MH",						 _SET_HARD_EFFECT},
+	{ "@MW",						 _SET_EFFECT_WAVE},
+	{ "@OP",						 _SET_VRC7_TONE	},
+	{ "@N",							_SET_N106_TONE	},
+	{ "@V",							_SET_ENVELOPE	 },
+	{ "@",							 _SET_TONE			 },
+	{ "",								-1							},
 };
 
 typedef struct {
@@ -436,20 +437,20 @@ const MML mml[] = {
 	{ "v", _VOLUME,			isAllTrack },
 	{ "NB", _NEW_BANK,		isAllTrack },
 	{ "EPOF", _EP_OFF,		isAllTrack },
-	{ "EP",   _EP_ON,		isAllTrack },
+	{ "EP",	 _EP_ON,		isAllTrack },
 	{ "ENOF", _EN_OFF,		isAllTrack },
-	{ "EN",   _EN_ON,		isAllTrack },
+	{ "EN",	 _EN_ON,		isAllTrack },
 	{ "MPOF", _LFO_OFF,		isAllTrack },
-	{ "MP",   _LFO_ON,		isAllTrack },
-	
+	{ "MP",	 _LFO_ON,		isAllTrack },
+
 	//// for HuSIC
 //		{ "FSOF", _FMLFO_OFF,	(HULFO_TRK) },
-//		{ "FS",   _FMLFO_SET,	(HULFO_TRK) },
-//		{ "FF",   _FMLFO_FRQ,	(HULFO_TRK) },
+//		{ "FS",	 _FMLFO_SET,	(HULFO_TRK) },
+//		{ "FF",	 _FMLFO_FRQ,	(HULFO_TRK) },
 //		{ "N", _NOISE_SW,		(HUNOISE_TRK) },
 
 	//// for MoonDriver
-    
+
 	{ "j", _JUMP_FLAG,		isAllTrack },
 	{ "VOP", _REVERB_SET,	isAllTrack },
 	{ "RV", _REVERB_SET,	isAllTrack },
@@ -459,7 +460,7 @@ const MML mml[] = {
 	{ "WX" , _LOAD_OP2,		isAllTrack },
 	{ "TVP", _SET_TVP,		isAllTrack },
 	{ "DR" , _DRUM_SW,		isAllTrack },
-    { "DN" , _DRUM_NOTE,	isAllTrack },
+		{ "DN" , _DRUM_NOTE,	isAllTrack },
 	{ "FB" , _SET_FBS,		isAllTrack },
 	{ "OPM" , _SET_OPM,		isAllTrack },
 
@@ -469,36 +470,36 @@ const MML mml[] = {
 	{ "P", _PAN,			isAllTrack },
 	{ "W", _WAVE_CHG,		isAllTrack },
 	{ "M", _MODE_CHG,		isAllTrack },
-    
 
-    { "SDQR", _SELF_DELAY_QUEUE_RESET,	isAllTrack },
+
+		{ "SDQR", _SELF_DELAY_QUEUE_RESET,	isAllTrack },
 	{ "SDOF", _SELF_DELAY_OFF,	isAllTrack },
 	{ "SD", _SELF_DELAY_ON,		isAllTrack },
 
-    { "D", _DETUNE,			isAllTrack },
+		{ "D", _DETUNE,			isAllTrack },
 	{ "K", _TRANSPOSE,		isAllTrack },
 
-    { "@q", _QUONTIZE2,		isAllTrack },
+		{ "@q", _QUONTIZE2,		isAllTrack },
 	{ "@vr", _REL_ENV,		isAllTrack },
 	{ "@v", _ENVELOPE,		isAllTrack },
-    
+
 //		{ "@@r", _REL_ORG_TONE,		(TRACK(0)|TRACK(1)|FMTRACK|VRC7TRACK|VRC6PLSTRACK|N106TRACK|MMC5PLSTRACK) },
 //		{ "@@", _ORG_TONE,		(TRACK(0)|TRACK(1)|FMTRACK|VRC7TRACK|VRC6PLSTRACK|N106TRACK|MMC5PLSTRACK) },
 
-    { "@", _TONE,			 isAllTrack },
+		{ "@", _TONE,			 isAllTrack },
 	{ "&", _SLAR,			 isAllTrack },
-    
-    { "yo", _DATA_WRITE_OFS, isAllTrack },
 
-    { "y", _DATA_WRITE,	     isAllTrack },
-	{ "x", _DATA_THRUE,	     isAllTrack },
+		{ "yo", _DATA_WRITE_OFS, isAllTrack },
+
+		{ "y", _DATA_WRITE,			 isAllTrack },
+	{ "x", _DATA_THRUE,			 isAllTrack },
 
 	{ "|:", _REPEAT_ST2,	 isAllTrack },
 	{ ":|", _REPEAT_END2,	 isAllTrack },
 	{ "\\", _REPEAT_ESC2,	 isAllTrack },
 
 	{ "k", _KEY_OFF,		isAllTrack },
-	
+
 	{ "L", _SONG_LOOP,		isAllTrack },
 	{ "[", _REPEAT_ST,		isAllTrack },
 	{ "]", _REPEAT_END,		isAllTrack },
@@ -509,14 +510,14 @@ const MML mml[] = {
 	{ "r", _REST,			isAllTrack },
 	{ "^", _TIE,			isAllTrack },
 	{ "!", _DATA_BREAK,		isAllTrack },
-	{ "",  _TRACK_END,		isAllTrack },
+	{ "",	_TRACK_END,		isAllTrack },
 };
 
 
 /*--------------------------------------------------------------
 	エラー表示
  Input:
-	
+
  Output:
 	none
 --------------------------------------------------------------*/
@@ -527,9 +528,9 @@ void dispError( int no, char *file, int line )
 		no++;
 	}
 	if( file != NULL ) {
-		printf( "Error  : %s %6d: %s\n", file, line, ErrorlMessage[no] );
+		printf( "Error	: %s %6d: %s\n", file, line, ErrorlMessage[no] );
 	} else {
-		printf( "Error  : %s\n", ErrorlMessage[no] );
+		printf( "Error	: %s\n", ErrorlMessage[no] );
 	}
 	error_flag = 1;
 }
@@ -539,7 +540,7 @@ void dispError( int no, char *file, int line )
 /*--------------------------------------------------------------
 	ワーニング表示
  Input:
-	
+
  Output:
 	none
 --------------------------------------------------------------*/
@@ -629,11 +630,11 @@ void deleteRemark( char *ptr )
 
 
 /*----------------------------------------------------------*/
-/*	ファイル行数を求める								    */
-/* Input:												    */
-/*	char	*data		:データ格納ポインタ				    */
-/* Output:												    */
-/*	none												    */
+/*	ファイル行数を求める										*/
+/* Input:														*/
+/*	char	*data		:データ格納ポインタ						*/
+/* Output:														*/
+/*	none														*/
 /*----------------------------------------------------------*/
 int getLineCount( char *ptr )
 {
@@ -656,21 +657,21 @@ int getLineCount( char *ptr )
 
 /*--------------------------------------------------------------
 --------------------------------------------------------------*/
-LINE *readMmlFile(char *fname)
+LINE *readMmlFile(char *fname, char *fname_short)
 {
 	LINE *lptr;
 	int line_count;
 	int i;
 	char *filestr;
 	filestr = readTextFile(fname);
-	
+
 	if (filestr == NULL) {
 		error_flag = 1;
 		return NULL;
 	}
-	
+
 	deleteCRemark(filestr);
-	
+
 	//skipSpaceに組み込み
 	//deleteRemark(filestr);
 
@@ -678,11 +679,13 @@ LINE *readMmlFile(char *fname)
 	lptr = (LINE *)malloc( (line_count+1)*sizeof(LINE) );	/* ラインバッファを確保 */
 
 	lptr[0].status = _HEADER;		/* LINEステータス[0]はmallocされた	*/
-	lptr[0].str    = filestr;		/* ポインタとサイズが格納されている */
-	lptr[0].line   = line_count;
+	lptr[0].str		= filestr;		/* ポインタとサイズが格納されている */
+	lptr[0].line	 = line_count;
 	lptr[0].filename = fname;
+	lptr[0].shortname = fname_short;
 	for( i = 1; i <= line_count; i++ ) {
 		lptr[i].filename = fname;
+		lptr[i].shortname = fname_short;
 		lptr[i].line = i;
 	}
 	return lptr;
@@ -712,9 +715,9 @@ char *changeNULL( char *ptr )
 
 
 /*---------------------------------------------------------
-  @hoge123 = { ag ae aeag g} の処理
-  
-  @HOGE¥s*(¥d+)¥s*(=|)¥s*{.*?(}.*|)$
+	@hoge123 = { ag ae aeag g} の処理
+
+	@HOGE¥s*(¥d+)¥s*(=|)¥s*{.*?(}.*|)$
 -----------------------------------------------------------*/
 int setEffectSub(LINE *lptr, int line, int *ptr_status_end_flag, int min, int max, const int error_no)
 {
@@ -722,26 +725,26 @@ int setEffectSub(LINE *lptr, int line, int *ptr_status_end_flag, int min, int ma
 	char *temp;
 	temp = skipSpace( lptr[line].str );
 	param = Asc2Int( temp, &cnt );
-	
+
 	if (cnt == 0)
 		goto on_error;
 	if (param < min || max <= param)
 		goto on_error;
-	
+
 	lptr[line].param = param;
 	temp = skipSpace( temp+cnt );
-	
+
 	if ( *temp == '=' ) {
 		temp++;
 		temp = skipSpace( temp );
 	}
-	
+
 	if ( *temp != '{' )
 		goto on_error;
-	
+
 	lptr[line].str = temp;
 	*ptr_status_end_flag = 1;
-	
+
 
 	while ( *temp != '\0' ) {
 		if( *temp == '}' ) {
@@ -767,7 +770,7 @@ on_error:
 
 char *skipTrackHeader(char *str)
 {
-	if (!str) 
+	if (!str)
 		return NULL;
 
 	while(*str && strchr( str_track, *str )) str++;
@@ -778,7 +781,7 @@ char *skipTrackHeader(char *str)
 int isTrackNum(char *str,int trk)
 {
 	char *temp;
-	if (!str) 
+	if (!str)
 		return 0;
 
 	while((temp = strchr( str_track, *str)) )
@@ -815,7 +818,7 @@ void getLineStatus(LINE *lptr, int inc_nest )
 		/* 前の行がエフェクト定義処理だった？ */
 		if( ((lptr[line-1].status&_SET_EFFECT) != 0) && (status_end_flag != 0) ) {
 			lptr[line].status = lptr[line-1].status|_SAME_LINE;
-			lptr[line].param  = lptr[line-1].param;
+			lptr[line].param	= lptr[line-1].param;
 			lptr[line].str = ptr;
 			temp = ptr;
 			ptr = changeNULL( ptr );
@@ -883,14 +886,14 @@ void getLineStatus(LINE *lptr, int inc_nest )
 
 			switch( lptr[line].status ) {
 			/* Includeコマンドの処理 */
-			  case _INCLUDE:
+				case _INCLUDE:
 				if( inc_nest > 16 ) {				/* ネストは16段まで(再帰で呼ばれると終了しないので) */
 					dispWarning( TOO_MANY_INCLUDE_FILES, lptr[line].filename, line );
 					lptr[line].status = 0;
 				} else {
 					LINE *ltemp;
 					temp = skipSpaceOld( lptr[line].str ); /* /をとばさないようにしてみる */
-					ltemp = readMmlFile(temp);
+					ltemp = readMmlFile(temp, temp);
 					if( ltemp != NULL ) {
 						lptr[line].inc_ptr = ltemp;
 						++inc_nest;
@@ -903,43 +906,43 @@ void getLineStatus(LINE *lptr, int inc_nest )
 				}
 				break;
 			/* LFOコマンド */
-			  case _SET_PITCH_MOD:
+				case _SET_PITCH_MOD:
 				setEffectSub(lptr, line, &status_end_flag, 0, _PITCH_MOD_MAX, LFO_DEFINITION_IS_WRONG);
 				break;
 			/* ピッチエンベロープコマンド */
-			  case _SET_PITCH_ENV:
+				case _SET_PITCH_ENV:
 				setEffectSub(lptr, line, &status_end_flag, 0, _PITCH_ENV_MAX, PITCH_ENVELOPE_DEFINITION_IS_WRONG);
 				break;
 			/* 音量エンベロープコマンド */
-			  case _SET_ENVELOPE:
+				case _SET_ENVELOPE:
 				setEffectSub(lptr, line, &status_end_flag, 0, _ENVELOPE_MAX, ENVELOPE_DEFINITION_IS_WRONG);
 				break;
 			/* 自作音色 */
-			  case _SET_TONE:
+				case _SET_TONE:
 				setEffectSub(lptr, line, &status_end_flag, 0, _TONE_MAX, TONE_DEFINITION_IS_WRONG);
 				break;
 			/* アルペジオ */
-			  case _SET_ARPEGGIO:
+				case _SET_ARPEGGIO:
 				setEffectSub(lptr, line, &status_end_flag, 0, _ARPEGGIO_MAX, NOTE_ENVELOPE_DEFINITION_IS_WRONG);
 				break;
 			/* DPCM登録コマンド */
-			  case _SET_DPCM_DATA:
+				case _SET_DPCM_DATA:
 				setEffectSub(lptr, line, &status_end_flag, 0, _DPCM_MAX, DPCM_DEFINITION_IS_WRONG);
 				break;
-			  /* VRC7 Tone */
-			  case _SET_VRC7_TONE:
+				/* VRC7 Tone */
+				case _SET_VRC7_TONE:
 				setEffectSub(lptr, line, &status_end_flag, 0, _VRC7_TONE_MAX, FM_TONE_DEFINITION_IS_WRONG);
 				break;
 			/* FM音色 */
-			  case _SET_FM_TONE:
+				case _SET_FM_TONE:
 				setEffectSub(lptr, line, &status_end_flag, 0, _DPCM_MAX, FM_TONE_DEFINITION_IS_WRONG);
 				break;
 			/* HuSIC XPCM */
-			  case _SET_XPCM_DATA:
+				case _SET_XPCM_DATA:
 				setEffectSub(lptr, line, &status_end_flag, 0, _FM_TONE_MAX, XPCM_DEFINITION_IS_WRONG);
 				break;
 			/* HuSIC WTB */
-			  case _SET_WTB_TONE:
+				case _SET_WTB_TONE:
 				setEffectSub(lptr, line, &status_end_flag, 0, _WTB_TONE_MAX, WTB_TONE_DEFINITION_IS_WRONG);
 				break;
 			/* MoonDriver */
@@ -948,66 +951,66 @@ void getLineStatus(LINE *lptr, int inc_nest )
 				setEffectSub(lptr, line, &status_end_flag, 0, _TONETBL_MAX, TONETBL_DEFINITION_IS_WRONG);
 				break;
 				// FM音源音色
-			  case _SET_FMOP:
+				case _SET_FMOP:
 				case _SET_FMOP_FOUR:
 				setEffectSub(lptr, line, &status_end_flag, 0, _OPL3TBL_MAX, FM_TONE_DEFINITION_IS_WRONG);
 				break;
 			/* MoonDriver OPL3 FM */
-			  case _EX_OPL3:
+				case _EX_OPL3:
 				sndgen_flag |= BOPL3FLAG;
 				opl3_track_num = (OPL3_MAX);
 				break;
 			/* MoonDriver OPL4 no use*/
-			  case _OPL4_NOUSE:
+				case _OPL4_NOUSE:
 				sndgen_flag &= (~BOPL4FLAG);
 				opl4_track_num = 0;
 				break;
 
 
 			/* namco106音源音色 */
-			  case _SET_N106_TONE:
+				case _SET_N106_TONE:
 				setEffectSub(lptr, line, &status_end_flag, 0, _N106_TONE_MAX, N106_TONE_DEFINITION_IS_WRONG);
 				break;
 			/* ハードウェアエフェクト */
-			  case _SET_HARD_EFFECT:
+				case _SET_HARD_EFFECT:
 				setEffectSub(lptr, line, &status_end_flag, 0, _HARD_EFFECT_MAX, HARD_EFFECT_DEFINITION_IS_WRONG);
 				break;
 			/* エフェクト波形 */
-			  case _SET_EFFECT_WAVE:
+				case _SET_EFFECT_WAVE:
 				setEffectSub(lptr, line, &status_end_flag, 0, _EFFECT_WAVE_MAX, EFFECT_WAVE_DEFINITION_IS_WRONG);
 				break;
 			/* DISKSYSTEM FM音源使用フラグ */
-			  case _EX_DISKFM:
+				case _EX_DISKFM:
 				sndgen_flag |= BDISKFM;
 				track_allow_flag |= FMTRACK;
 				fds_track_num = 1;
 				break;
 			/* VRC7 FM音源使用フラグ */
-			  case _EX_VRC7:
+				case _EX_VRC7:
 				sndgen_flag |= BVRC7;
 				track_allow_flag |= VRC7TRACK;
 				vrc7_track_num = 6;
 				break;
 			/* VRC6 音源使用フラグ */
-			  case _EX_VRC6:
+				case _EX_VRC6:
 				sndgen_flag |= BVRC6;
 				track_allow_flag |= VRC6TRACK;
 				vrc6_track_num = 3;
 				break;
 			/* FME7 音源使用フラグ */
-			  case _EX_FME7:
+				case _EX_FME7:
 				sndgen_flag |= BFME7;
 				track_allow_flag |= FME7TRACK;
 				fme7_track_num = 3;
 				break;
 			/* MMC5 音源使用フラグ */
-			  case _EX_MMC5:
+				case _EX_MMC5:
 				sndgen_flag |= BMMC5;
 				track_allow_flag |= MMC5TRACK;
 				mmc5_track_num = 2;
 				break;
 			/* namco106 拡張音源使用フラグ */
-			  case _EX_NAMCO106:
+				case _EX_NAMCO106:
 				temp = skipSpace( lptr[line].str );
 				param = Asc2Int( temp, &cnt );
 				if( cnt != 0 && (0 <= param && param <= 8) ) {
@@ -1026,15 +1029,15 @@ void getLineStatus(LINE *lptr, int inc_nest )
 				}
 				break;
 			/* DPCM sound stops on 'r' command */
-			  case _DPCM_RESTSTOP:
+				case _DPCM_RESTSTOP:
 				dpcm_reststop = 1;
 				break;
 			/* NSF mapper の bankswitching 禁止 */
-			  case _NO_BANKSWITCH:
+				case _NO_BANKSWITCH:
 				allow_bankswitching = 0;
 				break;
 			/* 自動バンク切り替え */
-			  case _AUTO_BANKSWITCH:
+				case _AUTO_BANKSWITCH:
 				temp = skipSpace( lptr[line].str );
 				param = Asc2Int( temp, &cnt );
 				if ( cnt != 0 && (0 <= param && param <= 8192)) {
@@ -1048,7 +1051,7 @@ void getLineStatus(LINE *lptr, int inc_nest )
 				}
 				break;
 			/* バンク切り替え埋め込み(暫定処理の互換措置) */
-			  case _BANK_CHANGE:
+				case _BANK_CHANGE:
 				/*
 					#BANK-CHANGE <num0>,<num1>
 					上記バンク切り替えの拡張書式です。<num0>はバンク番号で0〜2の値が
@@ -1057,28 +1060,28 @@ void getLineStatus(LINE *lptr, int inc_nest )
 					ちなみに以下は同じことをしています。
 					#BANK-CHANGE	n
 					#BANK-CHANGE	0,n
-					
+
 					#BANK-CHANGEで同じバンクにトラックを持っていった場合、
 					最後に指定したものだけが有効。という仕様はあまり理解されていなかった。
 					ppmckでは全て有効とするため、その点は非互換。
-					
+
 					mckc用の古いMMLをコンパイルするためには
 					最後のもの以外消す。
-				
+
 				*/
 				/*
 					数字とトラックの対応は非互換。
-				
+
 					mckc
-					A B C D E | F | P Q R  S  T  U  V  W
+					A B C D E | F | P Q R	S	T	U	V	W
 					1 2 3 4 5 | 6 | 7 8 9 10 11 12 13 14
 					pmckc
-					A B C D E | F | G H I  J  K  L |  P  Q  R  S  T  U  V  W
+					A B C D E | F | G H I	J	K	L |	P	Q	R	S	T	U	V	W
 					1 2 3 4 5 | 6 | 7 8 9 10 11 12 | 13 14 15 16 17 18 19 20
 					ppmckc
-					A B C D E | F | G H I  J  K  L |  M  N  O |  P  Q  R  S  T  U  V  W |  X  Y  Z |  a  b
+					A B C D E | F | G H I	J	K	L |	M	N	O |	P	Q	R	S	T	U	V	W |	X	Y	Z |	a	b
 					1 2 3 4 5 | 6 | 7 8 9 10 11 12 | 13 14 15 | 16 17 18 19 20 21 22 23 | 24 25 26 | 27 28
-				
+
 					mckc用の古いMMLをコンパイルするためには
 					P以降は 手動で 9 を足せばOK。(自動にはしないほうがよいでしょう)
 					てかこんな表を見なきゃいけないことが間違って(ry
@@ -1125,9 +1128,9 @@ void getLineStatus(LINE *lptr, int inc_nest )
 				}
 				break;
 			/* バンク切り替え */
-			  case _SET_SBANK:
+				case _SET_SBANK:
 				temp = skipSpace( lptr[line].str );
-				
+
 				if ((temp2 = strchr(str_track, *temp)) != NULL) {
 					/* ABC..によるトラック指定 */
 					param = (int)((temp2 - str_track) + 1);
@@ -1143,7 +1146,7 @@ void getLineStatus(LINE *lptr, int inc_nest )
 						temp += cnt;
 					}
 				}
-				
+
 				temp = skipSpace( temp );
 				if( *temp == ',' ) {		/* バンク拡張 */
 					temp++;
@@ -1172,40 +1175,40 @@ void getLineStatus(LINE *lptr, int inc_nest )
 				}
 				break;
 
-			/*  */
-			  case _EFFECT_INCLUDE:
+			/*	*/
+				case _EFFECT_INCLUDE:
 				include_flag = 1;
 				break;
 			/* タイトル */
-			  case _TITLE:
+				case _TITLE:
 				temp = skipSpaceOld( lptr[line].str );
 				strncpy( song_name, temp, 1023 );
 				break;
 			/* 作曲者 */
-			  case _COMPOSER:
+				case _COMPOSER:
 				temp = skipSpaceOld( lptr[line].str );
 				strncpy( composer, temp, 1023 );
 				break;
 			/* メーカー */
-			  case _MAKER:
+				case _MAKER:
 				temp = skipSpaceOld( lptr[line].str );
 				strncpy( maker, temp, 1023 );
 				break;
 			/* 打ち込み者 */
-			  case _PROGRAMER:
+				case _PROGRAMER:
 				temp = skipSpaceOld( lptr[line].str );
 				strncpy( programer_buf, temp, 1023 );
 				programer = programer_buf;
 				break;
-            /* PCMファイル */
-              case _PCM_FILE:
-                temp = skipSpaceOld( lptr[line].str );
-                strncpy( pcm_name, temp, 1023 );
-                use_pcm = 1;
-                break;
+						/* PCMファイル */
+							case _PCM_FILE:
+								temp = skipSpaceOld( lptr[line].str );
+								strncpy( pcm_name, temp, 1023 );
+								use_pcm = 1;
+								break;
 
 			/* オクターブ記号の反転 */
-			  case _OCTAVE_REV:
+				case _OCTAVE_REV:
 				temp = skipSpace( lptr[line].str );
 				param = Asc2Int( temp, &cnt );
 				if( cnt != 0) {
@@ -1219,7 +1222,7 @@ void getLineStatus(LINE *lptr, int inc_nest )
 				}
 				break;
 			/* qコマンド分母変更 */
-			  case _GATE_DENOM:
+				case _GATE_DENOM:
 				temp = skipSpace( lptr[line].str );
 				param = Asc2Int( temp, &cnt );
 				if( cnt != 0 && param > 0) {
@@ -1230,11 +1233,11 @@ void getLineStatus(LINE *lptr, int inc_nest )
 				}
 				break;
 			/*ディチューン、ピッチエンベロープ、LFOの方向修正 */
-			  case _PITCH_CORRECTION:
+				case _PITCH_CORRECTION:
 				pitch_correction = 1;
 				break;
 			/* ヘッダ無し */
-			  case -1:
+				case -1:
 				if( (lptr[line-1].status&_SET_EFFECT) != 0 ) {
 					lptr[line].status = lptr[line-1].status|_SAME_LINE;
 					lptr[line].str = ptr;
@@ -1255,7 +1258,7 @@ void getLineStatus(LINE *lptr, int inc_nest )
 /*--------------------------------------------------------------
 	音色の取得
  Input:
-	
+
  Output:
 	無し
 --------------------------------------------------------------*/
@@ -1282,7 +1285,7 @@ void getTone( LINE *lptr )
 			while( end_flag == 0 ) {
 				ptr = skipSpace( ptr );
 				switch( *ptr ) {
-				  case '}':
+					case '}':
 					if (tone_tbl[no][0] >= 1) {
 						tone_tbl[no][i] = EFTBL_END;
 						tone_tbl[no][0]++;
@@ -1293,13 +1296,13 @@ void getTone( LINE *lptr )
 					end_flag = 1;
 					line += offset;
 					break;
-				  case '|':
+					case '|':
 					tone_tbl[no][i] = EFTBL_LOOP;
 					tone_tbl[no][0]++;
 					i++;
 					ptr++;
 					break;
-				  case '\0':
+					case '\0':
 					offset++;
 					if( line+offset <= lptr->line ) {
 						if( (lptr[line+offset].status&_SAME_LINE) == _SAME_LINE ) {
@@ -1311,7 +1314,7 @@ void getTone( LINE *lptr )
 						end_flag = 1;
 					}
 					break;
-				  default:
+					default:
 					num = Asc2Int( ptr, &cnt );
 					//vrc6用に制限を外す(内蔵矩形波、MMC5は3まで)
 					//if( cnt != 0 && (0 <= num && num <= 3) ) {
@@ -1347,7 +1350,7 @@ void getTone( LINE *lptr )
 /*--------------------------------------------------------------
 	エンベロープの取得
  Input:
-	
+
  Output:
 	無し
 --------------------------------------------------------------*/
@@ -1374,7 +1377,7 @@ void getEnvelope( LINE *lptr )
 			while( end_flag == 0 ) {
 				ptr = skipSpace( ptr );
 				switch( *ptr ) {
-				  case '}':
+					case '}':
 					if (envelope_tbl[no][0] >= 1) {
 						envelope_tbl[no][i] = EFTBL_END;
 						envelope_tbl[no][0]++;
@@ -1385,13 +1388,13 @@ void getEnvelope( LINE *lptr )
 					end_flag = 1;
 					line += offset;
 					break;
-				  case '|':
+					case '|':
 					envelope_tbl[no][i] = EFTBL_LOOP;
 					envelope_tbl[no][0]++;
 					i++;
 					ptr++;
 					break;
-				  case '\0':
+					case '\0':
 					offset++;
 					if( line+offset <= lptr->line ) {
 						if( (lptr[line+offset].status&_SAME_LINE) == _SAME_LINE ) {
@@ -1403,7 +1406,7 @@ void getEnvelope( LINE *lptr )
 						end_flag = 1;
 					}
 					break;
-				  default:
+					default:
 					num = Asc2Int( ptr, &cnt );
 					if( cnt != 0 && (0 <= num && num <= 127) ) {
 						envelope_tbl[no][i] = num;
@@ -1435,7 +1438,7 @@ void getEnvelope( LINE *lptr )
 /*--------------------------------------------------------------
 	ピッチエンベロープの取得
  Input:
-	
+
  Output:
 	無し
 --------------------------------------------------------------*/
@@ -1462,7 +1465,7 @@ void getPitchEnv( LINE *lptr )
 			while( end_flag == 0 ) {
 				ptr = skipSpace( ptr );
 				switch( *ptr ) {
-				  case '}':
+					case '}':
 					if (pitch_env_tbl[no][0] >= 1) {
 						pitch_env_tbl[no][i] = EFTBL_END;
 						pitch_env_tbl[no][0]++;
@@ -1473,13 +1476,13 @@ void getPitchEnv( LINE *lptr )
 					end_flag = 1;
 					line += offset;
 					break;
-				  case '|':
+					case '|':
 					pitch_env_tbl[no][i] = EFTBL_LOOP;
 					pitch_env_tbl[no][0]++;
 					i++;
 					ptr++;
 					break;
-				  case '\0':
+					case '\0':
 					offset++;
 					if( line+offset <= lptr->line ) {
 						if( (lptr[line+offset].status&_SAME_LINE) == _SAME_LINE ) {
@@ -1491,12 +1494,12 @@ void getPitchEnv( LINE *lptr )
 						end_flag = 1;
 					}
 					break;
-				  default:
+					default:
 					num = Asc2Int( ptr, &cnt );
-                        
-                    // ピッチ方向修正
-                    if (pitch_correction)
-                        num = 0 - num;
+
+										// ピッチ方向修正
+										if (pitch_correction)
+												num = 0 - num;
 
 					if( cnt != 0 && (-127 <= num && num <= 126) ) {
 						pitch_env_tbl[no][i] = num;
@@ -1528,7 +1531,7 @@ void getPitchEnv( LINE *lptr )
 /*--------------------------------------------------------------
 	ピッチモジュレーションの取得
  Input:
-	
+
  Output:
 	無し
 --------------------------------------------------------------*/
@@ -1555,7 +1558,7 @@ void getPitchMod( LINE *lptr )
 			while( end_flag == 0 ) {
 				ptr = skipSpace( ptr );
 				switch( *ptr ) {
-				  case '}':
+					case '}':
 					if (pitch_mod_tbl[no][0] >= 3) {
 						//OK.
 					} else {
@@ -1565,7 +1568,7 @@ void getPitchMod( LINE *lptr )
 					end_flag = 1;
 					line += offset;
 					break;
-				  case '\0':
+					case '\0':
 					offset++;
 					if( line+offset <= lptr->line ) {
 						if( (lptr[line+offset].status&_SAME_LINE) == _SAME_LINE ) {
@@ -1577,13 +1580,13 @@ void getPitchMod( LINE *lptr )
 						end_flag = 1;
 					}
 					break;
-				  default:
+					default:
 					num = Asc2Int( ptr, &cnt );
 					if( cnt != 0 ) {
 						switch( i ) {
-						  case 1:
-						  case 2:
-						  case 3:
+							case 1:
+							case 2:
+							case 3:
 							if( 0 <= num && num <= 255 ) {
 								pitch_mod_tbl[no][i] = num;
 								pitch_mod_tbl[no][0]++;
@@ -1595,7 +1598,7 @@ void getPitchMod( LINE *lptr )
 								end_flag = 1;
 							}
 							break;
-						  case 4:
+							case 4:
 							if( 0 <= num && num <= 255 ) {
 								pitch_mod_tbl[no][i] = num;
 								pitch_mod_tbl[no][0]++;
@@ -1607,7 +1610,7 @@ void getPitchMod( LINE *lptr )
 								end_flag = 1;
 							}
 							break;
-						  default:
+							default:
 							dispError( LFO_DEFINITION_IS_WRONG, lptr[line+offset].filename, line );
 							pitch_mod_tbl[no][0] = 0;
 							end_flag = 1;
@@ -1640,7 +1643,7 @@ void getPitchMod( LINE *lptr )
 /*--------------------------------------------------------------
 	ノートエンベロープの取得
  Input:
-	
+
  Output:
 	無し
 --------------------------------------------------------------*/
@@ -1667,7 +1670,7 @@ void getArpeggio( LINE *lptr )
 			while( end_flag == 0 ) {
 				ptr = skipSpace( ptr );
 				switch( *ptr ) {
-				  case '}':
+					case '}':
 					if (arpeggio_tbl[no][0] >= 1) {
 						arpeggio_tbl[no][i] = EFTBL_END;
 						arpeggio_tbl[no][0]++;
@@ -1678,13 +1681,13 @@ void getArpeggio( LINE *lptr )
 					end_flag = 1;
 					line += offset;
 					break;
-				  case '|':
+					case '|':
 					arpeggio_tbl[no][i] = EFTBL_LOOP;
 					arpeggio_tbl[no][0]++;
 					i++;
 					ptr++;
 					break;
-				  case '\0':
+					case '\0':
 					offset++;
 					if( line+offset <= lptr->line ) {
 						if( (lptr[line+offset].status&_SAME_LINE) == _SAME_LINE ) {
@@ -1696,14 +1699,14 @@ void getArpeggio( LINE *lptr )
 						end_flag = 1;
 					}
 					break;
-				  default:
+					default:
 					num = Asc2Int( ptr, &cnt );
 					if( cnt != 0 ) {
 						if( num >= 0 ) {
 							arpeggio_tbl[no][i] = num;
 						} else {
 							arpeggio_tbl[no][i] = (-num)|0x80;
-						}	
+						}
 						arpeggio_tbl[no][0]++;
 						ptr += cnt;
 						i++;
@@ -1734,7 +1737,7 @@ void getArpeggio( LINE *lptr )
 /*--------------------------------------------------------------
 	DPCMの取得
  Input:
-	
+
  Output:
 	無し
 --------------------------------------------------------------*/
@@ -1770,21 +1773,21 @@ void getDPCM( LINE *lptr )
 				ptr = skipSpace( ptr );
 				switch( *ptr ) {
 				// データ終了
-				  case '}':
+					case '}':
 					switch( i ) {
-					  case 0:
-					  case 1:
+						case 0:
+						case 1:
 						dispError( DPCM_PARAMETER_IS_LACKING, lptr[line].filename, line );
 						tbl->flag = 0;
 						break;
-					  default:
+						default:
 						line += offset;
 						break;
 					}
 					end_flag = 1;
 					break;
 				// 改行
-				  case '\0':
+					case '\0':
 					offset++;
 					if( line+offset <= lptr->line ) {
 						if( (lptr[line+offset].status&_SAME_LINE) == _SAME_LINE ) {
@@ -1796,10 +1799,10 @@ void getDPCM( LINE *lptr )
 						end_flag = 1;
 					}
 					break;
-				  default:
+					default:
 					switch( i ) {
 					// ファイル名を登録
-					  case 0:
+						case 0:
 						// ファイル名は"..."で囲まれている？
 						if( *ptr == '\"' ) {
 							ptr++;
@@ -1833,7 +1836,7 @@ void getDPCM( LINE *lptr )
 						i++;
 						break;
 					// 再生周波数を登録
-					  case 1:
+						case 1:
 						num = Asc2Int( ptr, &cnt );
 						if( cnt != 0 && (0 <= num && num <= 15) ) {
 								tbl->freq = num;
@@ -1846,7 +1849,7 @@ void getDPCM( LINE *lptr )
 						i++;
 						break;
 					// 再生サイズを登録
-					  case 2:
+						case 2:
 						num = Asc2Int( ptr, &cnt );
 						if (cnt != 0 && num == 0) {
 							//値が0のときは省略と同じ
@@ -1865,7 +1868,7 @@ void getDPCM( LINE *lptr )
 						i++;
 						break;
 					// デルタカウンタ($4011)初期値を登録
-					  case 3:
+						case 3:
 						num = Asc2Int(ptr, &cnt);
 						if (cnt != 0 && ((0 <= num && num <= 0x7f) || num == 0xff)) {
 							tbl->delta_init = num;
@@ -1878,7 +1881,7 @@ void getDPCM( LINE *lptr )
 						i++;
 						break;
 					// ループ情報($4010のbit7,6)を登録
-					  case 4:
+						case 4:
 						num = Asc2Int(ptr, &cnt);
 						if (cnt != 0 && (0 <= num && num <= 2)) {
 							tbl->freq |= (num<<6);
@@ -1890,7 +1893,7 @@ void getDPCM( LINE *lptr )
 						ptr += cnt;
 						i++;
 						break;
-					  default:
+						default:
 						dispError( DPCM_DEFINITION_IS_WRONG, lptr[line+offset].filename, line );
 						tbl->flag = 0;
 						end_flag = 1;
@@ -1922,7 +1925,7 @@ void getDPCM( LINE *lptr )
 /*--------------------------------------------------------------
 	XPCMの取得
  Input:
-	
+
  Output:
 	無し
 --------------------------------------------------------------*/
@@ -1958,20 +1961,20 @@ void getXPCM( LINE *lptr )
 				ptr = skipSpace( ptr );
 				switch( *ptr ) {
 				// データ終了
-				  case '}':
+					case '}':
 					switch( i ) {
-					  case 0:
+						case 0:
 						dispError( XPCM_PARAMETER_IS_LACKING, lptr[line].filename, line );
 						tbl->flag = 0;
 						break;
-					  default:
+						default:
 						line += offset;
 						break;
 					}
 					end_flag = 1;
 					break;
 				// 改行
-				  case '\0':
+					case '\0':
 					offset++;
 					if( line+offset <= lptr->line ) {
 						if( (lptr[line+offset].status&_SAME_LINE) == _SAME_LINE ) {
@@ -1983,10 +1986,10 @@ void getXPCM( LINE *lptr )
 						end_flag = 1;
 					}
 					break;
-				  default:
+					default:
 					switch( i ) {
 					// ファイル名を登録
-					  case 0:
+						case 0:
 						// ファイル名は"..."で囲まれている？
 						if( *ptr == '\"' ) {
 							ptr++;
@@ -2020,7 +2023,7 @@ void getXPCM( LINE *lptr )
 						i++;
 						break;
 					// 再生周波数を登録
-					  case 1:
+						case 1:
 						num = Asc2Int( ptr, &cnt );
 						if( cnt != 0 && (0 <= num && num <= 15) ) {
 								tbl->freq = num;
@@ -2033,7 +2036,7 @@ void getXPCM( LINE *lptr )
 						i++;
 						break;
 					// 再生サイズを登録
-					  case 2:
+						case 2:
 						num = Asc2Int( ptr, &cnt );
 						if (cnt != 0 && num == 0) {
 							//値が0のときは省略と同じ
@@ -2051,7 +2054,7 @@ void getXPCM( LINE *lptr )
 						ptr += cnt;
 						i++;
 						break;
-					  default:
+						default:
 						dispError( XPCM_DEFINITION_IS_WRONG, lptr[line+offset].filename, line );
 						tbl->flag = 0;
 						end_flag = 1;
@@ -2067,7 +2070,7 @@ void getXPCM( LINE *lptr )
 			if( tbl->size > 0xffff ) {
 				dispError( XPCM_FILE_SIZE_OVER, lptr[line+offset].filename, line );
 				tbl->flag = 0;
-			} 
+			}
 		// DPCM定義だけど_SAME_LINEの時はエラー
 		} else if( lptr[line].status == (_SET_DPCM_DATA|_SAME_LINE) ) {
 			dispError( XPCM_DEFINITION_IS_WRONG, lptr[line].filename, line );
@@ -2084,7 +2087,7 @@ void getXPCM( LINE *lptr )
 /*--------------------------------------------------------------
 	FDS FM音色の取得
  Input:
-	
+
  Output:
 	無し
 --------------------------------------------------------------*/
@@ -2111,7 +2114,7 @@ void getFMTone( LINE *lptr )
 			while( end_flag == 0 ) {
 				ptr = skipSpace( ptr );
 				switch( *ptr ) {
-				  case '}':
+					case '}':
 					if (fm_tone_tbl[no][0] == 64) {
 						//OK.
 					} else {
@@ -2121,7 +2124,7 @@ void getFMTone( LINE *lptr )
 					end_flag = 1;
 					line += offset;
 					break;
-				  case '\0':
+					case '\0':
 					offset++;
 					if( line+offset <= lptr->line ) {
 						if( (lptr[line+offset].status&_SAME_LINE) == _SAME_LINE ) {
@@ -2134,7 +2137,7 @@ void getFMTone( LINE *lptr )
 						end_flag = 1;
 					}
 					break;
-				  default:
+					default:
 					num = Asc2Int( ptr, &cnt );
 					if( cnt != 0 && (0 <= num && num <= 0x3f) ) {
 						fm_tone_tbl[no][i] = num;
@@ -2173,7 +2176,7 @@ void getFMTone( LINE *lptr )
 /*--------------------------------------------------------------
 	WaveTable音色の取得
  Input:
-	
+
  Output:
 	無し
 --------------------------------------------------------------*/
@@ -2197,11 +2200,11 @@ void getWTBTone( LINE *lptr )
 			while( end_flag == 0 ) {
 				ptr = skipSpace( ptr );
 				switch( *ptr ) {
-				  case '}':
+					case '}':
 					end_flag = 1;
 					line += offset;
 					break;
-				  case '\0':
+					case '\0':
 					offset++;
 					if( line+offset <= lptr->line ) {
 						if( (lptr[line+offset].status&_SAME_LINE) == _SAME_LINE ) {
@@ -2214,7 +2217,7 @@ void getWTBTone( LINE *lptr )
 						end_flag = 1;
 					}
 					break;
-				  default:
+					default:
 					num = Asc2Int( ptr, &cnt );
 					if( cnt != 0 && (0 <= num && num <= 0x1f) ) {
 						wtb_tone_tbl[no][i] = num;
@@ -2261,7 +2264,7 @@ void getWTBTone( LINE *lptr )
 /*--------------------------------------------------------------
 	ToneTableの取得
  Input:
-	
+
  Output:
 	無し
 --------------------------------------------------------------*/
@@ -2285,11 +2288,11 @@ void getToneTable( LINE *lptr )
 			while( end_flag == 0 ) {
 				ptr = skipSpace( ptr );
 				switch( *ptr ) {
-				  case '}':
+					case '}':
 					end_flag = 1;
 					line += offset;
 					break;
-				  case '\0':
+					case '\0':
 					offset++;
 					if( line+offset <= lptr->line ) {
 						if( (lptr[line+offset].status&_SAME_LINE) == _SAME_LINE ) {
@@ -2302,7 +2305,7 @@ void getToneTable( LINE *lptr )
 						end_flag = 1;
 					}
 					break;
-				  default:
+					default:
 					num = Asc2Int( ptr, &cnt );
 					if( cnt != 0 ) {
 						tonetbl_tbl[no][i] = num;
@@ -2349,7 +2352,7 @@ void getToneTable( LINE *lptr )
 /*--------------------------------------------------------------
 	OPL3OPの取得
  Input:
-	
+
  Output:
 	無し
 --------------------------------------------------------------*/
@@ -2359,7 +2362,7 @@ void getOPL3tbl( LINE *lptr )
 	char	*ptr;
 
 	cnt = 0;
-	
+
 	int op_flag = 0;
 
 	for( line = 1; line <= lptr->line; line++ ) {
@@ -2372,7 +2375,7 @@ void getOPL3tbl( LINE *lptr )
 				op_flag = 1;
 			else
 				op_flag = 0;
-			
+
 			no = lptr[line].param;		/* 音色番号取得 */
 			ptr = lptr[line].str;
 			ptr++;				/* '{'の分を飛ばす */
@@ -2385,11 +2388,11 @@ void getOPL3tbl( LINE *lptr )
 			while( end_flag == 0 ) {
 				ptr = skipSpace( ptr );
 				switch( *ptr ) {
-				  case '}':
+					case '}':
 					end_flag = 1;
 					line += offset;
 					break;
-				  case '\0':
+					case '\0':
 					offset++;
 					if( line+offset <= lptr->line ) {
 						if( (lptr[line+offset].status&_SAME_LINE) == _SAME_LINE ) {
@@ -2402,7 +2405,7 @@ void getOPL3tbl( LINE *lptr )
 						end_flag = 1;
 					}
 					break;
-				  default:
+					default:
 					num = Asc2Int( ptr, &cnt );
 					if( cnt != 0 ) {
 						opl3op_tbl[no][i] = num;
@@ -2438,7 +2441,7 @@ void getOPL3tbl( LINE *lptr )
 
 		/* 音色定義だけど_SAME_LINEの時はエラー */
 		} else if( lptr[line].status == (_SET_FMOP|_SAME_LINE) ||
-					     lptr[line].status == (_SET_FMOP_FOUR|_SAME_LINE)) {
+							 lptr[line].status == (_SET_FMOP_FOUR|_SAME_LINE)) {
 			dispError( FM_TONE_DEFINITION_IS_WRONG, lptr[line].filename, line );
 		/* インクルードファイル処理 */
 		} else if( lptr[line].status == _INCLUDE ) {
@@ -2452,7 +2455,7 @@ void getOPL3tbl( LINE *lptr )
 /*--------------------------------------------------------------
 	VRC7音色の取得
  Input:
-	
+
  Output:
 	無し
 --------------------------------------------------------------*/
@@ -2479,7 +2482,7 @@ void getVRC7Tone( LINE *lptr )
 			while( end_flag == 0 ) {
 				ptr = skipSpace( ptr );
 				switch( *ptr ) {
-				  case '}':
+					case '}':
 					if (vrc7_tone_tbl[no][0] == 8) {
 						//OK.
 					} else {
@@ -2489,7 +2492,7 @@ void getVRC7Tone( LINE *lptr )
 					end_flag = 1;
 					line += offset;
 					break;
-				  case '\0':
+					case '\0':
 					offset++;
 					if( line+offset <= lptr->line ) {
 						if( (lptr[line+offset].status&_SAME_LINE) == _SAME_LINE ) {
@@ -2502,7 +2505,7 @@ void getVRC7Tone( LINE *lptr )
 						end_flag = 1;
 					}
 					break;
-				  default:
+					default:
 					num = Asc2Int( ptr, &cnt );
 					if( cnt != 0 && (0 <= num && num <= 0xff) ) {
 						vrc7_tone_tbl[no][i] = num;
@@ -2551,7 +2554,7 @@ void getVRC7Tone( LINE *lptr )
 /*--------------------------------------------------------------
 	namco106音色の取得
  Input:
-	
+
  Output:
 	無し
 --------------------------------------------------------------*/
@@ -2559,8 +2562,8 @@ void getN106Tone( LINE *lptr )
 {
 	int		line, i, no, end_flag, offset, num, cnt;
 	char	*ptr;
-					//	   16 14 12 10  8  6  4  2 			
-	int	n106_tone_max[] = { 4, 4, 5, 6, 8,10,16,32 }; 
+					//		 16 14 12 10	8	6	4	2
+	int	n106_tone_max[] = { 4, 4, 5, 6, 8,10,16,32 };
 	int	n106_tone_num;
 
 	cnt = 0;
@@ -2580,12 +2583,12 @@ void getN106Tone( LINE *lptr )
 			while( end_flag == 0 ) {
 				ptr = skipSpace( ptr );
 				switch( *ptr ) {
-				  case '}':
+					case '}':
 					//要素の数はwhileを抜けた後でチェック
 					end_flag = 1;
 					line += offset;
 					break;
-				  case '\0':
+					case '\0':
 					offset++;
 					if( line+offset <= lptr->line ) {
 						if( (lptr[line+offset].status&_SAME_LINE) == _SAME_LINE ) {
@@ -2598,9 +2601,9 @@ void getN106Tone( LINE *lptr )
 						end_flag = 1;
 					}
 					break;
-				  default:
+					default:
 					num = Asc2Int( ptr, &cnt );
-					if( i == 1 ) {						// 登録バッファ(0〜5)			
+					if( i == 1 ) {						// 登録バッファ(0〜5)
 						if( cnt != 0 && (0 <= num && num <= 32) ) {
 							n106_tone_tbl[no][1] = num;
 							n106_tone_tbl[no][0]++;
@@ -2639,15 +2642,15 @@ void getN106Tone( LINE *lptr )
 				}
 			}
 			switch( n106_tone_tbl[no][0] ) {
-			  case 16*2+1: n106_tone_num =  0; break;
-			  case 14*2+1: n106_tone_num =  1; break;
-			  case 12*2+1: n106_tone_num =  2; break;
-			  case 10*2+1: n106_tone_num =  3; break;
-			  case  8*2+1: n106_tone_num =  4; break;
-			  case  6*2+1: n106_tone_num =  5; break;
-			  case  4*2+1: n106_tone_num =  6; break;
-			  case  2*2+1: n106_tone_num =  7; break;
-			  default:     n106_tone_num = -1; break;
+				case 16*2+1: n106_tone_num =	0; break;
+				case 14*2+1: n106_tone_num =	1; break;
+				case 12*2+1: n106_tone_num =	2; break;
+				case 10*2+1: n106_tone_num =	3; break;
+				case	8*2+1: n106_tone_num =	4; break;
+				case	6*2+1: n106_tone_num =	5; break;
+				case	4*2+1: n106_tone_num =	6; break;
+				case	2*2+1: n106_tone_num =	7; break;
+				default:		 n106_tone_num = -1; break;
 			}
 			if( n106_tone_num == -1 ) {
 				dispError( ABNORMAL_PARAMETERS_OF_N106_TONE, lptr[line].filename, line );
@@ -2672,7 +2675,7 @@ void getN106Tone( LINE *lptr )
 /*--------------------------------------------------------------
 	ハードウェアエフェクトの取得
  Input:
-	
+
  Output:
 	無し
 --------------------------------------------------------------*/
@@ -2699,7 +2702,7 @@ void getHardEffect( LINE *lptr )
 			while( end_flag == 0 ) {
 				ptr = skipSpace( ptr );
 				switch( *ptr ) {
-				  case '}':
+					case '}':
 					if (hard_effect_tbl[no][0] == 4) {
 						//OK.
 					} else {
@@ -2709,7 +2712,7 @@ void getHardEffect( LINE *lptr )
 					end_flag = 1;
 					line += offset;
 					break;
-				  case '\0':
+					case '\0':
 					offset++;
 					if( line+offset <= lptr->line ) {
 						if( (lptr[line+offset].status&_SAME_LINE) == _SAME_LINE ) {
@@ -2721,11 +2724,11 @@ void getHardEffect( LINE *lptr )
 						end_flag = 1;
 					}
 					break;
-				  default:
+					default:
 					num = Asc2Int( ptr, &cnt );
 					if( cnt != 0 ) {
 						switch( i ) {
-						  case 1:
+							case 1:
 							if( 0 <= num && num <= 255 ) {
 								hard_effect_tbl[no][i] = num;
 								hard_effect_tbl[no][0]++;
@@ -2737,7 +2740,7 @@ void getHardEffect( LINE *lptr )
 								end_flag = 1;
 							}
 							break;
-						  case 2:
+							case 2:
 							if( 0 <= num && num <= 4095 ) {
 								hard_effect_tbl[no][i] = num;
 								hard_effect_tbl[no][0]++;
@@ -2749,7 +2752,7 @@ void getHardEffect( LINE *lptr )
 								end_flag = 1;
 							}
 							break;
-						  case 3:
+							case 3:
 							if( 0 <= num && num <= 255 ) {
 								hard_effect_tbl[no][i] = num;
 								hard_effect_tbl[no][0]++;
@@ -2761,7 +2764,7 @@ void getHardEffect( LINE *lptr )
 								end_flag = 1;
 							}
 							break;
-						  case 4:
+							case 4:
 							if( 0 <= num && num <= 7 ) {
 								hard_effect_tbl[no][i] = num;
 								hard_effect_tbl[no][0]++;
@@ -2773,7 +2776,7 @@ void getHardEffect( LINE *lptr )
 								end_flag = 1;
 							}
 							break;
-						  default:
+							default:
 							dispError( LFO_DEFINITION_IS_WRONG, lptr[line+offset].filename, line );
 							hard_effect_tbl[no][0] = 0;
 							end_flag = 1;
@@ -2806,7 +2809,7 @@ void getHardEffect( LINE *lptr )
 /*--------------------------------------------------------------
 	エフェクト波形の取得
  Input:
-	
+
  Output:
 	無し
 --------------------------------------------------------------*/
@@ -2833,7 +2836,7 @@ void getEffectWave( LINE *lptr )
 			while( end_flag == 0 ) {
 				ptr = skipSpace( ptr );
 				switch( *ptr ) {
-				  case '}':
+					case '}':
 					if (effect_wave_tbl[no][0] == 32) {
 						//OK.
 					} else {
@@ -2843,7 +2846,7 @@ void getEffectWave( LINE *lptr )
 					end_flag = 1;
 					line += offset;
 					break;
-				  case '\0':
+					case '\0':
 					offset++;
 					if( line+offset <= lptr->line ) {
 						if( (lptr[line+offset].status&_SAME_LINE) == _SAME_LINE ) {
@@ -2856,7 +2859,7 @@ void getEffectWave( LINE *lptr )
 						end_flag = 1;
 					}
 					break;
-				  default:
+					default:
 					num = Asc2Int( ptr, &cnt );
 					if( cnt != 0 && (0 <= num && num <= 7) ) {
 						effect_wave_tbl[no][i] = num;
@@ -2924,7 +2927,7 @@ void sortDPCM( DPCMTBL dpcm_tbl[_DPCM_MAX] )
 /*--------------------------------------------------------------
 	DPCMサイズ修正(16byteバウンダリに修正)
  Input:
-	
+
  Output:
  	int: DPCMサイズ
 --------------------------------------------------------------*/
@@ -2937,23 +2940,23 @@ int checkDPCMSize( DPCMTBL dpcm_tbl[_DPCM_MAX] )
 	for( i = 0; i < _DPCM_MAX; i++ ) {
 		if( dpcm_tbl[i].flag != 0 ) {
 			/*
-			   $4013 * 16 + 1 = size
-			   $4013 = (size - 1) / 16 
-			
-			   newsize % 16 == 1が成立するように調整
-			   size%16	(size-1)%16	diff(floor)	diff(ceil)
-			   1		0		0		0
-			   2		1		-1		+15
-			   3		2		-2		+14
-			   4		3		-3		+13
-			   15		14		-14		+2
-			   0		15		-15		+1
+				 $4013 * 16 + 1 = size
+				 $4013 = (size - 1) / 16
+
+				 newsize % 16 == 1が成立するように調整
+				 size%16	(size-1)%16	diff(floor)	diff(ceil)
+				 1		0		0		0
+				 2		1		-1		+15
+				 3		2		-2		+14
+				 4		3		-3		+13
+				 15		14		-14		+2
+				 0		15		-15		+1
 			*/
 			//printf("%s size $%x\n", dpcm_tbl[i].fname, dpcm_tbl[i].size);
 			if ((dpcm_tbl[i].size % 16) != 1) {
 				int diff;
 				diff = (16 - ((dpcm_tbl[i].size - 1) % 16)) % 16; //ceil
-				//diff =    - ((dpcm_tbl[i].size - 1) % 16); //floor
+				//diff =		- ((dpcm_tbl[i].size - 1) % 16); //floor
 				dpcm_tbl[i].size += diff;
 			}
 			//printf("%s fixed size $%x\n", dpcm_tbl[i].fname, dpcm_tbl[i].size);
@@ -2966,7 +2969,7 @@ int checkDPCMSize( DPCMTBL dpcm_tbl[_DPCM_MAX] )
 					dpcm_bankswitch = 1;
 				}
 				//printf("%s bank %d a %x s %x\n", dpcm_tbl[i].fname, bank, adr, size);
-				
+
 				dpcm_tbl[i].start_adr = adr;
 				dpcm_tbl[i].bank_ofs = bank;
 				adr += dpcm_tbl[i].size;
@@ -2982,7 +2985,7 @@ int checkDPCMSize( DPCMTBL dpcm_tbl[_DPCM_MAX] )
 /*--------------------------------------------------------------
 	DPCMサイズ修正(16byteバウンダリに修正)
  Input:
-	
+
  Output:
  	int: DPCMサイズ
 --------------------------------------------------------------*/
@@ -2991,9 +2994,9 @@ int checkXPCMSize( DPCMTBL xpcm_tbl[_DPCM_MAX] )
 	int	i;
 	int	size = 0;
 
-	for( i = 0; i < _DPCM_MAX; i++ ) 
+	for( i = 0; i < _DPCM_MAX; i++ )
 	{
-		if( xpcm_tbl[i].flag != 0 ) 
+		if( xpcm_tbl[i].flag != 0 )
 			size += xpcm_tbl[i].size;
 	}
 	return size;
@@ -3006,7 +3009,7 @@ int checkXPCMSize( DPCMTBL xpcm_tbl[_DPCM_MAX] )
 /*--------------------------------------------------------------
 	DPCMデータ読み込み
  Input:
-	
+
  Output:
 --------------------------------------------------------------*/
 void readDPCM( DPCMTBL dpcm_tbl[_DPCM_MAX] )
@@ -3015,7 +3018,7 @@ void readDPCM( DPCMTBL dpcm_tbl[_DPCM_MAX] )
 	FILE	*fp;
 
 	for( i = 0; i < dpcm_size; i++ ) {
-		dpcm_data[i] = 0xaa; 
+		dpcm_data[i] = 0xaa;
 	}
 
 	for( i = 0; i < _DPCM_MAX; i++ ) {
@@ -3029,7 +3032,7 @@ void readDPCM( DPCMTBL dpcm_tbl[_DPCM_MAX] )
 			}
 		}
 	}
-#ifdef DEBUG
+#if 0
 	for( i = 0; i < _DPCM_TOTAL_SIZE; i++ ) {
 		if( (i&0x0f) != 0x0f ) {
 			printf( "%02x,", dpcm_data[i] );
@@ -3045,7 +3048,7 @@ void readDPCM( DPCMTBL dpcm_tbl[_DPCM_MAX] )
 /*--------------------------------------------------------------
 	音色/エンベロープのループチェック
  Input:
-	
+
  Output:
 	int	: 一番大きい音色番号
 --------------------------------------------------------------*/
@@ -3063,8 +3066,8 @@ int checkLoop( int ptr[128][1024], int max )
 			}
 			if( lp_flag == 0 ) {
 				j = ptr[i][0];
-				ptr[i][j+1] = ptr[i][j  ]; 
-				ptr[i][j  ] = ptr[i][j-1]; 
+				ptr[i][j+1] = ptr[i][j	];
+				ptr[i][j	] = ptr[i][j-1];
 				ptr[i][j-1] = EFTBL_LOOP;
 				ptr[i][0]++;
 			}
@@ -3079,7 +3082,7 @@ int checkLoop( int ptr[128][1024], int max )
 /*--------------------------------------------------------------
 	音色の使用個数を返す
  Input:
-	
+
  Output:
 	int	: 一番大きい音色番号
 --------------------------------------------------------------*/
@@ -3100,7 +3103,7 @@ int getMaxTone( int ptr[128][66], int max )
 /*--------------------------------------------------------------
 	ToneTableの使用個数を返す
  Input:
-	
+
  Output:
 	int	: 一番大きい音色番号
 --------------------------------------------------------------*/
@@ -3121,7 +3124,7 @@ int getMaxToneTable( int ptr[_TONETBL_MAX][1024+2], int max )
 /*--------------------------------------------------------------
 	Opl3tblの使用個数を返す
  Input:
-	
+
  Output:
 	int	: 一番大きい音色番号
 --------------------------------------------------------------*/
@@ -3144,7 +3147,7 @@ int getMaxOpl3tbl( int ptr[_OPL3TBL_MAX][1024+2], int max )
 /*--------------------------------------------------------------
 	LFOの使用個数を返す
  Input:
-	
+
  Output:
 	int	: 一番大きいLFO番号
 --------------------------------------------------------------*/
@@ -3166,7 +3169,7 @@ int getMaxLFO( int ptr[_PITCH_MOD_MAX][5], int max )
 /*--------------------------------------------------------------
 	DPCMの使用個数を返す
  Input:
-	
+
  Output:
 	int	: 一番大きい音色番号
 --------------------------------------------------------------*/
@@ -3187,7 +3190,7 @@ int getMaxDPCM( DPCMTBL	dpcm_tbl[_DPCM_MAX] )
 /*--------------------------------------------------------------
 	ハードウェアエフェクトの使用個数を返す
  Input:
-	
+
  Output:
 	int	: 一番大きい音色番号
 --------------------------------------------------------------*/
@@ -3210,7 +3213,7 @@ int getMaxHardEffect( int ptr[_HARD_EFFECT_MAX][5], int max )
 /*--------------------------------------------------------------
 	エフェクト波形の使用個数を返す
  Input:
-	
+
  Output:
 	int	: 一番大きい音色番号
 --------------------------------------------------------------*/
@@ -3233,7 +3236,7 @@ int getMaxEffectWave( int ptr[_EFFECT_WAVE_MAX][33], int max )
 /*--------------------------------------------------------------
 	音色/エンベロープの書き込み
  Input:
-	
+
  Output:
 	無し
 --------------------------------------------------------------*/
@@ -3248,7 +3251,7 @@ void writeTone( FILE *fp, int tbl[128][1024], char *str, int max )
 				fprintf( fp, "\tdw\t%s_%03d\n", str, i );
 			} else {
 				fprintf( fp, "\tdw\t0\n" );
-			}			
+			}
 		}
 	}
 	fprintf( fp, "%s_lp_table:\n", str );
@@ -3258,7 +3261,7 @@ void writeTone( FILE *fp, int tbl[128][1024], char *str, int max )
 				fprintf( fp, "\tdw\t%s_lp_%03d\n", str, i );
 			} else {
 				fprintf( fp, "\tdw\t0\n" );
-			}			
+			}
 		}
 
 		for( i = 0; i < max; i++ ) {
@@ -3293,7 +3296,7 @@ void writeTone( FILE *fp, int tbl[128][1024], char *str, int max )
 /*--------------------------------------------------------------
 	FM音色の書き込み
  Input:
-	
+
  Output:
 	無し
 --------------------------------------------------------------*/
@@ -3335,7 +3338,7 @@ void writeToneFM( FILE *fp, int tbl[_FM_TONE_MAX][66], char *str, int max )
 /*--------------------------------------------------------------
 	WTB音色の書き込み
  Input:
-	
+
  Output:
 	無し
 --------------------------------------------------------------*/
@@ -3377,9 +3380,9 @@ void writeToneWTB( FILE *fp, int tbl[_WTB_TONE_MAX][66], char *str, int max )
 }
 
 /*--------------------------------------------------------------
-   ToneTableの書き込み
+	 ToneTableの書き込み
  Input:
-	
+
  Output:
 	無し
 --------------------------------------------------------------*/
@@ -3402,7 +3405,7 @@ void writeToneTable( FILE *fp, int tbl[_TONETBL_MAX][1024+2], char *str, int max
 				fprintf( fp, "\n%s_%03d:\n", str, i );
 				x = 0;
 				for( j = 0, k = 1; j < tbl[i][0]/9; k+=9,j++ )
-				{	
+				{
 					fprintf( fp , "\tdb\t$%02x,$%02x\n",tbl[i][k]&0xff,tbl[i][k+1]&0xff );
 					fprintf( fp , "\tdw\t$%04x\n",tbl[i][k+2] & 0xffff );
 					fprintf( fp , "\tdw\t%d\n",tbl[i][k+3] & 0xffff );
@@ -3422,9 +3425,9 @@ void writeToneTable( FILE *fp, int tbl[_TONETBL_MAX][1024+2], char *str, int max
 }
 
 /*--------------------------------------------------------------
-   Opl3tblの書き込み
+	 Opl3tblの書き込み
  Input:
-	
+
  Output:
 	無し
 --------------------------------------------------------------*/
@@ -3446,30 +3449,30 @@ void writeOPL3tbl( FILE *fp, char *str, int max )
 			if( opl3op_tbl[i][0] != 0 ) {
 				fprintf( fp, "\n%s_%03d:\n", str, i );
 				x = 0;
-				
+
 				int cnt_val = opl3op_tbl[i][2] & 0x03;
-				
+
 				if (opl3op_flag[i])
 				{
 					// 4OPモード
 					int opf_table[]= { 0, 2, 1, 3 };
 					cnt_val = opf_table[cnt_val];
 				}
-				
+
 				// Reg.$C0
 				fprintf( fp , "\tdb\t$%02x\n",
 								((opl3op_tbl[i][1] & 0x07)<<1) |
 								((cnt_val & 0x01)) );
-				
+
 				// Reg.$C0 + 3
 				fprintf( fp , "\tdb\t$%02x\n",
 								((cnt_val & 0x02)>>1) );
 
 				// Reg.$BD
 				fprintf( fp , "\tdb\t$00\n\n");
-                
+
 				for( j = 0, k = 6; j < (opl3op_tbl[i][0]-5)/12; k+=12,j++ )
-				{	
+				{
 					// Reg.$20
 					fprintf( fp , "\tdb\t$%02x\n",
 						((opl3op_tbl[i][k]&0x1)<<7) |
@@ -3510,7 +3513,7 @@ void writeOPL3tbl( FILE *fp, char *str, int max )
 /*--------------------------------------------------------------
 	VRC7音色の書き込み
  Input:
-	
+
  Output:
 	無し
 --------------------------------------------------------------*/
@@ -3557,7 +3560,7 @@ void writeToneVRC7( FILE *fp, int tbl[_VRC7_TONE_MAX][66], char *str, int max )
 /*--------------------------------------------------------------
 	ハードウェアエフェクトの書き込み
  Input:
-	
+
  Output:
 	無し
 --------------------------------------------------------------*/
@@ -3577,7 +3580,7 @@ void writeHardEffect( FILE *fp, int tbl[_HARD_EFFECT_MAX][5], char *str, int max
 /*--------------------------------------------------------------
 	エフェクト波形の書き込み
  Input:
-	
+
  Output:
 	無し
 --------------------------------------------------------------*/
@@ -3610,7 +3613,7 @@ void writeEffectWave( FILE *fp, int tbl[_EFFECT_WAVE_MAX][33], char *str, int ma
 			}
 		}
 	}
-	
+
 	fprintf( fp, "\n\n" );
 }
 
@@ -3619,7 +3622,7 @@ void writeEffectWave( FILE *fp, int tbl[_EFFECT_WAVE_MAX][33], char *str, int ma
 /*--------------------------------------------------------------
 	N106音色の書き込み
  Input:
-	
+
  Output:
 	無し
 --------------------------------------------------------------*/
@@ -3635,15 +3638,15 @@ void writeToneN106( FILE *fp, int tbl[_N106_TONE_MAX][2+64], char *str, int max 
 	if( max != 0 ) {
 		for( i = 0; i < max; i++ ) {
 			switch( tbl[i][0] ) {
-			  case  2*2+1: j = 7; x = tbl[i][1]* 2*2; break;
-			  case  4*2+1: j = 6; x = tbl[i][1]* 4*2; break;
-			  case  6*2+1: j = 5; x = tbl[i][1]* 6*2; break;
-			  case  8*2+1: j = 4; x = tbl[i][1]* 8*2; break;
-			  case 10*2+1: j = 3; x = tbl[i][1]*10*2; break;
-			  case 12*2+1: j = 2; x = tbl[i][1]*12*2; break;
-			  case 14*2+1: j = 1; x = tbl[i][1]*14*2; break;
-			  case 16*2+1: j = 0; x = tbl[i][1]*16*2; break;
-			  default:     j = 0; x = 0; break;	
+				case	2*2+1: j = 7; x = tbl[i][1]* 2*2; break;
+				case	4*2+1: j = 6; x = tbl[i][1]* 4*2; break;
+				case	6*2+1: j = 5; x = tbl[i][1]* 6*2; break;
+				case	8*2+1: j = 4; x = tbl[i][1]* 8*2; break;
+				case 10*2+1: j = 3; x = tbl[i][1]*10*2; break;
+				case 12*2+1: j = 2; x = tbl[i][1]*12*2; break;
+				case 14*2+1: j = 1; x = tbl[i][1]*14*2; break;
+				case 16*2+1: j = 0; x = tbl[i][1]*16*2; break;
+				default:		 j = 0; x = 0; break;
 			}
 			fprintf( fp, "\tdb\t$%02x,$%02x\n", j, x );
 		}
@@ -3658,7 +3661,7 @@ void writeToneN106( FILE *fp, int tbl[_N106_TONE_MAX][2+64], char *str, int max 
 				fprintf( fp, "\tdw\t0\n" );
 			}
 		}
-	}			
+	}
 	if( max != 0 ) {
 		for( i = 0; i < max; i++ ) {
 			if( tbl[i][0] != 0 ) {
@@ -3679,7 +3682,7 @@ void writeToneN106( FILE *fp, int tbl[_N106_TONE_MAX][2+64], char *str, int max 
 /*--------------------------------------------------------------
 	DPCMテーブルの書き込み
  Input:
-	
+
  Output:
 	無し
 --------------------------------------------------------------*/
@@ -3693,19 +3696,19 @@ void writeDPCM( FILE *fp, DPCMTBL dpcm_tbl[_DPCM_MAX], char *str, int max )
 	for( i = 0; i < max; i++ ) {
 		if( dpcm_tbl[i].flag != 0 ) {
 			/*
-			   $4013 * 16 + 1 = size
-			   $4013 = (size - 1) / 16
-			   $4012 * 64 = adr
-			   adr = $4012 / 64
+				 $4013 * 16 + 1 = size
+				 $4013 = (size - 1) / 16
+				 $4012 * 64 = adr
+				 adr = $4012 / 64
 			*/
 			freq = dpcm_tbl[i].freq;
 			size = (dpcm_tbl[i].size - 1)/16;
 			delta_init = dpcm_tbl[i].delta_init;
 			if( dpcm_tbl[i].index == -1 ) {
-				adr  = dpcm_tbl[i].start_adr/64;
+				adr	= dpcm_tbl[i].start_adr/64;
 				fname = dpcm_tbl[i].fname;
 			} else {
-				adr  = dpcm_tbl[dpcm_tbl[i].index].start_adr/64;
+				adr	= dpcm_tbl[dpcm_tbl[i].index].start_adr/64;
 				fname = dpcm_tbl[dpcm_tbl[i].index].fname;
 			}
 			fprintf( fp, "\tdb\t$%02x,$%02x,$%02x,$%02x\t;%s\n", freq, delta_init, adr % 0x100, size, fname);
@@ -3713,7 +3716,7 @@ void writeDPCM( FILE *fp, DPCMTBL dpcm_tbl[_DPCM_MAX], char *str, int max )
 			fprintf( fp, "\tdb\t$00,$00,$00,$00\t;unused\n");
 		}
 	}
-	
+
 	if (dpcm_bankswitch) {
 		fprintf( fp, "%s_bank:\n", str );
 		for( i = 0; i < max; i++ ) {
@@ -3761,7 +3764,7 @@ void writeXPCM( FILE *fp, DPCMTBL xpcm_tbl[_DPCM_MAX], char *str, int max )
 					fprintf( fp , "\tdw\t_xpcm%03d,$%04x\n",xpcm_tbl[i].index,size);
 					fprintf( fp , "\tdb\tbank(_xpcm%03d),$00,$00,$00\n",xpcm_tbl[i].index);
 				}
-				
+
 //				fprintf( fp, "\tdb\t$%02x,$%02x,$%02x,$%02x\n", freq, 0, adr, size );
 			} else {
 				fprintf( fp , "\tdw\t$0000,$0000\n\tdb\t$00,$00,$00,$00\n");
@@ -3784,7 +3787,7 @@ void writeXPCM( FILE *fp, DPCMTBL xpcm_tbl[_DPCM_MAX], char *str, int max )
 					fprintf( fp,"_xpcm%03d:\n",i);
 					fprintf( fp,"\t.incbin \"%s\"\n",xpcm_tbl[i].fname);
 					adr += xpcm_tbl[i].size;
-					
+
 				}
 			}
 			fprintf( fp, "\n\t.bank\tCONST_BANK\n");
@@ -3797,7 +3800,7 @@ void writeXPCM( FILE *fp, DPCMTBL xpcm_tbl[_DPCM_MAX], char *str, int max )
 
 
 /*--------------------------------------------------------------
-	
+
 --------------------------------------------------------------*/
 static void writeDPCMSampleSub( FILE *fp )
 {
@@ -3811,7 +3814,7 @@ static void writeDPCMSampleSub( FILE *fp )
 /*--------------------------------------------------------------
 	DPCMデータの書き込み
  Input:
-	
+
  Output:
 	無し
 --------------------------------------------------------------*/
@@ -3820,7 +3823,7 @@ void writeDPCMSample( FILE *fp )
 	int		i;
 	int	nes_bank = 1; //8KB
 	int	bank_ofs = 0; //16KB
-	
+
 	fprintf( fp, "; begin DPCM samples\n" );
 	for( i = 0; i < dpcm_size; i++ ) {
 		if (i % 0x2000 == 0) {
@@ -3851,7 +3854,7 @@ void writeDPCMSample( FILE *fp )
 	}
 	fprintf( fp, "\n" );
 	fprintf( fp, "; end DPCM samples\n\n" );
-	
+
 	if (dpcm_extra_bank_num) {
 		int x;
 		fprintf( fp, "; begin DPCM vectors\n" );
@@ -3871,7 +3874,7 @@ void writeDPCMSample( FILE *fp )
 /*--------------------------------------------------------------
 	タイトル/作曲者/メーカー/打ち込み者をコメントとして書き込み
  Input:
-	
+
  Output:
 	無し
 --------------------------------------------------------------*/
@@ -3890,11 +3893,11 @@ void writeSongInfo( FILE *fp )
 
 
 /*--------------------------------------------------------------
-	
+
  Input: 文字列データをdbとしてmaxバイト出力(終端以降は0で埋める)
-	
+
  Output:
-	
+
 --------------------------------------------------------------*/
 void printStrDb( FILE *fp, const char *str, int max)
 {
@@ -3915,10 +3918,10 @@ void printStrDb( FILE *fp, const char *str, int max)
 				break;
 			case 7:
 				newline_flag = 1;
-				fprintf(fp, ", $%02x",  c & 0xff);
+				fprintf(fp, ", $%02x",	c & 0xff);
 				break;
-			default:				
-				fprintf(fp, ", $%02x",  c & 0xff);
+			default:
+				fprintf(fp, ", $%02x",	c & 0xff);
 				break;
 		}
 		if (newline_flag) {
@@ -3928,7 +3931,7 @@ void printStrDb( FILE *fp, const char *str, int max)
 	if (!newline_flag) {
 		fprintf(fp, "\n");
 	}
-	
+
 }
 
 
@@ -3936,7 +3939,7 @@ void printStrDb( FILE *fp, const char *str, int max)
 /*--------------------------------------------------------------
 	タイトル/作曲者/メーカーをmacroとして書き込み
  Input:
-	
+
  Output:
 	無し
 --------------------------------------------------------------*/
@@ -3952,12 +3955,12 @@ void writeSongInfoMacro(FILE *fp)
 	printStrDb(fp, maker, 32);
 	fprintf(fp, "\t.endm\n");
 
-    if (use_pcm)
-    {
-        fprintf( fp, "PCMFILE\t.macro\n");
-        fprintf( fp, "\tdb\t\"%s\",$00\n", pcm_name );
-        fprintf(fp, "\t.endm\n");
-    }
+		if (use_pcm)
+		{
+				fprintf( fp, "PCMFILE\t.macro\n");
+				fprintf( fp, "\tdb\t\"%s\",$00\n", pcm_name );
+				fprintf(fp, "\t.endm\n");
+		}
 
 }
 
@@ -3968,7 +3971,7 @@ void writeSongInfoMacro(FILE *fp)
 /*--------------------------------------------------------------
 	パラメータがn個のコマンドの処理
  Input:
-	
+
  Output:
 	無し
 --------------------------------------------------------------*/
@@ -3982,7 +3985,7 @@ char *setCommandBuf( int n, CMD *cmd, int com_no, char *ptr, int line, int enabl
 	}
 
 	if( n != 0 ) {
-		for(i = 0; i < n; i++) 
+		for(i = 0; i < n; i++)
 		{
 			cnt = 0;
 			param[i] = Asc2Int( ptr, &cnt );
@@ -3999,7 +4002,7 @@ char *setCommandBuf( int n, CMD *cmd, int com_no, char *ptr, int line, int enabl
 					ptr++;
 					ptr = skipSpace( ptr );
 				}
-				else //  ","の区切りがない場合、パラメータは省略されている
+				else //	","の区切りがない場合、パラメータは省略されている
 				{
 					for(i++; i<n; i++ ) // 現在の次のパラメータから省略
 						param[i] = PARAM_OMITTED;
@@ -4011,7 +4014,7 @@ char *setCommandBuf( int n, CMD *cmd, int com_no, char *ptr, int line, int enabl
 	if( enable != 0 ) {
 		cmd->cnt = 0;
 		cmd->line = line;
-		cmd->cmd  = com_no;
+		cmd->cmd	= com_no;
 		cmd->len = 0;
 		if( n != 0 ) {
 			for( i = 0; i < n; i++ ) {
@@ -4028,7 +4031,7 @@ char *setCommandBuf( int n, CMD *cmd, int com_no, char *ptr, int line, int enabl
 /*--------------------------------------------------------------
 	音長パラメータの取得
  Input:
-	
+
  Output:
 	無し
 --------------------------------------------------------------*/
@@ -4085,7 +4088,7 @@ char *getLengthSub( char *ptr, double *len, double def )
 /*--------------------------------------------------------------
 	音長取得
  Output:
-	*len: 
+	*len:
 --------------------------------------------------------------*/
 char *getLength( char *ptr, double *len, double def )
 {
@@ -4110,7 +4113,7 @@ char *getLength( char *ptr, double *len, double def )
 /*--------------------------------------------------------------
 	パラメータが1個(音長)のコマンドの処理
  Input:
-	
+
  Output:
 	無し
 --------------------------------------------------------------*/
@@ -4118,7 +4121,7 @@ char *setCommandBufL( CMD *cmd, int com_no, char *ptr, int line, int enable )
 {
 	cmd->cnt = 0;
 	cmd->line = line;
-	cmd->cmd  = com_no;
+	cmd->cmd	= com_no;
 
 	ptr = getLength( ptr, &(cmd->len), -1 );
 	if( cmd->len > 0 ) {
@@ -4137,7 +4140,7 @@ char *setCommandBufL( CMD *cmd, int com_no, char *ptr, int line, int enable )
 /*--------------------------------------------------------------
 	パラメータが1個(音階/音長)のコマンドの処理
  Input:
-	
+
  Output:
 	無し
 --------------------------------------------------------------*/
@@ -4175,10 +4178,10 @@ char *setCommandBufN( CMD *cmd, int com_no, char *ptr, int line, int enable )
 	/* 音階の範囲チェック */
 	if( note < 0 ) {
 		switch( note ) {
-		  case -5: note = 15; break;
-		  case -6: note = 14; break;
-		  case -7: note = 13; break;
-		  default: note =  0; break;
+			case -5: note = 15; break;
+			case -6: note = 14; break;
+			case -7: note = 13; break;
+			default: note =	0; break;
 		}
 	} else if( note > MAX_NOTE ) {
 		note = MAX_NOTE;
@@ -4190,10 +4193,10 @@ char *setCommandBufN( CMD *cmd, int com_no, char *ptr, int line, int enable )
 		len = 0.0;
 	}
 	if( enable != 0 ) {
-		cmd->cnt  = 0;
+		cmd->cnt	= 0;
 		cmd->line = line;
-		cmd->cmd  = note;
-		cmd->len  = len;
+		cmd->cmd	= note;
+		cmd->len	= len;
 	}
 
 	return ptr;
@@ -4204,10 +4207,10 @@ char *setCommandBufD( CMD *cmd, int com_no, char *ptr, int line, int enable )
 {
 	double	len;
 	int bit = 0x00;
-	
+
 	int loop_end = 0;
-	
-	while( !loop_end ) 
+
+	while( !loop_end )
 	{
 		switch(*ptr)
 		{
@@ -4230,7 +4233,7 @@ char *setCommandBufD( CMD *cmd, int com_no, char *ptr, int line, int enable )
 				loop_end = 1;
 			break;
 		}
-		if (!loop_end) 
+		if (!loop_end)
 			ptr++;
 	}
 
@@ -4240,12 +4243,12 @@ char *setCommandBufD( CMD *cmd, int com_no, char *ptr, int line, int enable )
 		dispError( ABNORMAL_NOTE_LENGTH_VALUE, cmd->filename, line );
 		len = 0.0;
 	}
-    
+
 	if( enable != 0 ) {
-		cmd->cnt  = 0;
+		cmd->cnt	= 0;
 		cmd->line = line;
-		cmd->cmd  = com_no;
-		cmd->len  = len;
+		cmd->cmd	= com_no;
+		cmd->len	= len;
 		cmd->param[0] = bit;
 	}
 
@@ -4257,7 +4260,7 @@ char *setCommandBufD( CMD *cmd, int com_no, char *ptr, int line, int enable )
 /*--------------------------------------------------------------
 	パラメータが1個(音階(直接指定)/音長)のコマンドの処理
  Input:
-	
+
  Output:
 	無し
 --------------------------------------------------------------*/
@@ -4266,7 +4269,7 @@ char *setCommandBufN0( CMD *cmd, char *ptr, int line, int enable )
 	int		cnt, note;
 	double	len;
 
-	cnt  = 0;
+	cnt	= 0;
 	note = Asc2Int( ptr, &cnt );
 	if( cnt == 0 ) {
 		dispError( ABNORMAL_PITCH_VALUE, cmd->filename, line );
@@ -4298,10 +4301,10 @@ char *setCommandBufN0( CMD *cmd, char *ptr, int line, int enable )
 	}
 
 	if( enable != 0 ) {
-		cmd->cnt  = 0;
+		cmd->cnt	= 0;
 		cmd->line = line;
-		cmd->cmd  = note;
-		cmd->len  = len;
+		cmd->cmd	= note;
+		cmd->len	= len;
 	}
 
 	return ptr;
@@ -4312,7 +4315,7 @@ char *setCommandBufN0( CMD *cmd, char *ptr, int line, int enable )
 /*--------------------------------------------------------------
 	パラメータが1個(周波数(直接指定)/音長)のコマンドの処理
  Input:
-	
+
  Output:
 	無し
 --------------------------------------------------------------*/
@@ -4350,10 +4353,10 @@ char *setCommandBufN1( CMD *cmd, int com_no, char *ptr, int line, int enable )
 	}
 
 	if( enable != 0 ) {
-		cmd->cnt      = 0;
-		cmd->line     = line;
-		cmd->cmd      = com_no;
-		cmd->len      = len;
+		cmd->cnt			= 0;
+		cmd->line		 = line;
+		cmd->cmd			= com_no;
+		cmd->len			= len;
 		cmd->param[0] = freq;
 	}
 
@@ -4365,7 +4368,7 @@ char *setCommandBufN1( CMD *cmd, int com_no, char *ptr, int line, int enable )
 /*--------------------------------------------------------------
 	パラメータが1個(休符/音長)のコマンドの処理
  Input:
-	
+
  Output:
 	無し
 --------------------------------------------------------------*/
@@ -4378,7 +4381,7 @@ char *setCommandBufR( CMD *cmd, int com_no, char *ptr, int line, int enable )
 		dispError( ABNORMAL_NOTE_LENGTH_VALUE, cmd->filename, line );
 		len = 0.0;
 	}
-	
+
 	if( enable != 0 ) {
 		cmd->cnt = 0;
 		cmd->line = line;
@@ -4393,7 +4396,7 @@ char *setCommandBufR( CMD *cmd, int com_no, char *ptr, int line, int enable )
 /*--------------------------------------------------------------
 	パラメータが1個(キーオフ/音長)のコマンドの処理
  Input:
-	
+
  Output:
 	無し
 --------------------------------------------------------------*/
@@ -4406,7 +4409,7 @@ char *setCommandBufK( CMD *cmd, int com_no, char *ptr, int line, int enable )
 		dispError( ABNORMAL_NOTE_LENGTH_VALUE, cmd->filename, line );
 		len = 0.0;
 	}
-	
+
 	if( enable != 0 ) {
 		cmd->cnt = 0;
 		cmd->line = line;
@@ -4420,9 +4423,9 @@ char *setCommandBufK( CMD *cmd, int com_no, char *ptr, int line, int enable )
 
 
 /*--------------------------------------------------------------
-	
+
  Input:
-	
+
  Output:
 	無し
 --------------------------------------------------------------*/
@@ -4447,10 +4450,10 @@ CMD * analyzeData( int trk, CMD *cmd, LINE *lptr )
 					if( strncmp( mml[i].cmd, ptr, strlen(mml[i].cmd) ) == 0 ) break;
 				}
 				ptr += strlen(mml[i].cmd);		// コマンドの文字数だけ文字をスキップ
-				cmd->filename = lptr[line].filename;	// エラー出力時のファイル名取得
+				cmd->filename = lptr[line].shortname;	// エラー出力時のファイル名取得
 				switch( mml[i].num ) {
 				/* オクターブ */
-				  case _OCTAVE:
+					case _OCTAVE:
 					com = Asc2Int( ptr, &cnt );
 					if( cnt != 0 ) {
 						// コマンドは有効の時は処理を登録
@@ -4465,7 +4468,7 @@ CMD * analyzeData( int trk, CMD *cmd, LINE *lptr )
 					}
 					break;
 				/* オクターブアップ */
-				  case _OCT_UP:
+					case _OCT_UP:
 					if( (mml[i].check(trk)) != 0 ) {
 						if( octave_flag == 0 ) { octave++; } else { octave--; }
 					} else {
@@ -4473,7 +4476,7 @@ CMD * analyzeData( int trk, CMD *cmd, LINE *lptr )
 					}
 					break;
 				/* オクターブダウン */
-				  case _OCT_DW:
+					case _OCT_DW:
 					if( (mml[i].check(trk)) != 0 ) {
 						if( octave_flag == 0 ) { octave--; } else { octave++; }
 					} else {
@@ -4481,98 +4484,98 @@ CMD * analyzeData( int trk, CMD *cmd, LINE *lptr )
 					}
 					break;
 				/* 音長設定 */
-				  case _LENGTH:
+					case _LENGTH:
 					ptr = setCommandBufL( cmd, _LENGTH, ptr, line, mml[i].check(trk) );
 					if( (mml[i].check(trk)) == 0 ) {
 						dispError( UNUSE_COMMAND_IN_THIS_TRACK, lptr[line].filename, line );
 					}
 					break;
 				/* 音符(nコマンド) */
-				  case _NOTE:
+					case _NOTE:
 					ptr = setCommandBufN0( cmd, ptr, line, mml[i].check(trk) );
 					if( (mml[i].check(trk)) == 0 ) {
 						dispError( UNUSE_COMMAND_IN_THIS_TRACK, lptr[line].filename, line );
 					}
 					break;
 				/* 音符(@nコマンド) */
-				  case _KEY:
+					case _KEY:
 					ptr = setCommandBufN1( cmd, _KEY, ptr, line, mml[i].check(trk) );
 					if( (mml[i].check(trk)) == 0 ) {
 						dispError( UNUSE_COMMAND_IN_THIS_TRACK, lptr[line].filename, line );
 					}
 					break;
 				/* 音符 */
-				  case _NOTE_C:
-				  case _NOTE_D:
-				  case _NOTE_E:
-				  case _NOTE_F:
-				  case _NOTE_G:
-				  case _NOTE_A:
-				  case _NOTE_B:
+					case _NOTE_C:
+					case _NOTE_D:
+					case _NOTE_E:
+					case _NOTE_F:
+					case _NOTE_G:
+					case _NOTE_A:
+					case _NOTE_B:
 					ptr = setCommandBufN( cmd, mml[i].num, ptr, line, mml[i].check(trk) );
 					if( (mml[i].check(trk)) == 0 ) {
 						dispError( UNUSE_COMMAND_IN_THIS_TRACK, lptr[line].filename, line );
 					}
 					break;
 				/* ドラムビット */
-                /* ドラムノート */
-				  case _DRUM_BIT:
-                  case _DRUM_NOTE:
+								/* ドラムノート */
+					case _DRUM_BIT:
+									case _DRUM_NOTE:
 					ptr = setCommandBufD( cmd, mml[i].num, ptr, line, mml[i].check(trk) );
 					if( (mml[i].check(trk)) == 0 ) {
 						dispError( UNUSE_COMMAND_IN_THIS_TRACK, lptr[line].filename, line );
 					}
 					break;
-					
+
 				/* 休符/連符 */
-				  case _REST:
-				  case _CONT_END:
-				  case _TIE:
-				  case _WAIT:
+					case _REST:
+					case _CONT_END:
+					case _TIE:
+					case _WAIT:
 					ptr = setCommandBufR( cmd, mml[i].num, ptr, line, mml[i].check(trk) );
 					if( (mml[i].check(trk)) == 0 ) {
 						dispError( UNUSE_COMMAND_IN_THIS_TRACK, lptr[line].filename, line );
 					}
 					break;
 				 /* キーオフ */
-				  case _KEY_OFF:
+					case _KEY_OFF:
 					ptr = setCommandBufK( cmd, mml[i].num, ptr, line, mml[i].check(trk) );
 					if( (mml[i].check(trk)) == 0 ) {
 						dispError( UNUSE_COMMAND_IN_THIS_TRACK, lptr[line].filename, line );
 					}
 					break;
 				/* コマンドパラメータが0個の物 */
-				  case _SLAR:			/* スラー */
-				  case _SONG_LOOP:			/* 曲ループ */
-				  case _REPEAT_ST:		/* リピート(現状では展開する) */
-				  case _REPEAT_ESC:		/* リピート途中抜け */
-				  case _CONT_NOTE:		/* 連符開始 */
-				  case _LFO_OFF:
-				  case _EP_OFF:
-				  case _EN_OFF:
-				  case _MH_OFF:
-				  case _REPEAT_ST2:		/* リピート2 */
-				  case _REPEAT_ESC2:	/* リピート途中抜け2 */
-//				  case _SHUFFLE_QUONTIZE_RESET:
-//				  case _SHUFFLE_QUONTIZE_OFF:
-				  case _SELF_DELAY_OFF:
-				  case _SELF_DELAY_QUEUE_RESET:
+					case _SLAR:			/* スラー */
+					case _SONG_LOOP:			/* 曲ループ */
+					case _REPEAT_ST:		/* リピート(現状では展開する) */
+					case _REPEAT_ESC:		/* リピート途中抜け */
+					case _CONT_NOTE:		/* 連符開始 */
+					case _LFO_OFF:
+					case _EP_OFF:
+					case _EN_OFF:
+					case _MH_OFF:
+					case _REPEAT_ST2:		/* リピート2 */
+					case _REPEAT_ESC2:	/* リピート途中抜け2 */
+//					case _SHUFFLE_QUONTIZE_RESET:
+//					case _SHUFFLE_QUONTIZE_OFF:
+					case _SELF_DELAY_OFF:
+					case _SELF_DELAY_QUEUE_RESET:
 					setCommandBuf( 0, cmd, mml[i].num, ptr, line, mml[i].check(trk) );
 					if( (mml[i].check(trk)) == 0 ) {
 						dispError( UNUSE_COMMAND_IN_THIS_TRACK, lptr[line].filename, line );
 					}
 					break;
-				  case _JUMP_FLAG:
-				  	use_jump = 1;
-				    setCommandBuf( 0, cmd, mml[i].num, ptr, line, mml[i].check(trk) );
+					case _JUMP_FLAG:
+						use_jump = 1;
+						setCommandBuf( 0, cmd, mml[i].num, ptr, line, mml[i].check(trk) );
 					if( (mml[i].check(trk)) == 0 ) {
 						dispError( UNUSE_COMMAND_IN_THIS_TRACK, lptr[line].filename, line );
 					}
 					break;
 
-										
+
 				/* コマンドパラメータが1個の物 */
-				  case _TEMPO:			/* テンポ */
+					case _TEMPO:			/* テンポ */
 					ptr = setCommandBuf( 1, cmd, mml[i].num, ptr, line, mml[i].check(trk) );
 					if( (mml[i].check(trk)) != 0 ) {
 						if( cmd->param[0] <= 0 ) {
@@ -4585,7 +4588,7 @@ CMD * analyzeData( int trk, CMD *cmd, LINE *lptr )
 						dispError( UNUSE_COMMAND_IN_THIS_TRACK, lptr[line].filename, line );
 					}
 					break;
-				  case _TONE:			/* 音色切り替え */
+					case _TONE:			/* 音色切り替え */
 					ptr = setCommandBuf( 1, cmd, mml[i].num, ptr, line, mml[i].check(trk) );
 					if( (mml[i].check(trk)) != 0 ) {
 						//vrc6用に制限を外す(内蔵矩形波、MMC5は@3まで)
@@ -4599,8 +4602,8 @@ CMD * analyzeData( int trk, CMD *cmd, LINE *lptr )
 						dispError( UNUSE_COMMAND_IN_THIS_TRACK, lptr[line].filename, line );
 					}
 					break;
-				  case _REL_ORG_TONE:		/* リリース音色 */
-				  case _ORG_TONE:		/* 音色切り替え */
+					case _REL_ORG_TONE:		/* リリース音色 */
+					case _ORG_TONE:		/* 音色切り替え */
 					ptr = setCommandBuf( 1, cmd, mml[i].num, ptr, line, mml[i].check(trk) );
 					if( (mml[i].check(trk)) != 0 ) {
 						if ((mml[i].num == _REL_ORG_TONE) && (cmd->param[0] == 255)) {
@@ -4614,47 +4617,47 @@ CMD * analyzeData( int trk, CMD *cmd, LINE *lptr )
 						dispError( UNUSE_COMMAND_IN_THIS_TRACK, lptr[line].filename, line );
 					}
 					break;
-				  case _ENVELOPE:		/* エンベロープ指定 */
+					case _ENVELOPE:		/* エンベロープ指定 */
 					cmd->filename = lptr[line].filename;
 					ptr = setCommandBuf( 1, cmd, mml[i].num, ptr, line, mml[i].check(trk) );
 					if( (mml[i].check(trk)) != 0 ) {
-						if( cmd->param[0] == 255) { 
-							volume_flag = 0x0000; 
+						if( cmd->param[0] == 255) {
+							volume_flag = 0x0000;
 						} else if( 0 <= cmd->param[0] && cmd->param[0] <= 127) {
-							volume_flag = 0x8000; 
+							volume_flag = 0x8000;
 						} else {
 							dispError( ABNORMAL_ENVELOPE_NUMBER, lptr[line].filename, line );
 							cmd->cmd = 0;
 							cmd->line = 0;
-						} 
-					} else {
-						dispError( UNUSE_COMMAND_IN_THIS_TRACK, lptr[line].filename, line ); 
-					} 
-					break; 
-				  case _REL_ENV:		/* リリースエンベロープ指定 */ 
-					cmd->filename = lptr[line].filename; 
-					ptr = setCommandBuf( 1, cmd, mml[i].num, ptr, line, mml[i].check(trk) ); 
-					if( (mml[i].check(trk)) != 0 ) { 
-						if( cmd->param[0] == 255 ) { 
-							volume_flag = 0x0000; 
-						} else if( 0 <= cmd->param[0] && cmd->param[0] <= 127) {
-							volume_flag = 0x8000;
-						} else {
-							dispError( ABNORMAL_ENVELOPE_NUMBER, lptr[line].filename, line ); 
-							cmd->cmd = 0; 
-							cmd->line = 0; 
 						}
 					} else {
 						dispError( UNUSE_COMMAND_IN_THIS_TRACK, lptr[line].filename, line );
 					}
 					break;
-				  case _VOL_PLUS:		/* 音量指定 */
+					case _REL_ENV:		/* リリースエンベロープ指定 */
+					cmd->filename = lptr[line].filename;
+					ptr = setCommandBuf( 1, cmd, mml[i].num, ptr, line, mml[i].check(trk) );
+					if( (mml[i].check(trk)) != 0 ) {
+						if( cmd->param[0] == 255 ) {
+							volume_flag = 0x0000;
+						} else if( 0 <= cmd->param[0] && cmd->param[0] <= 127) {
+							volume_flag = 0x8000;
+						} else {
+							dispError( ABNORMAL_ENVELOPE_NUMBER, lptr[line].filename, line );
+							cmd->cmd = 0;
+							cmd->line = 0;
+						}
+					} else {
+						dispError( UNUSE_COMMAND_IN_THIS_TRACK, lptr[line].filename, line );
+					}
+					break;
+					case _VOL_PLUS:		/* 音量指定 */
 					ptr = setCommandBuf( 1, cmd, mml[i].num, ptr, line, mml[i].check(trk) );
 					if( (mml[i].check(trk)) != 0 ) {
 						if( cmd->param[0] == PARAM_OMITTED ) {
 							cmd->param[0] = 1;
 						}
-						if( (0 <= volume_flag && volume_flag <= MAX_VOLUME) ) 
+						if( (0 <= volume_flag && volume_flag <= MAX_VOLUME) )
 						{
 							cmd->cmd = _VOLUME;
 							cmd->param[0] = volume_flag+cmd->param[0];
@@ -4675,13 +4678,13 @@ CMD * analyzeData( int trk, CMD *cmd, LINE *lptr )
 						dispError( UNUSE_COMMAND_IN_THIS_TRACK, lptr[line].filename, line );
 					}
 					break;
-				  case _VOL_MINUS:		/* 音量指定 */
+					case _VOL_MINUS:		/* 音量指定 */
 					ptr = setCommandBuf( 1, cmd, mml[i].num, ptr, line, mml[i].check(trk) );
 					if( (mml[i].check(trk)) != 0 ) {
 						if( cmd->param[0] == PARAM_OMITTED ) {
 							cmd->param[0] = 1;
 						}
-						if( (0 <= volume_flag && volume_flag <= MAX_VOLUME) ) 
+						if( (0 <= volume_flag && volume_flag <= MAX_VOLUME) )
 						{
 							cmd->cmd = _VOLUME;
 							cmd->param[0] = volume_flag-cmd->param[0];
@@ -4701,7 +4704,7 @@ CMD * analyzeData( int trk, CMD *cmd, LINE *lptr )
 						dispError( UNUSE_COMMAND_IN_THIS_TRACK, lptr[line].filename, line );
 					}
 					break;
-				  case _VOLUME:			/* 音量指定 HuSIC */
+					case _VOLUME:			/* 音量指定 HuSIC */
 					ptr = setCommandBuf( 1, cmd, mml[i].num, ptr, line, mml[i].check(trk) );
 					if( (mml[i].check(trk)) != 0 ) {
 						if( ((cmd->param[0] < 0 || cmd->param[0] > MAX_VOLUME)))
@@ -4716,10 +4719,10 @@ CMD * analyzeData( int trk, CMD *cmd, LINE *lptr )
 						dispError( UNUSE_COMMAND_IN_THIS_TRACK, lptr[line].filename, line );
 					}
 					break;
-				  case _HARD_ENVELOPE:
+					case _HARD_ENVELOPE:
 					ptr = setCommandBuf( 2, cmd, mml[i].num, ptr, line, mml[i].check(trk) );
 					if( (mml[i].check(trk)) != 0 ) {
-						if( (cmd->param[0] < 0 || cmd->param[0] >  1)
+						if( (cmd->param[0] < 0 || cmd->param[0] >	1)
 						 && (cmd->param[1] < 0 || cmd->param[1] > 63) ) {
 							dispError( ABNORMAL_ENVELOPE_VALUE, lptr[line].filename, line );
 							cmd->cmd = 0;
@@ -4731,17 +4734,17 @@ CMD * analyzeData( int trk, CMD *cmd, LINE *lptr )
 						dispError( UNUSE_COMMAND_IN_THIS_TRACK, lptr[line].filename, line );
 					}
 					break;
-				  case _QUONTIZE:		/* クオンタイズ(length*n/gate_denom) */
+					case _QUONTIZE:		/* クオンタイズ(length*n/gate_denom) */
 					ptr = setCommandBuf( 2, cmd, mml[i].num, ptr, line, mml[i].check(trk) );
 					if( (mml[i].check(trk)) != 0 ) {
 						if ( cmd->param[1] == PARAM_OMITTED ) {
 							cmd->param[1] = 0;
 						}
-						if (   cmd->param[0] < 0
-						     ||cmd->param[0] > gate_denom
-						     ||(cmd->param[0] == 0 && cmd->param[1] <= 0)
-						     ||(cmd->param[0] == gate_denom && cmd->param[1] > 0) ) {
-							dispError( ABNORMAL_QUANTIZE_VALUE,  lptr[line].filename, line );
+						if (	 cmd->param[0] < 0
+								 ||cmd->param[0] > gate_denom
+								 ||(cmd->param[0] == 0 && cmd->param[1] <= 0)
+								 ||(cmd->param[0] == gate_denom && cmd->param[1] > 0) ) {
+							dispError( ABNORMAL_QUANTIZE_VALUE,	lptr[line].filename, line );
 							cmd->cmd = 0;
 							cmd->line = 0;
 						}
@@ -4749,23 +4752,23 @@ CMD * analyzeData( int trk, CMD *cmd, LINE *lptr )
 						dispError( UNUSE_COMMAND_IN_THIS_TRACK, lptr[line].filename, line );
 					}
 					break;
-				  case _QUONTIZE2:		/* クオンタイズ(length-n) */
+					case _QUONTIZE2:		/* クオンタイズ(length-n) */
 					ptr = setCommandBuf( 1, cmd, mml[i].num, ptr, line, mml[i].check(trk) );
 					if( (mml[i].check(trk)) == 0 ) {
 						dispError( UNUSE_COMMAND_IN_THIS_TRACK, lptr[line].filename, line );
 					}
 					break;
 #if 0
-				  case _SHUFFLE_QUONTIZE:	/* シャッフルクオンタイズ設定 */
+					case _SHUFFLE_QUONTIZE:	/* シャッフルクオンタイズ設定 */
 					ptr = setCommandBuf( 3, cmd, mml[i].num, ptr, line, mml[i].check(trk) );
 					if( (mml[i].check(trk)) != 0 ) {
-						if (   cmd->param[0] <= 0
-						     ||cmd->param[1] <= 0
-						     ||cmd->param[2] <= 0
-						     ||cmd->param[0] == PARAM_OMITTED
-						     ||cmd->param[1] == PARAM_OMITTED
-						     ||cmd->param[2] == PARAM_OMITTED  ) {
-							dispError( ABNORMAL_SHUFFLE_QUANTIZE_VALUE,  lptr[line].filename, line );
+						if (	 cmd->param[0] <= 0
+								 ||cmd->param[1] <= 0
+								 ||cmd->param[2] <= 0
+								 ||cmd->param[0] == PARAM_OMITTED
+								 ||cmd->param[1] == PARAM_OMITTED
+								 ||cmd->param[2] == PARAM_OMITTED	) {
+							dispError( ABNORMAL_SHUFFLE_QUANTIZE_VALUE,	lptr[line].filename, line );
 							cmd->cmd = _NOP;
 							cmd->line = 0;
 						}
@@ -4774,11 +4777,11 @@ CMD * analyzeData( int trk, CMD *cmd, LINE *lptr )
 					}
 					break;
 #endif
-				  case _LFO_ON:			/* ソフトＬＦＯ */
+					case _LFO_ON:			/* ソフトＬＦＯ */
 					ptr = setCommandBuf( 1, cmd, mml[i].num, ptr, line, mml[i].check(trk) );
 					if( (mml[i].check(trk)) != 0 ) {
-						if( (cmd->param[0] != 255) 
-						 && (cmd->param[0] < 0 || cmd->param[0] > 63) ) { 
+						if( (cmd->param[0] != 255)
+						 && (cmd->param[0] < 0 || cmd->param[0] > 63) ) {
 							dispError( ABNORMAL_LFO_NUMBER, lptr[line].filename, line );
 							cmd->cmd = 0;
 							cmd->line = 0;
@@ -4787,12 +4790,12 @@ CMD * analyzeData( int trk, CMD *cmd, LINE *lptr )
 						dispError( UNUSE_COMMAND_IN_THIS_TRACK, lptr[line].filename, line );
 					}
 					break;
-					
+
 					/* HuSIC */
 					 case _FMLFO_SET:			/* LFO Trig Command */
 					ptr = setCommandBuf( 1, cmd, mml[i].num, ptr, line, mml[i].check(trk) );
 					if( (mml[i].check(trk)) != 0 ) {
-						if(cmd->param[0] < 0 || cmd->param[0] > 255 ) { 
+						if(cmd->param[0] < 0 || cmd->param[0] > 255 ) {
 							dispError( FMLFO_PARAM_IS_WRONG, lptr[line].filename, line );
 							cmd->cmd = 0;
 							cmd->line = 0;
@@ -4804,7 +4807,7 @@ CMD * analyzeData( int trk, CMD *cmd, LINE *lptr )
 					 case _FMLFO_FRQ:			/* LFO Freq Command */
 					ptr = setCommandBuf( 1, cmd, mml[i].num, ptr, line, mml[i].check(trk) );
 					if( (mml[i].check(trk)) != 0 ) {
-						if(cmd->param[0] < 0 || cmd->param[0] > 255 ) { 
+						if(cmd->param[0] < 0 || cmd->param[0] > 255 ) {
 							dispError( FMLFO_PARAM_IS_WRONG, lptr[line].filename, line );
 							cmd->cmd = 0;
 							cmd->line = 0;
@@ -4817,7 +4820,7 @@ CMD * analyzeData( int trk, CMD *cmd, LINE *lptr )
 					 case _NOISE_SW:			/* Noise Command */
 					ptr = setCommandBuf( 1, cmd, mml[i].num, ptr, line, mml[i].check(trk) );
 					if( (mml[i].check(trk)) != 0 ) {
-						if(cmd->param[0] < 0 || cmd->param[0] > 1 ) { 
+						if(cmd->param[0] < 0 || cmd->param[0] > 1 ) {
 							dispError( ABNORMAL_TONE_NUMBER, lptr[line].filename, line );
 							cmd->cmd = 0;
 							cmd->line = 0;
@@ -4829,7 +4832,7 @@ CMD * analyzeData( int trk, CMD *cmd, LINE *lptr )
 					 case _MODE_CHG:			/* Mode Change Command */
 					ptr = setCommandBuf( 1, cmd, mml[i].num, ptr, line, mml[i].check(trk) );
 					if( (mml[i].check(trk)) != 0 ) {
-						if(cmd->param[0] < 0) { 
+						if(cmd->param[0] < 0) {
 							dispError( ABNORMAL_TONE_NUMBER, lptr[line].filename, line );
 							cmd->cmd = 0;
 							cmd->line = 0;
@@ -4838,10 +4841,10 @@ CMD * analyzeData( int trk, CMD *cmd, LINE *lptr )
 						dispWarning( UNUSE_COMMAND_IN_THIS_TRACK, lptr[line].filename, line );
 					}
 					break;
-				  case _WAVE_CHG:			/* Wave Change Command */
+					case _WAVE_CHG:			/* Wave Change Command */
 					ptr = setCommandBuf( 1, cmd, mml[i].num, ptr, line, mml[i].check(trk) );
 					if( (mml[i].check(trk)) != 0 ) {
-						if(cmd->param[0] < 0) { 
+						if(cmd->param[0] < 0) {
 							dispError( ABNORMAL_TONE_NUMBER, lptr[line].filename, line );
 							cmd->cmd = 0;
 							cmd->line = 0;
@@ -4851,10 +4854,10 @@ CMD * analyzeData( int trk, CMD *cmd, LINE *lptr )
 					}
 					break;
 
-				  case _PAN:			/* PAN Command */
+					case _PAN:			/* PAN Command */
 					ptr = setCommandBuf( 1, cmd, mml[i].num, ptr, line, mml[i].check(trk) );
 					if( (mml[i].check(trk)) != 0 ) {
-						if(cmd->param[0] < 0 || cmd->param[0] > 255) { 
+						if(cmd->param[0] < 0 || cmd->param[0] > 255) {
 							dispError( ABNORMAL_VOLUME_VALUE, lptr[line].filename, line );
 							cmd->cmd = 0;
 							cmd->line = 0;
@@ -4864,17 +4867,17 @@ CMD * analyzeData( int trk, CMD *cmd, LINE *lptr )
 					}
 					break;
 
-				  case _L_PAN:			/* Left PAN Command */
-				  case _R_PAN:			/* Right PAN Command */
-				  case _C_PAN:			/* Center PAN Command */
+					case _L_PAN:			/* Left PAN Command */
+					case _R_PAN:			/* Right PAN Command */
+					case _C_PAN:			/* Center PAN Command */
 
 					ptr = setCommandBuf( 1, cmd, mml[i].num, ptr, line, mml[i].check(trk) );
 					if( (mml[i].check(trk)) != 0 ) {
-						if(cmd->param[0] < 0 || cmd->param[0] > 15) { 
+						if(cmd->param[0] < 0 || cmd->param[0] > 15) {
 							dispError( ABNORMAL_VOLUME_VALUE, lptr[line].filename, line );
 							cmd->cmd = 0;
 							cmd->line = 0;
-						} 
+						}
 					} else {
 						dispWarning( UNUSE_COMMAND_IN_THIS_TRACK, lptr[line].filename, line );
 					}
@@ -4884,7 +4887,7 @@ CMD * analyzeData( int trk, CMD *cmd, LINE *lptr )
 				case _REVERB_SET:			/* Reverb command */
 					ptr = setCommandBuf( 1, cmd, mml[i].num, ptr, line, mml[i].check(trk) );
 					if( (mml[i].check(trk)) != 0 ) {
-						if(cmd->param[0] < 0) { 
+						if(cmd->param[0] < 0) {
 							dispError( ABNORMAL_PARAMETERS, lptr[line].filename, line );
 							cmd->cmd = 0;
 							cmd->line = 0;
@@ -4897,7 +4900,7 @@ CMD * analyzeData( int trk, CMD *cmd, LINE *lptr )
 				case _DAMP_SET:			/* Damp command */
 					ptr = setCommandBuf( 1, cmd, mml[i].num, ptr, line, mml[i].check(trk) );
 					if( (mml[i].check(trk)) != 0 ) {
-						if(cmd->param[0] < 0) { 
+						if(cmd->param[0] < 0) {
 							dispError( ABNORMAL_PARAMETERS, lptr[line].filename, line );
 							cmd->cmd = 0;
 							cmd->line = 0;
@@ -4910,7 +4913,7 @@ CMD * analyzeData( int trk, CMD *cmd, LINE *lptr )
 				case _SET_OPBASE:			/* opbase command */
 					ptr = setCommandBuf( 1, cmd, mml[i].num, ptr, line, mml[i].check(trk) );
 					if( (mml[i].check(trk)) != 0 ) {
-						if(cmd->param[0] < 0) { 
+						if(cmd->param[0] < 0) {
 							dispError( ABNORMAL_PARAMETERS, lptr[line].filename, line );
 							cmd->cmd = 0;
 							cmd->line = 0;
@@ -4923,7 +4926,7 @@ CMD * analyzeData( int trk, CMD *cmd, LINE *lptr )
 				case _LOAD_OP2:			/* Load op2 command */
 					ptr = setCommandBuf( 1, cmd, mml[i].num, ptr, line, mml[i].check(trk) );
 					if( (mml[i].check(trk)) != 0 ) {
-						if(cmd->param[0] < 0) { 
+						if(cmd->param[0] < 0) {
 							dispError( ABNORMAL_PARAMETERS, lptr[line].filename, line );
 							cmd->cmd = 0;
 							cmd->line = 0;
@@ -4936,7 +4939,7 @@ CMD * analyzeData( int trk, CMD *cmd, LINE *lptr )
 				case _SET_TVP:			/* TVP command */
 					ptr = setCommandBuf( 1, cmd, mml[i].num, ptr, line, mml[i].check(trk) );
 					if( (mml[i].check(trk)) != 0 ) {
-						if(cmd->param[0] < 0) { 
+						if(cmd->param[0] < 0) {
 							dispError( ABNORMAL_PARAMETERS, lptr[line].filename, line );
 							cmd->cmd = 0;
 							cmd->line = 0;
@@ -4948,7 +4951,7 @@ CMD * analyzeData( int trk, CMD *cmd, LINE *lptr )
 				case _DRUM_SW:			/* drum command */
 					ptr = setCommandBuf( 1, cmd, mml[i].num, ptr, line, mml[i].check(trk) );
 					if( (mml[i].check(trk)) != 0 ) {
-						if(cmd->param[0] < 0) { 
+						if(cmd->param[0] < 0) {
 							dispError( ABNORMAL_PARAMETERS, lptr[line].filename, line );
 							cmd->cmd = 0;
 							cmd->line = 0;
@@ -4960,7 +4963,7 @@ CMD * analyzeData( int trk, CMD *cmd, LINE *lptr )
 				case _SET_FBS:			/* FBS command */
 					ptr = setCommandBuf( 1, cmd, mml[i].num, ptr, line, mml[i].check(trk) );
 					if( (mml[i].check(trk)) != 0 ) {
-						if(cmd->param[0] < 0) { 
+						if(cmd->param[0] < 0) {
 							dispError( ABNORMAL_PARAMETERS, lptr[line].filename, line );
 							cmd->cmd = 0;
 							cmd->line = 0;
@@ -4972,7 +4975,7 @@ CMD * analyzeData( int trk, CMD *cmd, LINE *lptr )
 				case _SET_OPM:			/* opmode command */
 					ptr = setCommandBuf( 1, cmd, mml[i].num, ptr, line, mml[i].check(trk) );
 					if( (mml[i].check(trk)) != 0 ) {
-						if(cmd->param[0] < 0) { 
+						if(cmd->param[0] < 0) {
 							dispError( ABNORMAL_PARAMETERS, lptr[line].filename, line );
 							cmd->cmd = 0;
 							cmd->line = 0;
@@ -4986,11 +4989,11 @@ CMD * analyzeData( int trk, CMD *cmd, LINE *lptr )
 
 				/***************************************/
 
-				  case _EP_ON:			/* ピッチエンベロープ */
+					case _EP_ON:			/* ピッチエンベロープ */
 					ptr = setCommandBuf( 1, cmd, mml[i].num, ptr, line, mml[i].check(trk) );
 					if( (mml[i].check(trk)) != 0 ) {
-						if( (cmd->param[0] != 255) 
-						 && (cmd->param[0] < 0 || cmd->param[0] > 127) ) { 
+						if( (cmd->param[0] != 255)
+						 && (cmd->param[0] < 0 || cmd->param[0] > 127) ) {
 							dispError( ABNORMAL_PITCH_ENVELOPE_NUMBER, lptr[line].filename, line );
 							cmd->cmd = 0;
 							cmd->line = 0;
@@ -4999,11 +5002,11 @@ CMD * analyzeData( int trk, CMD *cmd, LINE *lptr )
 						dispError( UNUSE_COMMAND_IN_THIS_TRACK, lptr[line].filename, line );
 					}
 					break;
-				  case _EN_ON:			/* ノートエンベロープ */
+					case _EN_ON:			/* ノートエンベロープ */
 					ptr = setCommandBuf( 1, cmd, mml[i].num, ptr, line, mml[i].check(trk) );
 					if( (mml[i].check(trk)) != 0 ) {
 						if( (cmd->param[0] != 255)
-						 && (cmd->param[0] < 0 || cmd->param[0] > 127) ) { 
+						 && (cmd->param[0] < 0 || cmd->param[0] > 127) ) {
 							dispError( ABNORMAL_NOTE_ENVELOPE_NUMBER, lptr[line].filename, line );
 							cmd->cmd = 0;
 							cmd->line = 0;
@@ -5012,11 +5015,11 @@ CMD * analyzeData( int trk, CMD *cmd, LINE *lptr )
 						dispError( UNUSE_COMMAND_IN_THIS_TRACK, lptr[line].filename, line );
 					}
 					break;
-				  case _MH_ON:			/* ハードウェアエフェクト */
+					case _MH_ON:			/* ハードウェアエフェクト */
 					ptr = setCommandBuf( 1, cmd, mml[i].num, ptr, line, mml[i].check(trk) );
 					if( (mml[i].check(trk)) != 0 ) {
-						if( (cmd->param[0] != 255) 
-						 && (cmd->param[0] < 0 || cmd->param[0] > 15) ) { 
+						if( (cmd->param[0] != 255)
+						 && (cmd->param[0] < 0 || cmd->param[0] > 15) ) {
 							dispError( ABNORMAL_HARD_EFFECT_NUMBER, lptr[line].filename, line );
 							cmd->cmd = 0;
 							cmd->line = 0;
@@ -5025,13 +5028,13 @@ CMD * analyzeData( int trk, CMD *cmd, LINE *lptr )
 						dispError( UNUSE_COMMAND_IN_THIS_TRACK, lptr[line].filename, line );
 					}
 					break;
-				  case _DETUNE:			/* ディチューン */
+					case _DETUNE:			/* ディチューン */
 					ptr = setCommandBuf( 1, cmd, mml[i].num, ptr, line, mml[i].check(trk) );
 					if( (mml[i].check(trk)) != 0 ) {
-                        // ピッチ方向の修正
-                        if (cmd->param[0] != 255 && pitch_correction)
-                            cmd->param[0] = 0 - cmd->param[0];
-                            
+												// ピッチ方向の修正
+												if (cmd->param[0] != 255 && pitch_correction)
+														cmd->param[0] = 0 - cmd->param[0];
+
 						if( (cmd->param[0] != 255)
 						 && (cmd->param[0] <-127 || cmd->param[0] > 126) ) {
 							dispError( ABNORMAL_DETUNE_VALUE, lptr[line].filename, line );
@@ -5042,7 +5045,7 @@ CMD * analyzeData( int trk, CMD *cmd, LINE *lptr )
 						dispError( UNUSE_COMMAND_IN_THIS_TRACK, lptr[line].filename, line );
 					}
 					break;
-				  case _TRANSPOSE:			/* トランスポーズ */
+					case _TRANSPOSE:			/* トランスポーズ */
 					ptr = setCommandBuf( 1, cmd, mml[i].num, ptr, line, mml[i].check(trk) );
 					if( (mml[i].check(trk)) != 0 ) {
 						if( (cmd->param[0] != 255)
@@ -5056,8 +5059,8 @@ CMD * analyzeData( int trk, CMD *cmd, LINE *lptr )
 						dispError( UNUSE_COMMAND_IN_THIS_TRACK, lptr[line].filename, line );
 					}
 					break;
-				  case _REPEAT_END:		/* リピート終了 */
-				  case _REPEAT_END2:	/* リピート終了 */
+					case _REPEAT_END:		/* リピート終了 */
+					case _REPEAT_END2:	/* リピート終了 */
 					ptr = setCommandBuf( 1, cmd, mml[i].num, ptr, line, mml[i].check(trk) );
 					if( (mml[i].check(trk)) != 0 ) {
 						if( cmd->param[0] < 2 ) {
@@ -5068,7 +5071,7 @@ CMD * analyzeData( int trk, CMD *cmd, LINE *lptr )
 						dispError( UNUSE_COMMAND_IN_THIS_TRACK, lptr[line].filename, line );
 					}
 					break;
-				  case _VRC7_TONE:			/* VRC7ユーザー音色切り替え */
+					case _VRC7_TONE:			/* VRC7ユーザー音色切り替え */
 					ptr = setCommandBuf( 1, cmd, mml[i].num, ptr, line, mml[i].check(trk) );
 					if( (mml[i].check(trk)) != 0 ) {
 						if( cmd->param[0] < 0 || cmd->param[0] > 63 ) {
@@ -5080,7 +5083,7 @@ CMD * analyzeData( int trk, CMD *cmd, LINE *lptr )
 						dispError( UNUSE_COMMAND_IN_THIS_TRACK, lptr[line].filename, line );
 					}
 					break;
-				  case _SUN5B_HARD_SPEED:		/* PSGハードウェアエンベロープ速度 */
+					case _SUN5B_HARD_SPEED:		/* PSGハードウェアエンベロープ速度 */
 					ptr = setCommandBuf( 1, cmd, mml[i].num, ptr, line, mml[i].check(trk) );
 					if( (mml[i].check(trk)) != 0 ) {
 						if( cmd->param[0] < 0 || cmd->param[0] > 65535 ) {
@@ -5092,7 +5095,7 @@ CMD * analyzeData( int trk, CMD *cmd, LINE *lptr )
 						dispError( UNUSE_COMMAND_IN_THIS_TRACK, lptr[line].filename, line );
 					}
 					break;
-				  case _SUN5B_HARD_ENV:		/* PSGハードウェアエンベロープ選択 */
+					case _SUN5B_HARD_ENV:		/* PSGハードウェアエンベロープ選択 */
 					ptr = setCommandBuf( 1, cmd, mml[i].num, ptr, line, mml[i].check(trk) );
 					if( (mml[i].check(trk)) != 0 ) {
 						if( cmd->param[0] < 0 || cmd->param[0] > 15 ) {
@@ -5106,7 +5109,7 @@ CMD * analyzeData( int trk, CMD *cmd, LINE *lptr )
 						dispError( UNUSE_COMMAND_IN_THIS_TRACK, lptr[line].filename, line );
 					}
 					break;
-				  case _SUN5B_NOISE_FREQ:	/* PSGノイズ周波数 */
+					case _SUN5B_NOISE_FREQ:	/* PSGノイズ周波数 */
 					ptr = setCommandBuf( 1, cmd, mml[i].num, ptr, line, mml[i].check(trk) );
 					if( (mml[i].check(trk)) != 0 ) {
 						if( cmd->param[0] < 0 || cmd->param[0] > 31 ) {
@@ -5120,7 +5123,7 @@ CMD * analyzeData( int trk, CMD *cmd, LINE *lptr )
 						dispError( UNUSE_COMMAND_IN_THIS_TRACK, lptr[line].filename, line );
 					}
 					break;
-				  case _TEMPO2:			/* フレーム基準テンポ */
+					case _TEMPO2:			/* フレーム基準テンポ */
 					ptr = setCommandBuf( 2, cmd, mml[i].num, ptr, line, mml[i].check(trk) );
 					if( (mml[i].check(trk)) != 0 ) {
 						if( (cmd->param[0] <= 0) || (cmd->param[1] <= 0) ) {
@@ -5133,7 +5136,7 @@ CMD * analyzeData( int trk, CMD *cmd, LINE *lptr )
 						dispError( UNUSE_COMMAND_IN_THIS_TRACK, lptr[line].filename, line );
 					}
 					break;
-				  case _SWEEP:			/* スウィープ */
+					case _SWEEP:			/* スウィープ */
 					ptr = setCommandBuf( 2, cmd, _SWEEP, ptr, line, mml[i].check(trk) );
 					if( (mml[i].check(trk)) != 0 ) {
 						if( (cmd->param[0] < 0 || cmd->param[0] > 15)
@@ -5146,34 +5149,34 @@ CMD * analyzeData( int trk, CMD *cmd, LINE *lptr )
 						dispError( UNUSE_COMMAND_IN_THIS_TRACK, lptr[line].filename, line );
 					}
 					break;
-				  case _DATA_WRITE:		/* データ(レジスタ)書き込み */
+					case _DATA_WRITE:		/* データ(レジスタ)書き込み */
 					ptr = setCommandBuf( 2, cmd, _DATA_WRITE, ptr, line, mml[i].check(trk) );
 					if( (mml[i].check(trk)) == 0 ) {
 						dispError( UNUSE_COMMAND_IN_THIS_TRACK, lptr[line].filename, line );
 					}
 					break;
-                  case _DATA_WRITE_OFS:		/* オフセット付きレジスタ書き込み */
-                    ptr = setCommandBuf( 2, cmd, _DATA_WRITE_OFS, ptr, line, mml[i].check(trk) );
-                    if( (mml[i].check(trk)) == 0 ) {
-                        dispError( UNUSE_COMMAND_IN_THIS_TRACK, lptr[line].filename, line );
-                    }
-                    break;
+									case _DATA_WRITE_OFS:		/* オフセット付きレジスタ書き込み */
+										ptr = setCommandBuf( 2, cmd, _DATA_WRITE_OFS, ptr, line, mml[i].check(trk) );
+										if( (mml[i].check(trk)) == 0 ) {
+												dispError( UNUSE_COMMAND_IN_THIS_TRACK, lptr[line].filename, line );
+										}
+										break;
 
-				  case _DATA_THRUE:		/* データ直接書き込み */
+					case _DATA_THRUE:		/* データ直接書き込み */
 					ptr = setCommandBuf( 2, cmd, _DATA_THRUE, ptr, line, mml[i].check(trk) );
 					if( (mml[i].check(trk)) == 0 ) {
 						dispError( UNUSE_COMMAND_IN_THIS_TRACK, lptr[line].filename, line );
 					}
 					break;
 #if 0
-				  case _XX_COMMAND:		/* デバッグ用 */
+					case _XX_COMMAND:		/* デバッグ用 */
 					ptr = setCommandBuf( 2, cmd, _XX_COMMAND, ptr, line, mml[i].check(trk) );
 					if( (mml[i].check(trk)) == 0 ) {
 						dispError( UNUSE_COMMAND_IN_THIS_TRACK, lptr[line].filename, line );
 					}
 					break;
 #endif
-				  case _SELF_DELAY_ON:		/* セルフディレイ */
+					case _SELF_DELAY_ON:		/* セルフディレイ */
 					ptr = setCommandBuf( 1, cmd, mml[i].num, ptr, line, mml[i].check(trk) );
 					if( (mml[i].check(trk)) != 0 ) {
 						if( (cmd->param[0] != 255)
@@ -5187,14 +5190,14 @@ CMD * analyzeData( int trk, CMD *cmd, LINE *lptr )
 						dispError( UNUSE_COMMAND_IN_THIS_TRACK, lptr[line].filename, line );
 					}
 					break;
-				  case _DATA_BREAK:		/* データ変換中止 */
+					case _DATA_BREAK:		/* データ変換中止 */
 					setCommandBuf( 0, cmd, _TRACK_END, ptr, line, mml[i].check(trk) );
 					if( (mml[i].check(trk)) == 0 ) {
 						dispError( UNUSE_COMMAND_IN_THIS_TRACK, lptr[line].filename, line );
 					}
 					break;
 
-				  case _NEW_BANK:
+					case _NEW_BANK:
 					// 無視する場合でもptrは読み進める
 					ptr = setCommandBuf( 1, cmd, mml[i].num, ptr, line, mml[i].check(trk) );
 					if (!auto_bankswitch) {
@@ -5210,11 +5213,11 @@ CMD * analyzeData( int trk, CMD *cmd, LINE *lptr )
 					}
 					break;
 
-				  case _SHIFT_AMOUNT:			/* ピッチシフト量 (0〜8) */
+					case _SHIFT_AMOUNT:			/* ピッチシフト量 (0〜8) */
 					ptr = setCommandBuf( 1, cmd, mml[i].num, ptr, line, mml[i].check(trk) );
 					if (pitch_correction) {
 						if( (mml[i].check(trk)) != 0 ) {
-							if( (cmd->param[0] < 0 || cmd->param[0] > 8) ) { 
+							if( (cmd->param[0] < 0 || cmd->param[0] > 8) ) {
 								dispError( ABNORMAL_SHIFT_AMOUNT, lptr[line].filename, line );
 								cmd->cmd = 0;
 								cmd->line = 0;
@@ -5226,8 +5229,8 @@ CMD * analyzeData( int trk, CMD *cmd, LINE *lptr )
 						dispError( CANT_USE_SHIFT_AMOUNT_WITHOUT_PITCH_CORRECTION, lptr[line].filename, line );
 					}
 					break;
-						
-				  default:				/* その他(エラー) */
+
+					default:				/* その他(エラー) */
 					dispError( COMMAND_NOT_DEFINED, lptr[line].filename, line );
 					ptr++;
 					break;
@@ -5290,8 +5293,8 @@ void shuffleQuontize(CMD *ptr)
 			/*
 			たとえば16分音符を2:1にわけるなら
 			shuffle.base = 192/16 = 12; つまりl16=l%12
-			shuffle.diff = 24 * 2/3 - 12 
-			             = 16 - 12 = 4
+			shuffle.diff = 24 * 2/3 - 12
+									 = 16 - 12 = 4
 			というわけで8分音符(%24)を%12+4と%12-4、すなわち%16と%8にわける
 			*/
 			ptr->cmd = _NOP;
@@ -5320,7 +5323,7 @@ void shuffleQuontize(CMD *ptr)
 				} else if (
 					ptr->cmd <= MAX_NOTE ||
 					ptr->cmd == _DRUM_BIT ||
-                    ptr->cmd == _DRUM_NOTE ||
+										ptr->cmd == _DRUM_NOTE ||
 					ptr->cmd == _REST ||
 					ptr->cmd == _KEY ||
 					ptr->cmd == _NOTE ||
@@ -5336,12 +5339,12 @@ void shuffleQuontize(CMD *ptr)
 		} else if (
 			ptr->cmd <= MAX_NOTE ||
 			ptr->cmd == _DRUM_BIT ||
-            ptr->cmd == _DRUM_NOTE ||
+						ptr->cmd == _DRUM_NOTE ||
 			ptr->cmd == _REST ||
-			ptr->cmd == _KEY || 
-			ptr->cmd == _NOTE || 
+			ptr->cmd == _KEY ||
+			ptr->cmd == _NOTE ||
 			ptr->cmd == _WAIT ||
-			ptr->cmd == _TIE || 
+			ptr->cmd == _TIE ||
 			temp->cmd == _KEY_OFF) {
 			shuffleQuontizeSub(ptr, &shuffle, count);
 			count += ptr->len;
@@ -5378,7 +5381,7 @@ CMD *translateData( CMD **cmd, CMD *ptr )
 
 	while( 1 ) {
 		switch( ptr->cmd ) {
-		  case _REPEAT_ST:
+			case _REPEAT_ST:
 			ptr++;
 			nest++;
 			ptr = translateData( cmd, ptr );
@@ -5388,7 +5391,7 @@ CMD *translateData( CMD **cmd, CMD *ptr )
 			}
 			nest--;
 			break;
-		  case _REPEAT_END:
+			case _REPEAT_END:
 			if( nest <= 0 ) {
 				dispError( DATA_ENDED_BY_LOOP_DEPTH_EXCEPT_0, ptr->filename, ptr->line );
 				ptr->cmd = _NOP;
@@ -5405,7 +5408,7 @@ CMD *translateData( CMD **cmd, CMD *ptr )
 			ptr = top;
 			loop--;
 			break;
-		  case _REPEAT_ESC:
+			case _REPEAT_ESC:
 			if( nest <= 0 ) {
 				dispError( DATA_ENDED_BY_LOOP_DEPTH_EXCEPT_0, ptr->filename, ptr->line );
 				ptr->cmd = _NOP;
@@ -5419,7 +5422,7 @@ CMD *translateData( CMD **cmd, CMD *ptr )
 			}
 			ptr++;
 			break;
-		  case _CONT_NOTE:
+			case _CONT_NOTE:
 			ptr++;
 			temp = ptr;
 			/* {} の中に[cdefgab]|n|@n|r|wが何個あるか? */
@@ -5439,14 +5442,14 @@ CMD *translateData( CMD **cmd, CMD *ptr )
 						len = temp->len/(double)cnt;
 					}
 					break;
-				} else if( 
+				} else if(
 				temp->cmd <= MAX_NOTE ||
 				temp->cmd == _DRUM_BIT ||
-                temp->cmd == _DRUM_NOTE ||
+								temp->cmd == _DRUM_NOTE ||
 				temp->cmd == _REST ||
-				temp->cmd == _KEY || 
-				temp->cmd == _NOTE || 
-				temp->cmd == _WAIT || 
+				temp->cmd == _KEY ||
+				temp->cmd == _NOTE ||
+				temp->cmd == _WAIT ||
 				temp->cmd == _KEY_OFF ) {
 					cnt++;
 				}
@@ -5457,42 +5460,42 @@ CMD *translateData( CMD **cmd, CMD *ptr )
 					if( ptr->cmd == _CONT_END ) {
 						ptr++;
 						break;
-					} else if( 
+					} else if(
 					ptr->cmd <= MAX_NOTE ||
 					ptr->cmd == _DRUM_BIT ||
-                    ptr->cmd == _DRUM_NOTE ||
+										ptr->cmd == _DRUM_NOTE ||
 					ptr->cmd == _REST ||
-					ptr->cmd == _KEY || 
+					ptr->cmd == _KEY ||
 					ptr->cmd == _NOTE ||
 					ptr->cmd == _WAIT ||
 					temp->cmd == _KEY_OFF ) {
 						gate += len;
 						(*cmd)->filename = ptr->filename;
-						(*cmd)->cnt      = ptr->cnt;
-						(*cmd)->frm      = ptr->frm;
-						(*cmd)->line     = ptr->line;
-						(*cmd)->cmd      = ptr->cmd;
-						(*cmd)->len      = len;
-						for( i = 0; i < 8; i++ ) { 
+						(*cmd)->cnt			= ptr->cnt;
+						(*cmd)->frm			= ptr->frm;
+						(*cmd)->line		 = ptr->line;
+						(*cmd)->cmd			= ptr->cmd;
+						(*cmd)->len			= len;
+						for( i = 0; i < 8; i++ ) {
 							(*cmd)->param[i] = ptr->param[i];
 						}
 						gate -= (*cmd)->len;
 					} else if (ptr->cmd == _TIE) {
 						/* 連符中のタイは削除 */
 						(*cmd)->filename = ptr->filename;
-						(*cmd)->cnt      = 0;
-						(*cmd)->frm      = 0;
-						(*cmd)->line     = ptr->line;
-						(*cmd)->cmd      = _NOP;
-						(*cmd)->len      = 0;
+						(*cmd)->cnt			= 0;
+						(*cmd)->frm			= 0;
+						(*cmd)->line		 = ptr->line;
+						(*cmd)->cmd			= _NOP;
+						(*cmd)->len			= 0;
 					} else {
 						(*cmd)->filename = ptr->filename;
-						(*cmd)->cnt      = ptr->cnt;
-						(*cmd)->frm      = ptr->frm;
-						(*cmd)->line     = ptr->line;
-						(*cmd)->cmd      = ptr->cmd;
-						(*cmd)->len      = ptr->len;
-						for( i = 0; i < 8; i++ ) { 
+						(*cmd)->cnt			= ptr->cnt;
+						(*cmd)->frm			= ptr->frm;
+						(*cmd)->line		 = ptr->line;
+						(*cmd)->cmd			= ptr->cmd;
+						(*cmd)->len			= ptr->len;
+						for( i = 0; i < 8; i++ ) {
 							(*cmd)->param[i] = ptr->param[i];
 						}
 					}
@@ -5502,14 +5505,14 @@ CMD *translateData( CMD **cmd, CMD *ptr )
 
 			}
 			break;
-		  case _TRACK_END:
+			case _TRACK_END:
 			(*cmd)->filename = ptr->filename;
-			(*cmd)->cnt      = ptr->cnt;
-			(*cmd)->frm      = ptr->frm;
-			(*cmd)->line     = ptr->line;
-			(*cmd)->cmd      = ptr->cmd;
-			(*cmd)->len      = ptr->len;
-			for( i = 0; i < 8; i++ ) { 
+			(*cmd)->cnt			= ptr->cnt;
+			(*cmd)->frm			= ptr->frm;
+			(*cmd)->line		 = ptr->line;
+			(*cmd)->cmd			= ptr->cmd;
+			(*cmd)->len			= ptr->len;
+			for( i = 0; i < 8; i++ ) {
 				(*cmd)->param[i] = ptr->param[i];
 			}
 			(*cmd)++;
@@ -5518,14 +5521,14 @@ CMD *translateData( CMD **cmd, CMD *ptr )
 				dispError( DATA_ENDED_BY_LOOP_DEPTH_EXCEPT_0, mml_names[mml_idx], (ptr-1)->line );
 			}
 			return NULL;
-		  default:
+			default:
 			(*cmd)->filename = ptr->filename;
-			(*cmd)->cnt      = ptr->cnt;
-			(*cmd)->frm      = ptr->frm;
-			(*cmd)->line     = ptr->line;
-			(*cmd)->cmd      = ptr->cmd;
-			(*cmd)->len      = ptr->len;
-			for( i = 0; i < 8; i++ ) { 
+			(*cmd)->cnt			= ptr->cnt;
+			(*cmd)->frm			= ptr->frm;
+			(*cmd)->line		 = ptr->line;
+			(*cmd)->cmd			= ptr->cmd;
+			(*cmd)->len			= ptr->len;
+			for( i = 0; i < 8; i++ ) {
 				(*cmd)->param[i] = ptr->param[i];
 			}
 			(*cmd)++;
@@ -5537,9 +5540,9 @@ CMD *translateData( CMD **cmd, CMD *ptr )
 
 
 /*--------------------------------------------------------------
-	
+
  Input:
-	
+
  Output:
 	無し
 --------------------------------------------------------------*/
@@ -5547,19 +5550,19 @@ void putAsm( FILE *fp, int data )
 {
 	static char *fn = "";
 	static int ln = 0;
-    
+
 	if( putAsm_pos == 0 ) {
 		fn = mml_file_name;
 		ln = mml_line_pos;
 		fprintf( fp, "\tdb\t$%02x", data&0xff );
 	} else
-        fprintf( fp, ",$%02x",  data&0xff );
+				fprintf( fp, ",$%02x",	data&0xff );
 
-    if( putAsm_pos == 7 ) {
+		if( putAsm_pos == 7 ) {
 		fprintf( fp, "\t;Trk %c; %s: %d", str_track[mml_trk], fn, ln);
 		fprintf( fp, "\n");
-    }
-    if( ++putAsm_pos > 7 ) {
+		}
+		if( ++putAsm_pos > 7 ) {
 		putAsm_pos = 0;
 	}
 	bank_usage[curr_bank]++;
@@ -5567,17 +5570,17 @@ void putAsm( FILE *fp, int data )
 
 void putAsmFlash( FILE * fp )
 {
-    if (putAsm_pos > 0)
-    {
-        fprintf( fp, "\t;Trk %c; %s: %d", str_track[mml_trk], mml_file_name, mml_line_pos);
-        fprintf( fp, "\n");
-        putAsm_pos = 0;
-    }
+		if (putAsm_pos > 0)
+		{
+				fprintf( fp, "\t;Trk %c; %s: %d", str_track[mml_trk], mml_file_name, mml_line_pos);
+				fprintf( fp, "\n");
+				putAsm_pos = 0;
+		}
 }
 
 
 /*--------------------------------------------------------------
-	
+
 --------------------------------------------------------------*/
 void putBankOrigin(FILE *fp, int bank)
 {
@@ -5616,7 +5619,7 @@ void putBankOrigin(FILE *fp, int bank)
 }
 
 /*--------------------------------------------------------------
-	!=0: OK,  ==0: out of range
+	!=0: OK,	==0: out of range
 --------------------------------------------------------------*/
 int checkBankRange(int bank)
 {
@@ -5635,9 +5638,9 @@ int checkBankRange(int bank)
 
 
 /*--------------------------------------------------------------
-	
+
  Input:
-	
+
  Output:
 	無し
 --------------------------------------------------------------*/
@@ -5649,15 +5652,15 @@ int double2int(double d)
 
 /*******************************************************
  *
- *↓発音           ↓キーオフ
- *    _                  _
- *   | ＼               | ＼ 次の音(とかイベント)
- *  |    ＼_________   |    ＼_________
- * |                ＼|                ＼
- * |                  |                  ＼
+ *↓発音					 ↓キーオフ
+ *		_									_
+ *	 | ＼							 | ＼ 次の音(とかイベント)
+ *	|		＼_________	 |		＼_________
+ * |								＼|								＼
+ * |									|									＼
  * <------------------> delta_time 発音から次のイベントまで
- * <--------------->    gate_time  発音からキーオフまで
- *                  <-> left_time  キーオフから次のイベントまでの残り時間
+ * <--------------->		gate_time	発音からキーオフまで
+ *									<-> left_time	キーオフから次のイベントまでの残り時間
  *
  *******************************************************/
 
@@ -5666,7 +5669,7 @@ int double2int(double d)
  Input:
 	CMD *cmd; デルタタイムを読み始めるコマンドの位置
 	int allow_slur = 1; スラー許可(音符の場合)
-	               = 0; スラーなし(休符とか)
+								 = 0; スラーなし(休符とか)
  Output:
 	int *delta; デルタタイム
  Return:
@@ -5694,9 +5697,9 @@ CMD *getDeltaTime(CMD *cmd, int *delta, int allow_slur) {
 /*--------------------------------------------------------------
 	qと音長からゲートタイム計算
  Input:
- 
+
  Output:
-	
+
  Return:
 	int gate;
 --------------------------------------------------------------*/
@@ -5720,7 +5723,7 @@ int calcGateTime(int delta_time, const GATE_Q *gate_q) {
 	int wait_com_no; 256フレーム以上のときに繋ぐコマンド(wかr)
 	int len; フレーム音長
  Output:
-	
+
 --------------------------------------------------------------*/
 void putLengthAndWait(FILE *fp, int wait_com_no, const int len, const CMD *cmd) {
 	int len_nokori = len; /* 出力すべき残り音長(フレーム数) */
@@ -5743,7 +5746,7 @@ void putLengthAndWait(FILE *fp, int wait_com_no, const int len, const CMD *cmd) 
 	while (len_nokori != 0) { /* 出力すべき残りのフレーム数が0になるまでリピート */
 		if( len_nokori > 0xff ) {
 			/* 残り256フレーム以上のとき */
-			putAsm( fp, wait_com_no ); 
+			putAsm( fp, wait_com_no );
 			putAsm( fp, 0xff ); /* 255フレーム出力 */
 			len_nokori -= 0xff;
 		} else {
@@ -5761,8 +5764,8 @@ typedef struct {
 	int	env;			// 現在の通常の(キーオンのときの)エンベロープ番号or音量
 	int	rel_env;		// 現在のリリースエンベロープ番号(-1:未使用)
 	int	last_written_env;	// 最後に書き込んだエンベロープ番号or音量
-	int	tone;			// 
-	int	rel_tone;		// 
+	int	tone;			//
+	int	rel_tone;		//
 	int	last_written_tone;	//
 	int	key_pressed;		// キーオンオフの状態
 	int	last_note[SELF_DELAY_MAX+1];		// 最後に書いたノート(@nは無視で)
@@ -5797,14 +5800,14 @@ void defaultPlayState(PLAYSTATE *ps)
 void putReleaseEffect(FILE *fp, const int left_time, const CMD *cmd, PLAYSTATE *ps)
 {
 	int note = MCK_REST;		//デフォルトは残り時間は休符でつなぐ
-	
+
 	//二重キーオフチェック
 	if (ps->key_pressed == 0) {
 		putAsm(fp, note);
 		putLengthAndWait(fp, MCK_WAIT, left_time, cmd);
 		return;
 	}
-	
+
 	if( (ps->rel_env != -1 )		// リリースエンベロープ動作中
 	 && (ps->last_written_env != ps->rel_env) ) {	// 現在のエンべロープと変換中のエンベロープが違う
 		putAsm( fp, MCK_SET_VOL );	// リリースエンベロープ出力
@@ -5841,11 +5844,11 @@ void doNewBank(FILE *fp, int trk, const CMD *cmd)
 		banktemp = cmd->param[0];
 	}
 	if (checkBankRange(banktemp) == 0) {
-		dispError( BANK_IDX_OUT_OF_RANGE,  cmd->filename, cmd->line );
+		dispError( BANK_IDX_OUT_OF_RANGE,	cmd->filename, cmd->line );
 		return;
 	}
 	if ((banktemp == 2 || banktemp == 3) && dpcm_bankswitch) {
-		dispError( CANT_USE_BANK_2_OR_3_WITH_DPCMBANKSWITCH,  cmd->filename, cmd->line );
+		dispError( CANT_USE_BANK_2_OR_3_WITH_DPCMBANKSWITCH,	cmd->filename, cmd->line );
 		return;
 	}
 	putAsm( fp, MCK_GOTO );
@@ -5872,8 +5875,8 @@ void doNewBank(FILE *fp, int trk, const CMD *cmd)
 
 int isCmdNotOutput(CMD *cmd)
 {
-  switch(cmd->cmd)
-  {
+	switch(cmd->cmd)
+	{
 	case _NOP:
 	case _TEMPO:
 	case _TEMPO2:
@@ -5883,47 +5886,47 @@ int isCmdNotOutput(CMD *cmd)
 	case _LENGTH:
 	case _TRANSPOSE:
 		return 1;
-  }
-  return 0;
+	}
+	return 0;
 }
 
 int isNextSlar(CMD *cmd)
 {
-  while(cmd->cmd != _TRACK_END
+	while(cmd->cmd != _TRACK_END
 	&& isCmdNotOutput(cmd)) cmd++;
 
-  if (cmd->cmd == _SLAR)
+	if (cmd->cmd == _SLAR)
 	return 1;
 
-  return 0;
+	return 0;
 }
 
 
 // 音色設定時にVOPを設定する
 void putVOPData( FILE *fp, const int trk, int param )
 {
-    int opl3_head = opl4_track_num;
-    
-    // OPL3のトラックではない
-    if (trk < opl3_head && trk >= opl3_head + OPL3_MAX)
-        return;
-    
-    // 3番目の数値をVOPとして利用する
-    int vop = opl3op_tbl[param][3];
-    
-    // VOPが0であれば設定しない
-    if (!vop)
-        return;
-    
-    putAsm( fp, MDR_REVERB );
-    putAsm( fp, vop & 0xff );
+		int opl3_head = opl4_track_num;
+
+		// OPL3のトラックではない
+		if (trk < opl3_head && trk >= opl3_head + OPL3_MAX)
+				return;
+
+		// 3番目の数値をVOPとして利用する
+		int vop = opl3op_tbl[param][3];
+
+		// VOPが0であれば設定しない
+		if (!vop)
+				return;
+
+		putAsm( fp, MDR_REVERB );
+		putAsm( fp, vop & 0xff );
 }
 
 
 /*--------------------------------------------------------------
-	
+
  Input:
-	
+
  Output:
 	無し
 --------------------------------------------------------------*/
@@ -5962,7 +5965,7 @@ void developeData( FILE *fp, const int trk, CMD *const cmdtop, LINE *lptr )
 	}
 
 	tbase = 0.625;
-	
+
 	{
 		CMD *cmd = cmdtop;
 		double	count, lcount, count_t;
@@ -5972,7 +5975,7 @@ void developeData( FILE *fp, const int trk, CMD *const cmdtop, LINE *lptr )
 		/* カウントからフレームに変換 */
 		/* なるべくキリのいい時点を起点にする */
 		loop_flag = 0;
-		
+
 		count = 0; //トラック開始時点からの経過カウント数
 		frame = 0; //トラック開始時点からの経過フレーム数
 		lcount = 0; //ループ開始時点からの経過カウント数
@@ -5980,12 +5983,12 @@ void developeData( FILE *fp, const int trk, CMD *const cmdtop, LINE *lptr )
 		/*
 			カウントはテンポ関係なく加算していく
 			フレームは
-			      A t120 l4 c  d   e   f  t240   g   a   b   c   !
-			count:          0 48  96 144  192  192 240 288 336 384
-			frame:          0 30  60  90  120  120 135 150 165 180
-			tbase:      0.625           0.3125
-			count_t:        0 48  96 144  192  384 432 480 528 576
-			      B t240 l4 cc dd ee ff          g   a   b   c   !
+						A t120 l4 c	d	 e	 f	t240	 g	 a	 b	 c	 !
+			count:					0 48	96 144	192	192 240 288 336 384
+			frame:					0 30	60	90	120	120 135 150 165 180
+			tbase:			0.625					 0.3125
+			count_t:				0 48	96 144	192	384 432 480 528 576
+						B t240 l4 cc dd ee ff					g	 a	 b	 c	 !
 		*/
 		count_t = 0; //最初から今まで現在のテンポだったと仮定した時、現在の状態と同じ時間を経過させるためのカウント数
 		do {
@@ -6006,7 +6009,7 @@ void developeData( FILE *fp, const int trk, CMD *const cmdtop, LINE *lptr )
 				int	rframe_err;
 				int	repeat_esc_flag = 0;
 				CMD	*repeat_esc2_cmd_ptr = NULL;
-				
+
 				cmd++;
 				while( 1 ) {
 					cmd->cnt = count;
@@ -6045,15 +6048,15 @@ void developeData( FILE *fp, const int trk, CMD *const cmdtop, LINE *lptr )
 							repeat_esc2_cmd_ptr->param[0] = cmd->param[0];
 						}
 						break;
-						
+
 					} else if( cmd->cmd == _REPEAT_ESC2 ) {
 						repeat_esc_flag = 1;
 						repeat_esc2_cmd_ptr = cmd;
-					} else if( 
+					} else if(
 					cmd->cmd <= MAX_NOTE ||
 					cmd->cmd == _REST ||
 					cmd->cmd == _DRUM_BIT ||
-                    cmd->cmd == _DRUM_NOTE ||
+										cmd->cmd == _DRUM_NOTE ||
 					cmd->cmd == _TIE ||
 					cmd->cmd == _KEY ||
 					cmd->cmd == _NOTE ||
@@ -6076,7 +6079,7 @@ void developeData( FILE *fp, const int trk, CMD *const cmdtop, LINE *lptr )
 							rcount_esc_t += cmd->len;
 							rcount_esc += cmd->len;
 							rframe_esc += frame_d;
-						} 
+						}
 					} else if( cmd->cmd == _TEMPO ) {
 						tbase_p = tbase;
 						tbase = (double)_BASETEMPO / (double)cmd->param[0];
@@ -6094,10 +6097,10 @@ void developeData( FILE *fp, const int trk, CMD *const cmdtop, LINE *lptr )
 					}
 					cmd++;
 				}
-			} else if( 
+			} else if(
 			cmd->cmd <= MAX_NOTE ||
-			cmd->cmd == _DRUM_BIT || 
-            cmd->cmd == _DRUM_NOTE ||
+			cmd->cmd == _DRUM_BIT ||
+						cmd->cmd == _DRUM_NOTE ||
 			cmd->cmd == _REST ||
 			cmd->cmd == _TIE ||
 			cmd->cmd == _KEY ||
@@ -6127,7 +6130,7 @@ void developeData( FILE *fp, const int trk, CMD *const cmdtop, LINE *lptr )
 			}
 		} while( cmd++->cmd != _TRACK_END );
 	}
-	
+
 	{
 		CMD *cmd = cmdtop;
 		PLAYSTATE ps;
@@ -6136,26 +6139,24 @@ void developeData( FILE *fp, const int trk, CMD *const cmdtop, LINE *lptr )
 		int repeat_esc_flag = 0;
 		int i;
 		char loop_point_label[256];
-		int slar_flag = 0;
-		int slar_cmdcnt = 0;
-        
-        int drum_note_flag = 0;
-        int drum_note_count = 0;
-		
+
+				int drum_note_flag = 0;
+				int drum_note_count = 0;
+
 		defaultPlayState(&ps);
-		
+
 		cmd = cmdtop;
 		putAsm_pos = 0;
 		loop_flag = 0;
-		
+
 		sprintf(loop_point_label, "%s_%02d_lp", songlabel, trk );
-		
+
 		mml_trk = trk;
 		fprintf( fp, "\n%s_%02d:\t;Trk %c\n", songlabel, trk, str_track[trk] );
-		
+
 		mml_file_name = cmd->filename;
 		mml_line_pos = cmd->line;
-	
+
 		// ジャンプする
 		if (use_jump)
 		{
@@ -6164,22 +6165,22 @@ void developeData( FILE *fp, const int trk, CMD *const cmdtop, LINE *lptr )
 			putAsm( fp, MDR_JUMP );
 			putAsm( fp, 0x01 );
 			use_jump = 0;
-		}	
+		}
 		#ifndef HUSIC_EXT
-			
+
 		// 三角波/ノイズトラック対策
 		if( (trk == BTRACK(2)) || (trk == BTRACK(3)) ) {
 			putAsm( fp, MCK_SET_TONE );
 			putAsm( fp, 0x8f );
-		}		
+		}
 		#endif
-				
-		
+
+
 		do {
 			const CMD cmdtemp = *cmd; //各switch内でcmdポインタが進む可能性があるので一旦保存
 			mml_file_name = cmd->filename;
 			mml_line_pos = cmd->line;
-			
+
 			// 自動バンク切り替え
 			if (auto_bankswitch) {
 				const int bank_limit = 8192 - 20; // 適当に余裕を持たせる
@@ -6194,80 +6195,75 @@ void developeData( FILE *fp, const int trk, CMD *const cmdtop, LINE *lptr )
 					doNewBank( fp, trk, &nbcmd );
 				}
 			}
-			
+
 			switch (cmdtemp.cmd) {
-			  case _NOP:
-			  case _TEMPO:
-			  case _TEMPO2:
-			  case _OCTAVE:
-			  case _OCT_UP:
-			  case _OCT_DW:
-			  case _LENGTH:
-			  case _TRANSPOSE:
+				case _NOP:
+				case _TEMPO:
+				case _TEMPO2:
+				case _OCTAVE:
+				case _OCT_UP:
+				case _OCT_DW:
+				case _LENGTH:
+				case _TRANSPOSE:
 				cmd++;
 				break;
-			  case _SLAR:
-				if (!slar_flag)
-				{
-					slar_flag = 1;
-					slar_cmdcnt=0;
-				}
+				case _SLAR:
 				putAsm( fp, MCK_SLAR );
 				cmd++;
-			  break;
-			  case _ENVELOPE:
+				break;
+				case _ENVELOPE:
 				putAsm( fp, MCK_SET_VOL );
-				ps.env = cmd->param[0]&0x7f; 
+				ps.env = cmd->param[0]&0x7f;
 				ps.last_written_env = ps.env;
-				putAsm( fp, ps.env ); 
+				putAsm( fp, ps.env );
 				ps.last_written_env = ps.env;
-				cmd++; 
-				break; 
-			  case _REL_ENV: 
-				if( cmd->param[0] == 255 ) { 
+				cmd++;
+				break;
+				case _REL_ENV:
+				if( cmd->param[0] == 255 ) {
 					ps.rel_env = -1;
-				} else { 
-					ps.rel_env = cmd->param[0]&0x7f; 
+				} else {
+					ps.rel_env = cmd->param[0]&0x7f;
 				}
 				cmd++;
 				break;
-			  case _VOLUME:
+				case _VOLUME:
 				putAsm( fp, MCK_SET_VOL );
 					ps.env = (cmd->param[0]&0x7f)|0x80;
 				putAsm( fp, ps.env );
 				ps.last_written_env = ps.env;
 				cmd++;
 				break;
-			  case _HARD_ENVELOPE:
+				case _HARD_ENVELOPE:
 				putAsm( fp, MCK_SET_FDS_HWENV );
 				ps.env = ((cmd->param[0]&1)<<6)|(cmd->param[1]&0x3f);
-				putAsm( fp, (ps.env & 0xff) ); 
+				putAsm( fp, (ps.env & 0xff) );
 				ps.last_written_env = ps.env;
 				cmd++;
 				break;
-			  case _TONE:
+				case _TONE:
 				ps.tone = cmd->param[0]|0x80;
 				putAsm( fp, MCK_SET_TONE );
 				putAsm( fp, ps.tone );
 				ps.last_written_tone = ps.tone;
 				cmd++;
 				break;
-			  case _ORG_TONE:
+				case _ORG_TONE:
 				ps.tone = cmd->param[0]&0x7f;
 				putAsm( fp, MCK_SET_TONE );
 				putAsm( fp, ps.tone );
 				ps.last_written_tone = ps.tone;
 				cmd++;
 				break;
-			  case _REL_ORG_TONE:
-				if( cmd->param[0] == 255 ) { 
+				case _REL_ORG_TONE:
+				if( cmd->param[0] == 255 ) {
 					ps.rel_tone = -1;
 				} else {
 					ps.rel_tone = cmd->param[0]&0x7f;
 				}
 				cmd++;
 				break;
-			  case _SONG_LOOP:
+				case _SONG_LOOP:
 				//loop_count.cnt = cmd->cnt; //LEN
 				//loop_count.frm = cmd->frm;
 				fprintf( fp, "\n%s:\n", loop_point_label);
@@ -6275,43 +6271,43 @@ void developeData( FILE *fp, const int trk, CMD *const cmdtop, LINE *lptr )
 				putAsm_pos = 0;
 				cmd++;
 				break;
-			  case _QUONTIZE:
+				case _QUONTIZE:
 				ps.gate_q.rate = cmd->param[0];
 				ps.gate_q.adjust = cmd->param[1];
 				cmd++;
 				break;
-			  case _QUONTIZE2:
+				case _QUONTIZE2:
 				ps.gate_q.rate = gate_denom;
 				ps.gate_q.adjust = - cmd->param[0];
 				cmd++;
 				break;
-              case _DRUM_NOTE:
-                {
-                    if (drum_note_flag)
-                    {
-                        dispError( COMMAND_REDUNDANT, cmdtemp.filename, cmdtemp.line );
-                        cmd++;
-                        break;
+							case _DRUM_NOTE:
+								{
+										if (drum_note_flag)
+										{
+												dispError( COMMAND_REDUNDANT, cmdtemp.filename, cmdtemp.line );
+												cmd++;
+												break;
 
-                    }
-                    drum_note_flag = 1;
-                    drum_note_count = 0;
-                    putAsm(fp, MDR_DRUM_NOTE);
-                    putAsm(fp, cmd->param[0] & 0x1f);
-                    cmd++;
-                }
-                break;
-			  case _DRUM_BIT:
+										}
+										drum_note_flag = 1;
+										drum_note_count = 0;
+										putAsm(fp, MDR_DRUM_NOTE);
+										putAsm(fp, cmd->param[0] & 0x1f);
+										cmd++;
+								}
+								break;
+				case _DRUM_BIT:
 				{
 					if (cmd->len == 0)
 					{
 						putAsm(fp, MDR_DRUM_BIT);
 						putAsm(fp, cmd->param[0] & 0x1f);
-                        cmd++;
+												cmd++;
 					}
 					else
 					{
-                        int param = cmd->param[0];
+												int param = cmd->param[0];
 						int delta_time = 0;
 						cmd = getDeltaTime(cmd, &delta_time, 0);
 						if( delta_time == 0 ) {
@@ -6325,7 +6321,7 @@ void developeData( FILE *fp, const int trk, CMD *const cmdtop, LINE *lptr )
 				}
 				break;
 
-			  case _REST:
+				case _REST:
 				{
 					int delta_time = 0;
 					cmd = getDeltaTime(cmd, &delta_time, 0);
@@ -6338,7 +6334,7 @@ void developeData( FILE *fp, const int trk, CMD *const cmdtop, LINE *lptr )
 					ps.key_pressed = 0;
 				}
 				break;
-			  case _WAIT:
+				case _WAIT:
 				{
 					int delta_time = 0;
 					cmd = getDeltaTime(cmd, &delta_time, 0);
@@ -6350,7 +6346,7 @@ void developeData( FILE *fp, const int trk, CMD *const cmdtop, LINE *lptr )
 					putLengthAndWait(fp, MCK_WAIT, delta_time, &cmdtemp);
 				}
 				break;
-			  case _KEY_OFF: /* 長さつきキーオフ */ 
+				case _KEY_OFF: /* 長さつきキーオフ */
 				{
 					int delta_time = 0;
 					cmd = getDeltaTime(cmd, &delta_time, 0);
@@ -6361,7 +6357,7 @@ void developeData( FILE *fp, const int trk, CMD *const cmdtop, LINE *lptr )
 					ps.key_pressed = 0;
 				}
 				break;
-			  case _LFO_ON:
+				case _LFO_ON:
 				putAsm( fp, MCK_SET_LFO );
 				if( (cmd->param[0]&0xff) == 0xff ) {
 					putAsm( fp, 0xff );
@@ -6370,12 +6366,12 @@ void developeData( FILE *fp, const int trk, CMD *const cmdtop, LINE *lptr )
 				}
 				cmd++;
 				break;
-			  case _LFO_OFF:
+				case _LFO_OFF:
 				putAsm( fp, MCK_SET_LFO );
 				putAsm( fp, 0xff );
 				cmd++;
 				break;
-			  case _DETUNE:
+				case _DETUNE:
 				putAsm( fp, MCK_SET_DETUNE );
 				if( cmd->param[0] >= 0 ) {
 					putAsm( fp, ( cmd->param[0]&0x7f)|0x80 );
@@ -6384,241 +6380,241 @@ void developeData( FILE *fp, const int trk, CMD *const cmdtop, LINE *lptr )
 				}
 				cmd++;
 				break;
-			  case _SWEEP:
+				case _SWEEP:
 				putAsm( fp, MCK_SET_HWSWEEP );
 				putAsm( fp, ((cmd->param[0]&0xf)<<4)+(cmd->param[1]&0xf) );
 				cmd++;
 				break;
-			  case _EP_ON:
+				case _EP_ON:
 				putAsm( fp, MCK_SET_PITCHENV );
 				putAsm( fp, cmd->param[0]&0xff );
 				cmd++;
 				break;
-			  case _EP_OFF:
+				case _EP_OFF:
 				putAsm( fp, MCK_SET_PITCHENV );
 				putAsm( fp, 0xff );
 				cmd++;
 				break;
-			  case _EN_ON:
+				case _EN_ON:
 				putAsm( fp, MCK_SET_NOTEENV );
 				putAsm( fp, cmd->param[0]&0xff );
 				cmd++;
 				break;
-			  case _EN_OFF:
+				case _EN_OFF:
 				putAsm( fp, MCK_SET_NOTEENV );
 				putAsm( fp, 0xff );
 				cmd++;
 				break;
-			  case _MH_ON:
+				case _MH_ON:
 				putAsm( fp, MCK_SET_FDS_HWEFFECT );
 				putAsm( fp, cmd->param[0]&0xff );
 				cmd++;
 				break;
-			  case _MH_OFF:
+				case _MH_OFF:
 				putAsm( fp, MCK_SET_FDS_HWEFFECT );
 				putAsm( fp, 0xff );
 				cmd++;
 				break;
-			  case _VRC7_TONE:
+				case _VRC7_TONE:
 				putAsm( fp, MCK_SET_TONE );
 				putAsm( fp, cmd->param[0]|0x40 );
 				cmd++;
 				break;
-			
-			// HuSIC
-			  case _FMLFO_FRQ:
-				  putAsm( fp, 0xec );
-				  putAsm( fp, cmd->param[0]&0xff);
-				  cmd++;
-				  break;
-			  case _FMLFO_SET:
-				  putAsm( fp, 0xed );
-				  putAsm( fp, cmd->param[0]&0xff);
-				  cmd++;
-				  break;
-			  case _FMLFO_OFF:
-				  putAsm( fp, 0xed );
-				  putAsm( fp, 0xff );
-				  cmd++;
-				  break;
-			  case _L_PAN:
-				  panvol = (panvol&0x0f)| ((cmd->param[0]&0x0f)<<4);
-				  putAsm( fp, 0xf0 );
-				  putAsm( fp, panvol );
-				  cmd++;
-				  break;
-			  case _R_PAN:
-				  panvol = (panvol&0xf0)|(cmd->param[0]&0x0f);
-				  putAsm( fp, 0xf0 );
-				  putAsm( fp, panvol );
-				  cmd++;
-				  break;
-			  case _C_PAN:
-				  panvol = (cmd->param[0]&0x0f) | ((cmd->param[0]&0x0f)<<4);
-				  putAsm( fp, 0xf0 );
-				  putAsm( fp, panvol );
-				  cmd++;
-				  break;
-			  case _PAN:
-				  panvol = cmd->param[0];
-				  putAsm( fp, 0xf0 );
-				  putAsm( fp, panvol );
-				  cmd++;
-				  break;
-			  case _NOISE_SW:
-				  putAsm( fp, 0xf2 );
-				  putAsm( fp, cmd->param[0] );
-				  cmd++;
-				  break;
-			  case _WAVE_CHG:
-				  putAsm( fp, 0xf1 );
-				  putAsm( fp, cmd->param[0] );
-                  // VOP設定の出力
-                  putVOPData(fp, trk, cmd->param[0] & 0xff);
-				  cmd++;
 
-				  break;
-			  case _MODE_CHG:
-				  putAsm( fp, 0xef );
-				  putAsm( fp, cmd->param[0] );
-				  cmd++;
-				  break;
+			// HuSIC
+				case _FMLFO_FRQ:
+					putAsm( fp, 0xec );
+					putAsm( fp, cmd->param[0]&0xff);
+					cmd++;
+					break;
+				case _FMLFO_SET:
+					putAsm( fp, 0xed );
+					putAsm( fp, cmd->param[0]&0xff);
+					cmd++;
+					break;
+				case _FMLFO_OFF:
+					putAsm( fp, 0xed );
+					putAsm( fp, 0xff );
+					cmd++;
+					break;
+				case _L_PAN:
+					panvol = (panvol&0x0f)| ((cmd->param[0]&0x0f)<<4);
+					putAsm( fp, 0xf0 );
+					putAsm( fp, panvol );
+					cmd++;
+					break;
+				case _R_PAN:
+					panvol = (panvol&0xf0)|(cmd->param[0]&0x0f);
+					putAsm( fp, 0xf0 );
+					putAsm( fp, panvol );
+					cmd++;
+					break;
+				case _C_PAN:
+					panvol = (cmd->param[0]&0x0f) | ((cmd->param[0]&0x0f)<<4);
+					putAsm( fp, 0xf0 );
+					putAsm( fp, panvol );
+					cmd++;
+					break;
+				case _PAN:
+					panvol = cmd->param[0];
+					putAsm( fp, 0xf0 );
+					putAsm( fp, panvol );
+					cmd++;
+					break;
+				case _NOISE_SW:
+					putAsm( fp, 0xf2 );
+					putAsm( fp, cmd->param[0] );
+					cmd++;
+					break;
+				case _WAVE_CHG:
+					putAsm( fp, 0xf1 );
+					putAsm( fp, cmd->param[0] );
+									// VOP設定の出力
+									putVOPData(fp, trk, cmd->param[0] & 0xff);
+					cmd++;
+
+					break;
+				case _MODE_CHG:
+					putAsm( fp, 0xef );
+					putAsm( fp, cmd->param[0] );
+					cmd++;
+					break;
 
 			// MoonDriver
-			  case _JUMP_FLAG:
-				  putAsm( fp, MDR_JUMP );
-				  putAsm( fp, 0x00 );
-				  cmd++;
-				  break;
-			  case _REVERB_SET:
-				  putAsm( fp, MDR_REVERB );
-				  putAsm( fp, cmd->param[0] & 0xff );
-				  cmd++;
-				  break;
-			  case _DAMP_SET:
-				  putAsm( fp, MDR_DAMP );
-				  putAsm( fp, cmd->param[0] & 0xff );
-				  cmd++;
-				  break;
+				case _JUMP_FLAG:
+					putAsm( fp, MDR_JUMP );
+					putAsm( fp, 0x00 );
+					cmd++;
+					break;
+				case _REVERB_SET:
+					putAsm( fp, MDR_REVERB );
+					putAsm( fp, cmd->param[0] & 0xff );
+					cmd++;
+					break;
+				case _DAMP_SET:
+					putAsm( fp, MDR_DAMP );
+					putAsm( fp, cmd->param[0] & 0xff );
+					cmd++;
+					break;
 
-			  case _SET_OPBASE:
-				  putAsm( fp, MDR_OPBASE );
-				  putAsm( fp, cmd->param[0] & 0xff );
-				  cmd++;
-				  break;
-			  case _LOAD_OP2:
-				  putAsm( fp, MDR_LDOP2 );
-				  putAsm( fp, cmd->param[0] & 0xff );
-                  // VOP設定の出力
-                  putVOPData(fp, trk, cmd->param[0] & 0xff);
-				  cmd++;
-                    
-				  break;
-			  case _SET_TVP:
-				  putAsm( fp, MDR_TVP );
-				  putAsm( fp, cmd->param[0] & 0xff );
-				  cmd++;
-				  break;
-			  case _DRUM_SW:
-				  putAsm( fp, MDR_DRUM );
-				  putAsm( fp, cmd->param[0] & 0xff );
-				  cmd++;
-				  break;
-			  case _SET_FBS:
-				  putAsm( fp, MDR_FBS );
-				  putAsm( fp, cmd->param[0] & 0xff );
-				  cmd++;
-				  break;
-			  case _SET_OPM:
-				  putAsm( fp, MDR_OPMODE );
-				  putAsm( fp, cmd->param[0] & 0xff );
-				  cmd++;
-				  break;
+				case _SET_OPBASE:
+					putAsm( fp, MDR_OPBASE );
+					putAsm( fp, cmd->param[0] & 0xff );
+					cmd++;
+					break;
+				case _LOAD_OP2:
+					putAsm( fp, MDR_LDOP2 );
+					putAsm( fp, cmd->param[0] & 0xff );
+									// VOP設定の出力
+									putVOPData(fp, trk, cmd->param[0] & 0xff);
+					cmd++;
+
+					break;
+				case _SET_TVP:
+					putAsm( fp, MDR_TVP );
+					putAsm( fp, cmd->param[0] & 0xff );
+					cmd++;
+					break;
+				case _DRUM_SW:
+					putAsm( fp, MDR_DRUM );
+					putAsm( fp, cmd->param[0] & 0xff );
+					cmd++;
+					break;
+				case _SET_FBS:
+					putAsm( fp, MDR_FBS );
+					putAsm( fp, cmd->param[0] & 0xff );
+					cmd++;
+					break;
+				case _SET_OPM:
+					putAsm( fp, MDR_OPMODE );
+					putAsm( fp, cmd->param[0] & 0xff );
+					cmd++;
+					break;
 
 
-			  case _SUN5B_HARD_SPEED:
+				case _SUN5B_HARD_SPEED:
 				putAsm( fp, MCK_SET_SUN5B_HARD_SPEED );
 				putAsm( fp, cmd->param[0]&0xff );
 				putAsm( fp, (cmd->param[0]>>8)&0xff );
 				cmd++;
 				break;
-			  case _SUN5B_HARD_ENV:
+				case _SUN5B_HARD_ENV:
 				putAsm( fp, MCK_SUN5B_HARD_ENV );
 				ps.env = (cmd->param[0]&0x0f)|0x10|0x80;
-				putAsm( fp,  ps.env );
+				putAsm( fp,	ps.env );
 				cmd++;
 				break;
-			  case _SUN5B_NOISE_FREQ:
+				case _SUN5B_NOISE_FREQ:
 				putAsm( fp, MCK_SET_SUN5B_NOISE_FREQ );
 				putAsm( fp, cmd->param[0]&0x1f );
 				cmd++;
 				break;
-			  case _NEW_BANK:
+				case _NEW_BANK:
 				doNewBank( fp, trk, cmd );
 				cmd++;
 				break;
-			  case _DATA_WRITE:
+				case _DATA_WRITE:
 				putAsm( fp, MCK_DATA_WRITE );
-				putAsm( fp,  cmd->param[0]    &0xff );
+				putAsm( fp,	cmd->param[0]		&0xff );
 				putAsm( fp, (cmd->param[0]>>8)&0xff );
-				putAsm( fp,  cmd->param[1]    &0xff );
+				putAsm( fp,	cmd->param[1]		&0xff );
 				cmd++;
 				break;
-              case _DATA_WRITE_OFS:
-                {
-                    int sel = 0x00;
-                    int addr = (cmd->param[0] & 0xff);
-                    int opl3_head = opl4_track_num;
-                    int data = cmd->param[1];
-                    
-                    // OPL3のトラック範囲内
-                    if (trk >= opl3_head && trk < opl3_head + OPL3_MAX)
-                    {
-                        // tmptrk = 0 - 17
-                        int tmptrk = trk - opl3_head;
-                        
-                        int opl_half = (OPL3_MAX / 2);
-                        
-                        if (tmptrk < opl_half)
-                        {
-                            sel = 0x01; // first half
-                        }
-                        else
-                        {
-                            sel = 0x02; // second half
-                            tmptrk -= opl_half;
-                        }
+							case _DATA_WRITE_OFS:
+								{
+										int sel = 0x00;
+										int addr = (cmd->param[0] & 0xff);
+										int opl3_head = opl4_track_num;
+										int data = cmd->param[1];
 
-                        // 特定のアドレスは特殊な変換を行う
-                        if ((addr >= 0x20 && addr < 0xa0) ||
-                            (addr >= 0xe0 && addr < 0x100))
-                        {
-                            tmptrk = ((tmptrk/3) * 8) + (tmptrk % 3);
-                        }
-                        addr += tmptrk;
-                        
-                    }
-                    
-                    putAsm( fp, MCK_DATA_WRITE );
-                    putAsm( fp, addr & 0xff );
-                    putAsm( fp, sel & 0xff );
-                    putAsm( fp, data & 0xff );
-                    cmd++;
-                }
-                break;
+										// OPL3のトラック範囲内
+										if (trk >= opl3_head && trk < opl3_head + OPL3_MAX)
+										{
+												// tmptrk = 0 - 17
+												int tmptrk = trk - opl3_head;
 
-			  case _DATA_THRUE:
-				putAsm( fp,  cmd->param[0]    &0xff );
-				putAsm( fp,  cmd->param[1]    &0xff );
+												int opl_half = (OPL3_MAX / 2);
+
+												if (tmptrk < opl_half)
+												{
+														sel = 0x01; // first half
+												}
+												else
+												{
+														sel = 0x02; // second half
+														tmptrk -= opl_half;
+												}
+
+												// 特定のアドレスは特殊な変換を行う
+												if ((addr >= 0x20 && addr < 0xa0) ||
+														(addr >= 0xe0 && addr < 0x100))
+												{
+														tmptrk = ((tmptrk/3) * 8) + (tmptrk % 3);
+												}
+												addr += tmptrk;
+
+										}
+
+										putAsm( fp, MCK_DATA_WRITE );
+										putAsm( fp, addr & 0xff );
+										putAsm( fp, sel & 0xff );
+										putAsm( fp, data & 0xff );
+										cmd++;
+								}
+								break;
+
+				case _DATA_THRUE:
+				putAsm( fp,	cmd->param[0]		&0xff );
+				putAsm( fp,	cmd->param[1]		&0xff );
 				cmd++;
 				break;
-			  case _REPEAT_ST2:
+				case _REPEAT_ST2:
 				fprintf( fp, "\n%s_%02d_lp_%04d:\n", songlabel, trk, repeat_index );
 				repeat_depth++;
 				putAsm_pos = 0;
 				cmd++;
 				break;
-			  case _REPEAT_END2:
+				case _REPEAT_END2:
 				if( --repeat_depth < 0 ) {
 					dispError( DATA_ENDED_BY_LOOP_DEPTH_EXCEPT_0, cmd->filename, cmd->line );
 				} else {
@@ -6633,7 +6629,7 @@ void developeData( FILE *fp, const int trk, CMD *const cmdtop, LINE *lptr )
 					bank_usage[curr_bank]++;
 					fprintf( fp,"\tdw\t%s_%02d_lp_%04d\n", songlabel, trk, repeat_index );
 					bank_usage[curr_bank]+=2;
-					
+
 					fprintf( fp, "%s_%02d_lp_exit_%04d:\n", songlabel, trk, repeat_index );
 					repeat_index++;
 					putAsm_pos = 0;
@@ -6651,7 +6647,7 @@ void developeData( FILE *fp, const int trk, CMD *const cmdtop, LINE *lptr )
 				}
 				cmd++;
 				break;
-			  case _REPEAT_ESC2:
+				case _REPEAT_ESC2:
 				if( (repeat_depth-1) < 0 ) {
 					dispError( DATA_ENDED_BY_LOOP_DEPTH_EXCEPT_0, cmd->filename, cmd->line );
 				} else {
@@ -6669,34 +6665,34 @@ void developeData( FILE *fp, const int trk, CMD *const cmdtop, LINE *lptr )
 				}
 				cmd++;
 				break;
-			  case _SELF_DELAY_ON:
-				if( cmd->param[0] == 255 ) { 
+				case _SELF_DELAY_ON:
+				if( cmd->param[0] == 255 ) {
 					ps.self_delay = -1;
 				} else {
 					ps.self_delay = cmd->param[0];
 				}
 				cmd++;
 				break;
-			  case _SELF_DELAY_OFF:
+				case _SELF_DELAY_OFF:
 				ps.self_delay = -1;
 				cmd++;
 				break;
-			  case _SELF_DELAY_QUEUE_RESET:
+				case _SELF_DELAY_QUEUE_RESET:
 				for (i = 0; i < arraysizeof(ps.last_note); i++) {
 					ps.last_note[i] = -1;
 					ps.last_note_keep[i] = -1;
 				}
 				cmd++;
 				break;
-			  case _SHIFT_AMOUNT:
+				case _SHIFT_AMOUNT:
 				putAsm( fp, MCK_SET_SHIFT_AMOUNT );
 				putAsm( fp, cmd->param[0] & 0xff );
 				cmd++;
 				break;
-			  case _TRACK_END:
+				case _TRACK_END:
 				break;
-			  case _KEY:
-			  default:
+				case _KEY:
+				default:
 				{
 					int note;
 					int delta_time; /* 発音から次のイベントまでのフレーム数 */
@@ -6714,13 +6710,13 @@ void developeData( FILE *fp, const int trk, CMD *const cmdtop, LINE *lptr )
 							break;
 						}
 					}
-					
+
 
 					delta_time = 0;
 					cmd = getDeltaTime(cmd, &delta_time, 1);
-					
-                    // スラーの場合はゲートタイムを無視する
-					if (isNextSlar(cmd)) 
+
+					// スラーの場合はゲートタイムを無視する
+					if (isNextSlar(cmd))
 					{
 						temp_gate.rate = 8;
 						temp_gate.adjust = 0;
@@ -6730,13 +6726,13 @@ void developeData( FILE *fp, const int trk, CMD *const cmdtop, LINE *lptr )
 						gate_time = calcGateTime(delta_time, &(ps.gate_q));
 
 					left_time = delta_time - gate_time;
-					
+
 					if( delta_time == 0 ) {
 						dispWarning( FRAME_LENGTH_IS_0, cmdtemp.filename, cmdtemp.line );
 						break;
 					}
-					
-					
+
+
 					if( ps.last_written_env != ps.env ) {		// 最後に書き込んだエンべロープor音量と、現在の通常のエンベロープor音量が違う
 						// if ( (trk == BFMTRACK) && (ps.env > 0xFF) ) {
 						//	putAsm( fp, MCK_SET_FDS_HWENV );	// ハードエンベ出力
@@ -6748,7 +6744,7 @@ void developeData( FILE *fp, const int trk, CMD *const cmdtop, LINE *lptr )
 						}
 						ps.last_written_env = ps.env;
 					}
-					
+
 					if( ps.last_written_tone != ps.tone ) {	// 最後に書き込んだ音色と、現在の通常の音色が違う
 						putAsm( fp, MCK_SET_TONE );	// 音色出力
 						putAsm( fp, ps.tone );
@@ -6756,20 +6752,20 @@ void developeData( FILE *fp, const int trk, CMD *const cmdtop, LINE *lptr )
 					}
 
 					if( (ps.tone == -1) &&
-					    ((trk == BTRACK(0))  || (trk == BTRACK(1)) ||
-					     (trk == BMMC5TRACK) || (trk == BMMC5TRACK+1)) ) {
+							((trk == BTRACK(0))	|| (trk == BTRACK(1)) ||
+							 (trk == BMMC5TRACK) || (trk == BMMC5TRACK+1)) ) {
 						// 内蔵矩形波＆MMC5は音色未指定時@0に
 						putAsm( fp, MCK_SET_TONE );
 						ps.tone = 0x80;
 						putAsm( fp, ps.tone );
 						ps.last_written_tone = ps.tone;
 					}
-					
+
 					if (cmdtemp.cmd == _KEY) {
 						putAsm( fp, MCK_DIRECT_FREQ );
-						putAsm( fp,  note    &0xff );
+						putAsm( fp,	note		&0xff );
 						if ( ((trk >= BVRC6TRACK) && (trk <= BVRC6SAWTRACK)) ||
-						     ((trk >= BFME7TRACK) && (trk <= BFME7TRACK+2 )) ) {
+								 ((trk >= BFME7TRACK) && (trk <= BFME7TRACK+2 )) ) {
 							// VRC6＆SUN5Bは12bit
 							putAsm( fp, (note>>8)&0x0f );
 						} else {
@@ -6781,15 +6777,15 @@ void developeData( FILE *fp, const int trk, CMD *const cmdtop, LINE *lptr )
 							note += 16;
 						}
 						putAsm( fp, note );
-						
-						
+
+
 						for (i = arraysizeof(ps.last_note) - 1 ; i > 0; i--) {
 							ps.last_note[i] = ps.last_note[i-1];
 						}
 						ps.last_note[0] = note;
 					}
-					
-					
+
+
 					putLengthAndWait(fp, MCK_WAIT, gate_time, &cmdtemp);
 					ps.key_pressed = 1;
 
@@ -6798,40 +6794,21 @@ void developeData( FILE *fp, const int trk, CMD *const cmdtop, LINE *lptr )
 						putReleaseEffect(fp, left_time, &cmdtemp, &ps);
 						ps.key_pressed = 0;
 					}
-                    
-                    // ドラムノートコマンドのノートが無い
-                    if (drum_note_flag && drum_note_count > 1)
-                    {
-                        dispError( ABNORMAL_NOTE_AFTER_COMMAND, cmd->filename, cmd->line );
-                        cmd++;
-                        break;
-                    }
 
-                    // スラーコマンドのノートが無い
-					if (slar_flag && slar_cmdcnt > 1)
-					{
-						dispError( ABNORMAL_NOTE_AFTER_COMMAND, cmd->filename, cmd->line );
-						cmd++;
-						break;
-					}
-                    drum_note_flag = 0;
-					slar_flag = 0;
+					drum_note_flag = 0;
 
 				}
 				break;
 			} // switch (cmdtemp.cmd)
 
-            if (drum_note_flag)
-                drum_note_count++;
-            
-			if (slar_flag)
-				slar_cmdcnt++;
-            
-            putAsmFlash(fp);
-			
+			if (drum_note_flag)
+				drum_note_count++;
+
+			 putAsmFlash(fp);
+
 		} while( cmd->cmd != _TRACK_END );
-		
-		
+
+
 		track_count[mml_idx][trk][0].cnt = cmd->cnt;
 		track_count[mml_idx][trk][0].frm = cmd->frm;
 
@@ -6859,7 +6836,7 @@ void developeData( FILE *fp, const int trk, CMD *const cmdtop, LINE *lptr )
 
 
 /*--------------------------------------------------------------
-	
+
 --------------------------------------------------------------*/
 void setSongLabel(void)
 {
@@ -6875,16 +6852,16 @@ void setSongLabel(void)
 
 void display_counts_sub(int i, char trk)
 {
-	printf( "   %c   |", trk);
+	printf( "	 %c	 |", trk);
 	if( track_count[mml_idx][i][0].cnt != 0 ) {
-		printf (" %6d   %5d|", double2int(track_count[mml_idx][i][0].cnt), track_count[mml_idx][i][0].frm );
+		printf (" %6d	 %5d|", double2int(track_count[mml_idx][i][0].cnt), track_count[mml_idx][i][0].frm );
 	} else {
-		printf( "               |" );
+		printf( "							 |" );
 	}
 	if( track_count[mml_idx][i][1].cnt != 0 ) {
-		printf (" %6d   %5d|\n", double2int(track_count[mml_idx][i][1].cnt),track_count[mml_idx][i][1].frm );
+		printf (" %6d	 %5d|\n", double2int(track_count[mml_idx][i][1].cnt),track_count[mml_idx][i][1].frm );
 	} else {
-		printf( "               |\n" );
+		printf( "							 |\n" );
 	}
 }
 
@@ -6904,12 +6881,12 @@ int data_make( void )
 	int		tone_max, envelope_max, pitch_env_max, pitch_mod_max;
 	int		arpeggio_max, fm_tone_max, dpcm_max, n106_tone_max,vrc7_tone_max;
 	int		hard_effect_max, effect_wave_max;
-	
-    int		wtb_tone_max,xpcm_max; // HuSIC
+
+		int		wtb_tone_max,xpcm_max; // HuSIC
 	int		tonetbl_max;
 	int		opl3tbl_max;
 
-	
+
 	LINE	*line_ptr[MML_MAX];
 	CMD		*cmd_buf;
 	int	trk_flag[_TRACK_MAX];
@@ -6925,7 +6902,7 @@ int data_make( void )
 
 	/* 全てのMMLからエフェクトを読み込み */
 	for (mml_idx = 0; mml_idx < mml_num; mml_idx++) {
-		line_ptr[mml_idx] = readMmlFile(mml_names[mml_idx]);
+		line_ptr[mml_idx] = readMmlFile(mml_names[mml_idx], mml_short_names[mml_idx]);
 		if( line_ptr[mml_idx] == NULL ) return -1;
 		getLineStatus(line_ptr[mml_idx], 0 );
 #ifdef DEBUG
@@ -6935,36 +6912,36 @@ int data_make( void )
 #endif
 
 
-		getTone(     line_ptr[mml_idx] );
+		getTone(		 line_ptr[mml_idx] );
 		getEnvelope( line_ptr[mml_idx] );
 		getPitchEnv( line_ptr[mml_idx] );
 		getPitchMod( line_ptr[mml_idx] );
 		getArpeggio( line_ptr[mml_idx] );
-		getDPCM(     line_ptr[mml_idx] );
-		getXPCM(     line_ptr[mml_idx] );
-		getFMTone(   line_ptr[mml_idx] );
-		getWTBTone(   line_ptr[mml_idx] );
-		getToneTable(   line_ptr[mml_idx] );
-		getOPL3tbl(   line_ptr[mml_idx] );
+		getDPCM(		 line_ptr[mml_idx] );
+		getXPCM(		 line_ptr[mml_idx] );
+		getFMTone(	 line_ptr[mml_idx] );
+		getWTBTone(	 line_ptr[mml_idx] );
+		getToneTable(	 line_ptr[mml_idx] );
+		getOPL3tbl(	 line_ptr[mml_idx] );
 		getVRC7Tone( line_ptr[mml_idx] );
 		getN106Tone( line_ptr[mml_idx] );
 		getHardEffect(line_ptr[mml_idx]);
 		getEffectWave(line_ptr[mml_idx]);
 	}
 
-	tone_max      = checkLoop(       tone_tbl,      _TONE_MAX );
-	envelope_max  = checkLoop(   envelope_tbl,  _ENVELOPE_MAX );
-	pitch_env_max = checkLoop(  pitch_env_tbl, _PITCH_ENV_MAX );
-	pitch_mod_max = getMaxLFO(  pitch_mod_tbl, _PITCH_MOD_MAX );
-	arpeggio_max  = checkLoop(   arpeggio_tbl,  _ARPEGGIO_MAX );
-	dpcm_max      = getMaxDPCM( dpcm_tbl );
-	fm_tone_max   = getMaxTone(   fm_tone_tbl,   _FM_TONE_MAX );
+	tone_max			= checkLoop(			 tone_tbl,			_TONE_MAX );
+	envelope_max	= checkLoop(	 envelope_tbl,	_ENVELOPE_MAX );
+	pitch_env_max = checkLoop(	pitch_env_tbl, _PITCH_ENV_MAX );
+	pitch_mod_max = getMaxLFO(	pitch_mod_tbl, _PITCH_MOD_MAX );
+	arpeggio_max	= checkLoop(	 arpeggio_tbl,	_ARPEGGIO_MAX );
+	dpcm_max			= getMaxDPCM( dpcm_tbl );
+	fm_tone_max	 = getMaxTone(	 fm_tone_tbl,	 _FM_TONE_MAX );
 	n106_tone_max = getMaxTone( n106_tone_tbl, _N106_TONE_MAX );
 	vrc7_tone_max = getMaxTone( vrc7_tone_tbl, _VRC7_TONE_MAX );
 	hard_effect_max = getMaxHardEffect( hard_effect_tbl, _HARD_EFFECT_MAX );
 	effect_wave_max = getMaxEffectWave( effect_wave_tbl, _EFFECT_WAVE_MAX );
 
-	xpcm_max      = getMaxDPCM( xpcm_tbl );
+	xpcm_max			= getMaxDPCM( xpcm_tbl );
 	wtb_tone_max = getMaxTone( wtb_tone_tbl, _WTB_TONE_MAX );
 
 	tonetbl_max = getMaxToneTable( tonetbl_tbl, _TONETBL_MAX );
@@ -7006,7 +6983,7 @@ int data_make( void )
 			}
 			return -1;
 		}
-		
+
 
 		/* 音色書き込み */
 		writeTone( fp, tone_tbl, "dutyenve", tone_max );
@@ -7041,11 +7018,11 @@ int data_make( void )
 		/* DPCM書き込み */
 		writeDPCM( fp, dpcm_tbl, "dpcm_data", dpcm_max );
 		writeDPCMSample( fp );
-		
-		// HuSIC 
+
+		// HuSIC
 		/* WTB音色書き込み */
 		writeToneWTB( fp, wtb_tone_tbl, "pce", wtb_tone_max );
-		
+
 		// ToneTable
 		writeToneTable( fp, tonetbl_tbl, "ttbl", tonetbl_max );
 
@@ -7054,13 +7031,13 @@ int data_make( void )
 
 		/* XPCM書き込み */
 		writeXPCM( fp, xpcm_tbl, "xpcm_data", xpcm_max );
-		
-		
+
+
 		// MMLファイル書き込み
 		if( include_flag != 0 ) {
 			fprintf( fp, "\t.include\t\"%s\"\n", out_name );
 		}
-		
+
 		fclose( fp );
 	}
 
@@ -7081,24 +7058,24 @@ int data_make( void )
 	//printf(" test info:vrc7:%d vrc6:%d n106:%d\n",vrc7_track_num,vrc6_track_num, n106_track_num);
 
 	track_ptr = 0;
-    
+
 	for(i = 0; i < _TRACK_MAX; i++)
-        trk_flag[i] = 0;
+				trk_flag[i] = 0;
 
 	if (opl4_track_num)
 	{
 		for(i = track_ptr; i < track_ptr + opl4_track_num; i++)
-            trk_flag[i] = 1;
-		
-        track_ptr += opl4_track_num;
+						trk_flag[i] = 1;
+
+				track_ptr += opl4_track_num;
 	}
-	
+
 	if (opl3_track_num)
 	{
 		for(i = track_ptr; i < track_ptr + opl3_track_num; i++)
-            trk_flag[i] = 1;
-		
-        track_ptr += opl3_track_num;
+						trk_flag[i] = 1;
+
+				track_ptr += opl3_track_num;
 	}
 
 //	fprintf( fp, "\t.bank\t0\n");
@@ -7109,7 +7086,7 @@ int data_make( void )
 		setSongLabel();
 		fprintf( fp, "\tdw\t%s_track_table\n", songlabel);
 	}
-	
+
 	fprintf( fp, "\t.if (ALLOW_BANK_SWITCH)\n" );
 	fprintf( fp, "song_bank_table:\n" );
 	for (mml_idx = 0; mml_idx < mml_num; mml_idx++) {
@@ -7118,7 +7095,7 @@ int data_make( void )
 	}
 	fprintf( fp, "\t.endif ; ALLOW_BANK_SWITCH\n" );
 	fprintf( fp, "\t.endif ; TOTAL_SONGS > 1\n" );
-	
+
 	for (mml_idx = 0; mml_idx < mml_num; mml_idx++) {
 		setSongLabel();
 		fprintf( fp, "sound_data_table:\n" );
@@ -7127,14 +7104,14 @@ int data_make( void )
 		for( i = 0; i < _TRACK_MAX; i++ ){
 			if (trk_flag[i]) fprintf( fp, "\tdw\t%s_%02d\n", songlabel, i );
 		}
-		
+
 		fprintf( fp, "\t.if (ALLOW_BANK_SWITCH)\n" );
 		fprintf( fp, "sound_data_bank:\n" );
 		//fprintf( fp, "%s_bank_table:\n", songlabel );
 		for( i = 0; i < _TRACK_MAX; i++ ){
 			if (trk_flag[i]) fprintf( fp, "\tdb\tbank(%s_%02d)\n", songlabel, i );
 		}
-		
+
 		fprintf( fp, "loop_point_table:\n" );
 		for( i = 0; i < _TRACK_MAX; i++ ){
 			if (trk_flag[i]) fprintf( fp, "\tdw\t%s_%02d_lp\n", songlabel, i );
@@ -7144,7 +7121,7 @@ int data_make( void )
 		for( i = 0; i < _TRACK_MAX; i++ ){
 			if (trk_flag[i]) fprintf( fp, "\tdb\tbank(%s_%02d_lp)\n", songlabel, i );
 		}
-		
+
 		fprintf( fp, "\n" );
 /*
 		for( i = 0; i < _TRACK_MAX; i++ ){
@@ -7152,11 +7129,11 @@ int data_make( void )
 		}
 		fprintf( fp,"\tdb\t$00\n" );
 */
-		
+
 		fprintf( fp, "\t.endif\n" );
 	}
 
-	
+
 
 
 	curr_bank = 0x00;
@@ -7182,9 +7159,9 @@ int data_make( void )
 					putBankOrigin(fp, bank_sel[i]);
 				}
 			}
-			
+
 			if (trk_flag[i])
-            {
+						{
 				cmd_buf = malloc( sizeof(CMD)*32*1024 );
 				developeData( fp, i, cmd_buf, line_ptr[mml_idx] );
 				free( cmd_buf );
@@ -7192,7 +7169,7 @@ int data_make( void )
 		}
 	}
 	fclose( fp );
-	
+
 	{
 
 		fp = fopen( inc_name, "wt" );
@@ -7207,7 +7184,7 @@ int data_make( void )
 
 		fprintf( fp, "TOTAL_SONGS\tequ\t$%02x\n", mml_num );
 		fprintf( fp, "SOUND_GENERATOR\tequ\t$%02x\n", sndgen_flag );
-        fprintf( fp, "SOUND_USERPCM\tequ\t$%02x\n", use_pcm );
+				fprintf( fp, "SOUND_USERPCM\tequ\t$%02x\n", use_pcm );
 
 		fprintf( fp, "USE_OPL3_TRACK\t\tequ\t%2d\n", opl3_track_num);
 		fprintf( fp, "OPL3_BASETRACK\t\tequ\t%2d\n", BOPL3TRACK);
@@ -7219,7 +7196,7 @@ int data_make( void )
 		fprintf( fp, "DPCM_EXTRA_BANK_START\t\tequ\t%2d\n", bank_maximum+1);
 		fprintf( fp, "BANK_MAX_IN_4KB\t\tequ\t(%d + %d)*2+1\n", bank_maximum, dpcm_extra_bank_num);
 
-	    // (!dpcm_bankswitch && (bank_maximum + dpcm_extra_bank_num <= 3))
+			// (!dpcm_bankswitch && (bank_maximum + dpcm_extra_bank_num <= 3))
 		if (!allow_bankswitching) {
 			fprintf( fp, "ALLOW_BANK_SWITCH\t\tequ\t0\n");
 		} else {
@@ -7242,7 +7219,7 @@ int data_make( void )
 			}
 			fprintf(fp, "\t.endm\n");
 		}
-		
+
 		/* 出力ファイルにタイトル/作曲者/打ち込み者の情報をマクロとして書き込み */
 		writeSongInfoMacro(fp);
 
@@ -7251,7 +7228,7 @@ int data_make( void )
 	}
 
 	if( error_flag == 0 ) {
-		
+
 		/* 全てのMMLについて */
 		for (mml_idx = 0; mml_idx < mml_num; mml_idx++) {
 			printf("\n");
@@ -7259,7 +7236,7 @@ int data_make( void )
 				printf(	"Song %d: %s\n", mml_idx+1, mml_names[mml_idx]);
 			}
 			printf(	"-------+---------------+---------------+\n"
-				"Track  |     Total     |     Loop      |\n"
+				"Track	|		 Total		 |		 Loop			|\n"
 				" Symbol|(count)|(frame)|(count)|(frame)|\n"
 				"-------+-------+-------+-------+-------+\n");
 			for (i = 0; i < _TRACK_MAX; i++) {

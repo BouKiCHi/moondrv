@@ -1,6 +1,8 @@
 char *patchstr = "patches FDS enable patch([OK]), 4-46, 4-356, 5-17, 5-95, 5-313, 5-658\n";
 char *hogereleasestr = ("ppmck release 9 by h7\n");
 
+char *moon_verstr = "Extended for MoonDriver ver 0.4 \n";
+
 #ifdef ENGLISH
 #define	LANGUAGE		1			// 0だとデフォルトで日本語 1だと英語
 #else
