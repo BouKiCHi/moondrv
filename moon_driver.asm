@@ -369,12 +369,12 @@ piano_tone:
 	db		$53,$58
 	dw		$0134
 	dw		1444
-	db		 $20,$f3,$14,$18,$00
+	db		$20,$f3,$14,$18,$00
 
 	db		$59,$6d
 	dw		$0135
 	dw		1915
-	db		 $20,$f4,$15,$08,$00
+	db		$20,$f4,$15,$08,$00
 
 	; terminator ( both min and max should be zero )
 	db		$00,$00
@@ -383,19 +383,19 @@ piano_tone:
 	db		$00,$00,$00,$00,$00
 
 opl3_fnumtbl:
-	dw	345 ; C 523.300000
-	dw	365 ; C+ 554.400000
-	dw	387 ; D 587.300000
-	dw	410 ; D+ 622.300000
-	dw	435 ; E 659.300000
-	dw	460 ; F 698.500000
-	dw	488 ; F+ 740.000000
-	dw	517 ; G 784.000000
-	dw	547 ; G+ 830.600000
-	dw	580 ; A 880.000000
-	dw	614 ; A+ 932.300000
-	dw	651 ; B 987.800000
-	dw	690 ; C 1046.500000
+	dw		345 ; C 523.300000
+	dw		365 ; C+ 554.400000
+	dw		387 ; D 587.300000
+	dw		410 ; D+ 622.300000
+	dw		435 ; E 659.300000
+	dw		460 ; F 698.500000
+	dw		488 ; F+ 740.000000
+	dw		517 ; G 784.000000
+	dw		547 ; G+ 830.600000
+	dw		580 ; A 880.000000
+	dw		614 ; A+ 932.300000
+	dw		651 ; B 987.800000
+	dw		690 ; C 1046.500000
 
 ;
 ; Tonedata for OPL3
@@ -493,6 +493,24 @@ opl3_drum_oct:
 	db		$00 ; M
 	db		$00 ; C
 	db		$02 ; H
+
+
+
+psg_freqtbl:
+	dw		$0d5c ; C
+	dw		$0c9c ; C+
+	dw		$0be7 ; D
+	dw		$0b3c ; D+
+	dw		$0a9a ; E
+	dw		$0a02 ; F
+	dw		$0972 ; F+
+	dw		$08ea ; G
+	dw		$086a ; G+
+	dw		$07f1 ; A
+	dw		$077f ; A+
+	dw		$077f ; B
+	dw		$077f ; C
+
 
 ;////////////////////////////////////
 ; jump utility
@@ -1054,7 +1072,7 @@ seq_rep_jmp:
 moon_note_on:
 	jp		opl4_note_on
 
-; Note command
+; 音符コマンド
 opl3_note_on:
 	push	hl
 	push	af
@@ -1086,6 +1104,16 @@ set_note_fin:
 	inc		hl
 	jr		seq_next
 
+; PSG note on
+psg_note_on:
+	push	hl
+	push	af
+	xor		a
+	call	change_page3
+	pop		af
+	ld		(ix + IDX_NOTE), a
+	call 	moon_set_psgnote
+	jr		set_note_fin
 
 read_cmd_length:
 	; 戻るアドレスを破棄
@@ -1093,7 +1121,7 @@ read_cmd_length:
 	ld		a, (hl)
 	ld		(ix + IDX_CNT),a
 	inc		hl
-	jr		seq_next
+	jp		seq_next
 
 
 opl4_jumptable:
@@ -2571,16 +2599,16 @@ add_freq_offset:
 	cp		$ff
 	ret		z
 
+	ld		d, $00
 	bit		7, a
 	jr		nz, add_freq_nega
 
+	; プラス方向に加算
 	ld		e, a
-	ld		d, $00
 	jr		add_freq_de
 
 add_freq_nega:
 	and		$7f
-	ld		d, $00
 	ld		e, a
 	xor		a
 	sub		e
@@ -2651,9 +2679,70 @@ opl3_load_fnumtbl:
 	and		$0f
 	ld		(seq_tmp_oct), a
 
-	; Add detune effect
+	; デチューン加算
 	ld		hl, (seq_tmp_fnum)
 
+	ld		a, (ix + IDX_DETUNE)
+	call	add_freq_offset
+
+	ld		(seq_tmp_fnum), hl
+
+	ret
+
+;********************************************
+; moon_set_psgnote
+; in   : A = note
+; dest : AF, HL, BC
+moon_set_psgnote:
+	call	moon_calc_psgnote
+
+	; Fnum
+	ld		hl, (seq_tmp_fnum)
+	ld		(ix + IDX_FNUM), l
+	ld		(ix + IDX_FNUM+1), h
+	ret
+
+;********************************************
+; moon_calc_psgnote
+; in : A = note , (ix + IDX_DETUNE)
+; out : (seq_tmp_fnum), (seq_tmp_oct)
+; dest AF, BC, HL
+
+moon_calc_psgnote:
+	push	af
+	and		$0f
+	cp		$0c
+	jr		c, psg_load_freqtbl
+	sub		$0c
+psg_load_freqtbl:
+	ld		hl, psg_freqtbl
+	ld		c, a
+	ld		b, $00
+	add		hl, bc
+	add		hl, bc
+	ld		a, (hl)
+	inc		hl
+	ld		h, (hl)
+	ld		l, a
+
+	; オクターブ
+	pop		af
+	rra
+	rra
+	rra
+	rra
+	and		$0f
+	sub		2
+	jr		c, psg_add_detune
+	jr		z, psg_add_detune
+psg_oct_shift:
+	srl		h
+	rr		l
+	dec		a
+	jr		nz, psg_oct_shift
+
+	; デチューンを加える
+psg_add_detune:
 	ld		a, (ix + IDX_DETUNE)
 	call	add_freq_offset
 
@@ -2955,6 +3044,21 @@ set_fmvol_ks:
 	or		e
 	ret
 
+psg_vol_ch:
+	; キーオンフラグを確認
+	ld		a, (ix + IDX_KEY)
+	and		$80
+	jr		z, psg_vol_ch_key_off
+
+	; 0 = min, 15 = max
+	ld		a, (ix + IDX_VOL)
+	and		$0f
+
+psg_vol_ch_key_off:
+	ld		e, a
+	ld		d, $08
+	call	moon_add_reg_ch
+	jp		moon_psg_out
 
 
 ;********************************************
@@ -3011,7 +3115,7 @@ moon_key_data_damp_off:
 
 ;********************************************
 ; moon_key_off
-; this function does : key-off
+; キーオフ
 ; in   : work
 ; dest : almost all
 
@@ -3043,6 +3147,17 @@ opl4_keyoff:
 	ld		(ix + IDX_KEY),e
 	call	moon_add_reg_ch
 	jp		moon_wave_out ; key-off
+
+psg_keyoff:
+	; キーオンフラグを消す
+	ld		a, (ix + IDX_KEY)
+	and		$7f
+	ld		(ix + IDX_KEY), a
+	xor		a
+	ld		d, $08
+	call	moon_add_reg_ch
+	jp		moon_psg_out ; key-off
+
 
 ;********************************************
 ; moon_write_fmpan
@@ -3118,6 +3233,7 @@ slar_opl3_on:
 	jp		moon_write_fmreg ; key-on
 
 
+; OPL4 keyon
 opl4_keyon:
 	bit		0, (ix + IDX_EFX1)
 	jr		nz, slar_opl4_on
@@ -3170,6 +3286,52 @@ moon_opl4_set_keyreg:
 slar_opl4_on:
 	res		0, (ix + IDX_EFX1)
 	jp		moon_set_freq_ch
+
+
+; PSG keyon
+psg_keyon:
+	bit		0, (ix + IDX_EFX1)
+	jr		nz, slar_psg_on
+
+	call	moon_key_off
+	call	start_venv
+	call	start_penv
+	call	start_nenv
+
+slar_psg_on:
+	res		0, (ix + IDX_EFX1)
+
+	; 周波数設定
+	ld		e, (ix + IDX_FNUM)
+	ld		d, $00
+	call	moon_add_reg_chx2
+	call	moon_psg_out
+	ld		e, (ix + IDX_FNUM + 1)
+	inc		d
+	call	moon_psg_out
+
+	; 0以外でスキップ
+	ld		a, (seq_skip_flag)
+	or		a
+	ret		nz
+
+	; パン設定
+	ld		e, (ix + IDX_PAN)
+	ld		d, $07
+	call	moon_psg_out
+
+	ld		a, $80 ; key on
+	ld		(ix + IDX_KEY), a
+
+	; 音量設定
+	ld		a, (ix + IDX_VOL)
+	and		$0f
+	ld		e, a
+	ld		d, $08
+
+	jp		moon_psg_out ; key-on
+
+
 
 ;********************************************
 ; moon_key_write_fmfreq
