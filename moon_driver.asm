@@ -161,15 +161,10 @@ seq_dev_ch:
 	db $00
 seq_max_ch:
 	db $00
-seq_tmp_jmptbl:
-	dw $0000
-seq_tmp_wrtadr:
-	dw $0000
-seq_tmp_wrtdata:
+
+seq_jmptable:
 	dw $0000
 
-seq_start_fm:
-	db $00
 seq_cur_bank:
 	db $00
 seq_opsel:
@@ -191,19 +186,13 @@ seq_skip_flag:
 
 
 ;********************************************
-;Workarea for channels in the driver
+; チャンネルごとのワークエリア
 ;
 seq_work:
 seq_ch1_dsel:
 	db $00
 seq_ch1_devch:
 	db $00
-seq_ch1_jmptbl:
-	dw $0000
-seq_ch1_wrtadr:
-	dw $0000
-seq_ch1_wrtdat:
-	dw $0000
 seq_ch1_opsel:
 	db $00
 seq_ch1_synth:
@@ -270,11 +259,11 @@ seq_ch1_venv_adr:
 	dw $0000
 seq_work_end:
 
+; IDX_DSEL
+; 0 = OPL4, 1 = OPL3
+
 IDX_DSEL:     equ (seq_ch1_dsel    - seq_work) ; Device Select
 IDX_DEVCH:    equ (seq_ch1_devch   - seq_work) ; Device Channel
-IDX_JMPTBL:   equ (seq_ch1_jmptbl  - seq_work) ; Jump Table
-IDX_WRTADR:   equ (seq_ch1_wrtadr  - seq_work) ; Write Address
-IDX_WRTDAT:   equ (seq_ch1_wrtdat  - seq_work) ; Write Data
 IDX_OPSEL:    equ (seq_ch1_opsel   - seq_work) ; Operator Select
 IDX_SYNTH:    equ (seq_ch1_synth   - seq_work) ; FeedBack,Synth and OpMode
 IDX_EFX1:     equ (seq_ch1_efx1    - seq_work) ; Effect flags
@@ -625,13 +614,7 @@ skip_def_device:
 	ld		(init_gen_adrs), hl
 
 	rr		b
-	jr		nc, skip_use_opl3
-
-	; 現在の位置をFM音源の先頭にする
-	ld		a, (seq_max_ch)
-	ld		(seq_start_fm), a
-
-	call 	seq_init_chan
+	call	c, seq_init_chan
 
 skip_use_opl3:
 	ld		ix, seq_work
@@ -805,11 +788,22 @@ moon_proc_tracks:
 	xor	a
 	call	change_page3
 
+	; ワークエリアを先頭に
 	ld	ix, seq_work
 	xor	a
 	ld	(seq_cur_ch), a
 
 proc_tracks_lp:
+	ld	a, (ix + IDX_DSEL)
+
+	or	a
+	jr	z, proc_set_opl4
+
+	cp	1
+	jr	z, proc_set_opl3
+
+proc_envelope:
+
 	ld	a, (ix + IDX_DEVCH)
 	ld	(seq_dev_ch), a
 
@@ -841,6 +835,17 @@ proc_tracks_end:
 	ret z
 	jr moon_proc_tracks
 
+proc_set_opl4:
+	ld	hl, opl4_jumptable
+	ld	(seq_jmptable), hl
+	jr	proc_envelope
+
+proc_set_opl3:
+	ld	hl, opl3_jumptable
+	ld	(seq_jmptable), hl
+	jr	proc_envelope
+
+
 ;********************************************
 ;seq_track
 ; カウントダウンとトラック処理
@@ -861,8 +866,9 @@ seq_cnt_zero:
 
 	ld		l, (ix + IDX_ADDR)
 	ld		h, (ix + IDX_ADDR + 1)
+
 seq_track_lp:
-	; Read command from memory
+	; コマンドの読み出し
 	call	set_page3_ch
 	ld		a, (hl)
 	inc		hl
@@ -871,23 +877,24 @@ seq_track_lp:
 	jp		seq_repeat_or_note
 
 seq_command:
-	ld	bc, seq_track_lp
-	push	bc ; <- return address
+	ld		bc, seq_track_lp
+	push	bc
 	push	hl ; <- Preserve HL as pointer
-	add	a, $20
-	sla	a
-	ld	l, a
-	ld	h, $00
-	ld	bc, seq_jmptable
-	add	hl, bc
+	add		a, $20
+	sla		a
+	; ジャンプテーブルの読み出し
+	ld		hl, (seq_jmptable)
+	ld		c, a
+	ld		b, $00
+	add		hl, bc
 
-	; Read address from table
-	ld	a, (hl)
-	inc	hl
-	ld	h, (hl)
-	ld	l,a
+	; テーブルから実行アドレスを読みだす
+	ld		a, (hl)
+	inc		hl
+	ld		h, (hl)
+	ld		l, a
 
-	jp	(hl)
+	jp		(hl)
 
 ;********************************************
 ; seq_next
@@ -1009,39 +1016,73 @@ read_cmd_length:
 	jr	seq_next
 
 
-seq_jmptable:
-	dw	seq_drumnote ; $e0 : Set drum note
-	dw	seq_drumbit ; $e1 : Set drum bits
-	dw	seq_jump   ; $e2 :
-	dw	seq_fbs    ; $e3 : Set FBS
-	dw	seq_tvp    ; $e4 : Set TVP
-	dw	seq_ld2ops ; $e5 : Load 2OP Instrument
-	dw	seq_setop  ; $e6 : Set opbase
-	dw	seq_nop    ; $e7 : Pitch shift
-	dw	seq_nop    ; $e8 :
-	dw	seq_slar   ; $e9 : Slar switch
-	dw	seq_revbsw ; $ea : Reverb switch / VolumeOP
-	dw	seq_damp   ; $eb : Damp switch / OPMODE
-	dw	seq_nop    ; $ec : LFO freq
-	dw	seq_nop    ; $ed : LFO mode
-	dw	seq_bank   ; $ee : Bank change
-	dw	seq_lfosw  ; $ef : Mode change
-	dw	seq_pan    ; $f0 : Set Pan
-	dw	seq_inst   ; $f1 : Load Instrument (4OP or OPL4)
-	dw	seq_drum   ; $f2 : Set Drum
-	dw	seq_nop    ; $f3 :
-	dw	seq_wait   ; $f4 : Wait
-	dw	seq_data_write ; $f5 : Data Write
-	dw	seq_nop    ; $f6
-	dw	seq_nenv   ; $f7 : Note  envelope
-	dw	seq_penv   ; $f8 : Pitch envelope
-	dw	seq_skip_1 ; $f9
-	dw	seq_detune ; $fa : Detune
-	dw	seq_nop    ; $fb : LFO
-	dw	seq_rest   ; $fc : Rest
-	dw	seq_volume ; $fd : Volume
-	dw	seq_skip_1 ; $fe : Not used
-	dw	seq_loop   ; $ff : Loop
+opl4_jumptable:
+	dw	seq_nop								; $e0 : Set drum note
+	dw	seq_nop								; $e1 : Set drum bits
+	dw	seq_jump							; $e2 :
+	dw	seq_fbs								; $e3 : Set FBS
+	dw	seq_tvp								; $e4 : Set TVP
+	dw	seq_ld2ops_opl4				; $e5 : Load 2OP Instrument
+	dw	seq_setop							; $e6 : Set opbase
+	dw	seq_nop								; $e7 : Pitch shift
+	dw	seq_nop								; $e8 :
+	dw	seq_slar	 						; $e9 : Slar switch
+	dw	seq_revbsw 						; $ea : Reverb switch / VolumeOP
+	dw	seq_damp_opl4					; $eb : Damp switch / OPMODE
+	dw	seq_nop								; $ec : LFO freq
+	dw	seq_nop								; $ed : LFO mode
+	dw	seq_bank							; $ee : Bank change
+	dw	seq_lfosw							; $ef : Mode change
+	dw	seq_pan_opl4					; $f0 : Set Pan
+	dw	seq_inst_opl4					; $f1 : Load Instrument (4OP or OPL4)
+	dw	seq_drum							; $f2 : Set Drum
+	dw	seq_nop								; $f3 :
+	dw	seq_wait							; $f4 : Wait
+	dw	seq_skip_3 						; $f5 : Data Write
+	dw	seq_nop								; $f6
+	dw	seq_nenv							; $f7 : Note envelope
+	dw	seq_penv	 						; $f8 : Pitch envelope
+	dw	seq_skip_1						; $f9
+	dw	seq_detune						; $fa : Detune
+	dw	seq_nop								; $fb : LFO
+	dw	seq_rest							; $fc : Rest
+	dw	seq_volume						; $fd : Volume
+	dw	seq_skip_1						; $fe : Not used
+	dw	seq_loop							; $ff : Loop
+
+opl3_jumptable:
+	dw	seq_drumnote					; $e0 : Set drum note
+	dw	seq_drumbit 					; $e1 : Set drum bits
+	dw	seq_jump							; $e2 :
+	dw	seq_fbs								; $e3 : Set FBS
+	dw	seq_tvp								; $e4 : Set TVP
+	dw	seq_ld2ops_opl3				; $e5 : Load 2OP Instrument
+	dw	seq_setop							; $e6 : Set opbase
+	dw	seq_nop								; $e7 : Pitch shift
+	dw	seq_nop								; $e8 :
+	dw	seq_slar							; $e9 : Slar switch
+	dw	seq_revbsw 						; $ea : Reverb switch / VolumeOP
+	dw	seq_damp_opl3	 				; $eb : Damp switch / OPMODE
+	dw	seq_nop								; $ec : LFO freq
+	dw	seq_nop								; $ed : LFO mode
+	dw	seq_bank							; $ee : Bank change
+	dw	seq_lfosw							; $ef : Mode change
+	dw	seq_pan_opl3					; $f0 : Set Pan
+	dw	seq_inst_opl3					; $f1 : Load Instrument (4OP or OPL4)
+	dw	seq_drum							; $f2 : Set Drum
+	dw	seq_nop								; $f3 :
+	dw	seq_wait							; $f4 : Wait
+	dw	seq_data_write_opl3		; $f5 : Data Write
+	dw	seq_nop								; $f6
+	dw	seq_nenv							; $f7 : Note	envelope
+	dw	seq_penv							; $f8 : Pitch envelope
+	dw	seq_skip_1						; $f9
+	dw	seq_detune						; $fa : Detune
+	dw	seq_nop								; $fb : LFO
+	dw	seq_rest							; $fc : Rest
+	dw	seq_volume						; $fd : Volume
+	dw	seq_skip_1						; $fe : Not used
+	dw	seq_loop							; $ff : Loop
 
 ;********************************************
 ; Volume envelope stuff
@@ -1119,7 +1160,7 @@ proc_penv_start:
 	ld	(ix + IDX_PENV_ADR + 1),h
 
 	push	af
-	ld	a,(ix + IDX_DSEL)
+	ld	a, (ix + IDX_DSEL)
 	or	a
 	jr	nz,proc_penv_fm
 
@@ -1349,12 +1390,25 @@ seq_nop:
 	pop	hl
 	ret
 
-; Skip the command with an augment
+; Skip 1 argument
 seq_skip_1:
 	pop	hl
 	inc	hl
 	ret
 
+; Skip 2 arguments
+seq_skip_2:
+	pop	hl
+	inc	hl
+	inc	hl
+	ret
+
+; Skip 3 arguments
+seq_skip_3:
+	pop	hl
+	inc	hl
+	inc	hl
+	ret
 
 ; cmd $FF : loop point
 seq_loop:
@@ -1408,9 +1462,9 @@ seq_venv:
 
 ; cmd $FC : rest
 seq_rest:
-	pop	hl
+	pop		hl
 	call	moon_key_off
-	jp	read_cmd_length
+	jp		read_cmd_length
 
 ; cmd $FA : detune
 seq_detune:
@@ -1450,7 +1504,7 @@ seq_nenv:
 
 ; cmd $F5 : data_write
 ; in: low, high, data
-seq_data_write:
+seq_data_write_opl3:
 	pop	hl
 	ld	a, (hl)
 	ld	d, a ; Address Low
@@ -1700,18 +1754,13 @@ drumnote_fnum:
 
 
 ; cmd $F1 : Load instrument
-seq_inst:
+seq_inst_opl3:
 	pop	hl
 	ld	a, (hl)
 
 	push	af
 	xor	a
 	call	change_page3
-
-	; Device select
-	ld	a, (ix + IDX_DSEL)
-	or	a
-	jr	z, seq_inst_opl4
 
 	; Load OPL3 instrument
 	pop	af
@@ -1727,48 +1776,51 @@ seq_inst:
 
 	jr	seq_inst_fin
 
+; cmd $F1 : Load instrument
 seq_inst_opl4:
-	pop	af
+	pop		hl
+	ld		a, (hl)
+
+	push	af
+	xor		a
+	call	change_page3
+
+	pop		af
 	push	hl
-	ld	hl, S_INST_TABLE
+	ld		hl, S_INST_TABLE
 	call	get_table
 
-	ld	(ix + IDX_TADR), l
-	ld	(ix + IDX_TADR+1), h
+	ld		(ix + IDX_TADR), l
+	ld		(ix + IDX_TADR+1), h
 
 seq_inst_fin:
-
 	call	set_page3_ch
-	pop	hl
+	pop		hl
 
-	inc	hl
+	inc		hl
 	ret
 
 ; cmd $F0 : pan
-seq_pan:
-	pop	hl
-	; Device select
-	ld	a,(ix + IDX_DSEL)
-	or	a
-	jr	z,seq_pan_opl4
+seq_pan_opl3:
+	pop		hl
+	ld		a,(hl)
+	and		$0f
+	rlca
+	rlca
+	rlca
+	rlca
+	ld		(ix + IDX_PAN), a ; PPPPxxxx
+	call	moon_write_fmpan ; Write PAN to FM
 
-seq_pan_fm:
-	ld	a,(hl)
-	and	$0f
-	rlca
-	rlca
-	rlca
-	rlca
-	ld	(ix + IDX_PAN), a ; PPPPxxxx
-	call moon_write_fmpan ; Write PAN to FM
-
-	jr	seq_pan_fin
+	jr		seq_pan_fin
 
 seq_pan_opl4:
-	ld	a, (hl)
-	ld	(ix + IDX_PAN), a
+	pop		hl
+
+	ld		a, (hl)
+	ld		(ix + IDX_PAN), a
 seq_pan_fin:
-	inc	hl
+	inc		hl
 	ret
 
 ; cmd $EF : mode change
@@ -1802,14 +1854,8 @@ seq_bank:
 	ret
 
 ; cmd $EB : damp switch / OPMODE
-seq_damp:
-	pop	hl
-
-
-	; Device select
-	ld	a,(ix + IDX_DSEL)
-	or	a
-	jr	z,seq_damp_opl4
+seq_damp_opl3:
+	pop		hl
 
 	ld	a,(hl)
 	and	$3f
@@ -1819,10 +1865,12 @@ seq_damp:
 	jr	seq_damp_fin
 
 seq_damp_opl4:
-	ld	a,(hl)
-	ld	(ix + IDX_DAMP),a
+	pop		hl
+	ld		a,(hl)
+	ld		(ix + IDX_DAMP),a
+
 seq_damp_fin:
-	inc	hl
+	inc		hl
 	ret
 
 ; cmd $EA : reverb sw / VolumeOP
@@ -1849,16 +1897,13 @@ seq_setop:
 	ret
 
 ; cmd $E5 : load 2ops
-seq_ld2ops:
-	ld	a, (ix + IDX_DSEL)
-	or	a
-	jr	nz, seq_ld2ops_fm
-
-	pop	hl
-	inc	hl
+seq_ld2ops_opl4:
+	pop		hl
+	inc		hl
 	ret
-seq_ld2ops_fm:
-	pop	hl
+
+seq_ld2ops_opl3:
+	pop		hl
 
 	ld	a,(hl)
 
@@ -1878,8 +1923,8 @@ seq_ld2ops_fm:
 	call	moon_set_fmtone2
 
 	call	set_page3_ch
-	pop	hl
-	inc	hl
+	pop		hl
+	inc		hl
 	ret
 
 
