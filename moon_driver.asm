@@ -155,6 +155,9 @@ moon_init:
 
 moon_work_start:
 
+seq_dsel:
+	db $00
+
 seq_cur_ch:
 	db $00
 seq_dev_ch:
@@ -488,11 +491,20 @@ fm_drum_oct:
 	db $02 ; H
 
 ;////////////////////////////////////
-; utility
+; jump utility
 ;////////////////////////////////////
 
 call_hl:
 	jp	(hl)
+
+; 自己書き換えキーオン
+moon_key_on:
+	jp	opl4_keyon
+
+; 自己書き換えキーオフ
+moon_key_off:
+	jp	opl4_keyoff
+
 
 ;////////////////////////////////////
 ; Memory access routines
@@ -579,6 +591,10 @@ get_a_table
 ; initializes all channel's work
 ; dest : ALL
 moon_seq_init:
+	; デバイス選択を無効状態にする
+	ld		a, $ff
+	ld		(seq_dsel), a
+
 	xor		a
 	ld		(seq_max_ch), a
 	ld		(seq_cur_ch), a
@@ -641,8 +657,8 @@ seq_init_chan_lp:
 	call	call_hl
 
 	; 次のワークへ
-	ld	de, SEQ_WORKSIZE
-	add	ix, de
+	ld		de, SEQ_WORKSIZE
+	add		ix, de
 
 	pop		de
 
@@ -652,11 +668,11 @@ seq_init_chan_lp:
 	ld		(seq_dev_ch), a
 
 	; 次のトラックへ
-	ld	a, (seq_cur_ch)
-	inc	a
-	ld	(seq_cur_ch), a
-	dec	e
-	jr	nz, seq_init_chan_lp
+	ld		a, (seq_cur_ch)
+	inc		a
+	ld		(seq_cur_ch), a
+	dec		e
+	jr		nz, seq_init_chan_lp
 	ret
 
 init_gen_adrs:
@@ -725,10 +741,13 @@ moon_seq_all_keyoff:
 
 	ld		ix, seq_work
 seq_all_keyoff_lp:
+	; デバイスを切り替える
+	call	moon_set_device
+
 	ld		a, (ix + IDX_DEVCH)
 	ld		(seq_dev_ch), a
 
-	call	moon_key_off
+	call  moon_key_off
 
 	; 次のワークへ
 	ld		de, SEQ_WORKSIZE
@@ -784,28 +803,22 @@ moon_set_rr_op_lp:
 ; 次のフレームを処理 (1/60)
 ;
 moon_proc_tracks:
+
 	; マッパーメモリを変更
-	xor	a
+	xor		a
 	call	change_page3
 
 	; ワークエリアを先頭に
-	ld	ix, seq_work
-	xor	a
-	ld	(seq_cur_ch), a
+	ld		ix, seq_work
+	xor		a
+	ld		(seq_cur_ch), a
 
 proc_tracks_lp:
-	ld	a, (ix + IDX_DSEL)
+	; デバイスを切り替える
+	call	moon_set_device
 
-	or	a
-	jr	z, proc_set_opl4
-
-	cp	1
-	jr	z, proc_set_opl3
-
-proc_envelope:
-
-	ld	a, (ix + IDX_DEVCH)
-	ld	(seq_dev_ch), a
+	ld		a, (ix + IDX_DEVCH)
+	ld		(seq_dev_ch), a
 
 	call	proc_venv
 	call	proc_penv
@@ -835,15 +848,59 @@ proc_tracks_end:
 	ret z
 	jr moon_proc_tracks
 
+; moon_set_device
+; dest: AF, HL
+; デバイスごとの処理アドレスをセットする
+moon_set_device:
+	ld	l, (ix + IDX_DSEL)
+	ld	a, (seq_dsel)
+	cp	l
+	ret z
+
+	; 以前とは違うデバイス
+	ld	a, l
+	ld	(seq_dsel), a
+
+	or	a
+	jr	z, proc_set_opl4
+
+	cp	1
+	jp	proc_set_opl3
+	; jr	z, proc_set_opl3
+
+	ret
+
 proc_set_opl4:
+	; テーブル
 	ld	hl, opl4_jumptable
 	ld	(seq_jmptable), hl
-	jr	proc_envelope
+	; キーオン
+	ld	hl, opl4_keyon
+	ld	(moon_key_on + 1), hl
+	; キーオフ
+	ld	hl, opl4_keyoff
+	ld	(moon_key_off + 1), hl
+	; ノート
+	ld	hl, opl4_note
+	ld	(moon_note + 1), hl
+	ret
 
 proc_set_opl3:
+	; テーブル
 	ld	hl, opl3_jumptable
 	ld	(seq_jmptable), hl
-	jr	proc_envelope
+	; キーオン
+	ld	hl, opl3_keyon
+	ld	(moon_key_on + 1), hl
+	; キーオフ
+	ld	hl, opl3_keyoff
+	ld	(moon_key_off + 1), hl
+	; ノート
+	ld	hl, opl3_note
+	ld	(moon_note + 1), hl
+
+	ret
+
 
 
 ;********************************************
@@ -917,7 +974,7 @@ seq_next:
 
 seq_repeat_or_note:
 	cp	$90
-	jr	c,seq_note
+	jr	c, moon_note
 
 	cp	$a1
 	jr	z,seq_repeat_esc
@@ -973,24 +1030,25 @@ seq_rep_jmp:
 	jp	(hl)
 
 ;********************************************
-seq_note:
-	push	hl
+moon_note:
+	jp opl4_note
 
+; Note command
+opl3_note:
+	push	hl
 	push	af
 	xor	a
 	call	change_page3
-	ld	a, (ix + IDX_DSEL)
-	or	a
-	jr	z,seq_note_opl4
-
-seq_note_fm:
 	pop	af
 	ld	(ix + IDX_NOTE),a
 	call 	moon_set_fmnote
 	jr	set_note_fin
 
-seq_note_opl4:
-
+opl4_note:
+	push	hl
+	push	af
+	xor	a
+	call	change_page3
 	pop	af
 	call	conv_data_to_midi
 	ld	(ix + IDX_NOTE),a
@@ -999,7 +1057,7 @@ seq_note_opl4:
 set_note_fin:
 	call	set_page3_ch
 	call	moon_key_on
-	pop	hl
+	pop		hl
 
 ; note length
 	ld	a, (hl)
@@ -1162,7 +1220,7 @@ proc_penv_start:
 	push	af
 	ld	a, (ix + IDX_DSEL)
 	or	a
-	jr	nz,proc_penv_fm
+	jr	nz,proc_penv_opl3
 
 proc_penv_opl4:
 	pop	af
@@ -1179,7 +1237,7 @@ proc_penv_opl4:
 proc_penv_end:
 	jp	set_penv_loop
 
-proc_penv_fm:
+proc_penv_opl3:
 	pop	af
 	ld	l,(ix + IDX_FNUM)
 	ld	h,(ix + IDX_FNUM + 1)
@@ -2886,41 +2944,35 @@ moon_key_data_damp_off:
 ; this function does : key-off
 ; in   : work
 ; dest : almost all
-moon_key_off:
-	; key off
 
-	ld	a, (ix + IDX_DSEL)
-	or	a
-	jr	z, moon_key_opl4off
-
-moon_key_fmoff:
-	ld	a, (ix + IDX_KEY)
-	and	$20
-	ret	z
-	ld	a, (ix + IDX_KEY)
-	and	$df
-	ld	e, a
-	ld	d, $b0
-	ld	(ix + IDX_KEY), e
+opl3_keyoff:
+	ld		a, (ix + IDX_KEY)
+	and		$20
+	ret		z
+	ld		a, (ix + IDX_KEY)
+	and		$df
+	ld		e, a
+	ld		d, $b0
+	ld		(ix + IDX_KEY), e
 
 	; 0でなければスキップする
-	ld	a, (seq_skip_flag)
-	or	a
-	ret nz
+	ld		a, (seq_skip_flag)
+	or		a
+	ret		nz
 
-	jp	moon_write_fmreg ; key-off
+	jp		moon_write_fmreg ; key-off
 
-moon_key_opl4off:
-	ld	a, (ix + IDX_KEY)
-	and	$80
-	ret	z
-	ld	a, (ix + IDX_KEY)
-	and	$7f
-	ld	e, a
-	ld	d, $68
-	ld	(ix + IDX_KEY),e
+opl4_keyoff:
+	ld		a, (ix + IDX_KEY)
+	and		$80
+	ret		z
+	ld		a, (ix + IDX_KEY)
+	and		$7f
+	ld		e, a
+	ld		d, $68
+	ld		(ix + IDX_KEY),e
 	call	moon_add_reg_ch
-	jp	moon_wave_out ; key-off
+	jp		moon_wave_out ; key-off
 
 ;********************************************
 ; moon_write_fmpan
@@ -2971,65 +3023,58 @@ moon_write_fmpan:
 ; in   : work
 ; dest : almost all
 ;
-moon_key_on:
-
-	ld	a,(ix + IDX_DSEL)
-	or	a
-	jr	z,moon_key_opl4on
-
-moon_key_fmon:
-	bit	0, (ix + IDX_EFX1)
-	jr	nz,slar_fm_on
+opl3_keyon:
+	bit		0, (ix + IDX_EFX1)
+	jr		nz, slar_opl3_on
 
 	call	moon_key_off
 	call	start_venv
 	call	start_penv
 	call	start_nenv
 
-slar_fm_on:
-	res	0, (ix + IDX_EFX1)
+slar_opl3_on:
+	res		0, (ix + IDX_EFX1)
 	call	moon_key_write_fmfreq
-	or	$20 ; key on
-	ld	e, a
-	ld	d, $b0
-	ld	(ix + IDX_KEY), e
+	or		$20 ; key on
+	ld		e, a
+	ld		d, $b0
+	ld		(ix + IDX_KEY), e
 
 	; 0でなければスキップ
-	ld	a, (seq_skip_flag)
-	or	a
-	ret nz
+	ld		a, (seq_skip_flag)
+	or		a
+	ret		nz
 
-	jp	moon_write_fmreg ; key-on
+	jp		moon_write_fmreg ; key-on
 
 
-moon_key_opl4on:
-	bit	0,(ix + IDX_EFX1)
-	jr	nz,slar_opl4_on
+opl4_keyon:
+	bit		0, (ix + IDX_EFX1)
+	jr		nz, slar_opl4_on
 
 	call	moon_key_off
 	call	start_venv
 	call	start_penv
 	call	start_nenv
 
-
 	; tone number(hi)
-	ld	a,(ix + IDX_TONE+1)
-	and	$01
-	ld	e,a
-	ld	d,$20
+	ld		a, (ix + IDX_TONE+1)
+	and		$01
+	ld		e, a
+	ld		d, $20
 	call	moon_add_reg_ch
 	call	moon_wave_out
 
 	; tone number(lo)
-	ld	e,(ix + IDX_TONE)
-	ld	d,$08
+	ld		e, (ix + IDX_TONE)
+	ld		d, $08
 	call	moon_add_reg_ch
 	call	moon_wave_out
 
 moon_wavechg_lp:
-	in	a, (MOON_STAT)
-	and	$02
-	jr	nz,moon_wavechg_lp
+	in		a, (MOON_STAT)
+	and		$02
+	jr		nz, moon_wavechg_lp
 
 	call	moon_set_freq_ch
 	call	moon_set_vol_ch
@@ -3038,24 +3083,23 @@ moon_wavechg_lp:
 moon_opl4_set_keyreg:
 	; OPL4 key-on
 	; 0でなければスキップ
-	ld	a, (seq_skip_flag)
-	or	a
-	ret nz
+	ld		a, (seq_skip_flag)
+	or		a
+	ret		nz
 
 	call	moon_key_data
-	ld	a,e
-	or	$80 ; key-on
-	ld	e,a
-	ld	d,$68
-	ld	(ix + IDX_KEY),e
+	ld		a,e
+	or		$80 ; key-on
+	ld		e, a
+	ld		d, $68
+	ld		(ix + IDX_KEY),e
 
 	call	moon_add_reg_ch
-	jp	moon_wave_out ; key-on
+	jp		moon_wave_out ; key-on
 
 slar_opl4_on:
-	res	0,(ix + IDX_EFX1)
-	jp	moon_set_freq_ch
-
+	res		0, (ix + IDX_EFX1)
+	jp		moon_set_freq_ch
 
 ;********************************************
 ; moon_key_write_fmfreq

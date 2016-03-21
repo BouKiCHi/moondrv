@@ -23,5 +23,13 @@ RR (HL) ; 15
 RL (HL) ; 15
 JP (HL) ; 4
 
+JR e ; 12
+
+JP nn ; 10
+CALL nn ; 17
+
+
 CP n  ; 7
 CP (HL) ; 7
+CP (IX+d) ; 19
+CP (IY+d) ; 19
