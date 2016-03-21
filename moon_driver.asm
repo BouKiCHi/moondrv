@@ -1,35 +1,14 @@
-;*********************************************
 ; MoonDriver for MoonSound / Programmed by BKC
 ; DRIVER (PAGE1)
-;*********************************************
-; 2015-03-01
-; * Improved numbers of FM Fnum table
-; * Improved default Fnum/BLK for drum
-; * Added Version number and string.
-;
-; 2015-02-27
-; * Added Data Write command.
-; * Improved drumbit command to set Fnum
-; * Added drumnote command.
-;
-; 2015-02-24
-; * Removed wait to write FM.
-; * Fixed initializing process for OPL3
-; * Improved processing for jump command.
-;
-; 2015-02-22
-; * Removed TVP setting from W/WX command
-;
-; 2016-02-01
-; * Improved initialize work memory
+; TAB:2 UTF-8
+
 
 ;********************************************
 ; defines
 ;********************************************
-
 MOON_VERNUM: equ $0002
 
-
+; MoonSound I/O
 MOON_BASE:	equ	$00C4
 MOON_REG1:	equ	MOON_BASE
 MOON_DAT1:	equ	MOON_BASE+1
@@ -37,17 +16,15 @@ MOON_REG2:	equ	MOON_BASE+2
 MOON_DAT2:	equ	MOON_BASE+3
 MOON_STAT:	equ	MOON_BASE
 
-; I/O
+; MoonSound Wave part I/O
 MOON_WREG:	equ	$7E
 MOON_WDAT:	equ	MOON_WREG+1
 
 RAM_PAGE3: 	equ	$FE
 
 
-USE_CH: 	equ	24+18
+USE_CH: 		equ	24+18
 FM_BASECH:	equ	24
-
-
 
 ;********************************************
 ; MDR file format
@@ -83,39 +60,39 @@ S_OPL3_TABLE:	  equ	S_TRACK_TABLE + 24
 ;********************************************
 ; Entry points
 ;********************************************
-	; $4000 Initialize
+	; $4000 初期化
 	jp	moon_init_all
 
-	; $4003 Execute 1frame (1/60)
+	; $4003 1フレーム実行 (1/60)
 	jp	moon_proc_tracks
 
-	; $4006 All key-off
+	; $4006 すべてのチャンネルをキーオフ
 	jp	moon_seq_all_keyoff
 
-	; $4009 Set H.TIMI for timing
+	; $4009 H.TIMIのセット
 	ret
 	ret
 	ret
 
-	; $400C Restore H.TIMI
+	; $400C H.TIMIのリストア
 	ret
 	ret
 	ret
 
-	; $400F MOONDRIVER version number
+	; $400F バージョン番号
 	dw	MOON_VERNUM
 
-	; $4011 MOONDRIVER version string
+	; $4011 バージョン文字列のアドレス
 	dw	str_moondrv
 
-	; $4013 LoadPCM
+	; $4013 PCM読み出し
 	jp  moon_load_pcm
 
 	org	$4020
 
 str_moondrv:
-	db	"MOONDRIVER "
-	db "VER 160305"
+	db "MOONDRIVER "
+	db "VER 160321"
 	db $0d,$0a,'$'
 
 ;********************************************
@@ -134,7 +111,7 @@ MDB_BASE:
 
 
 ;********************************************
-; Initialises all driver things
+; ドライバのすべてを初期化
 ;
 moon_init_all:
 	ld		hl, moon_work_start
@@ -150,7 +127,7 @@ moon_init_all:
 
 ;********************************************
 ; moon_init
-; initialize MoonSound
+; MoonSound初期化
 ;
 moon_init:
 	; CONNECTION SEL
@@ -165,7 +142,7 @@ moon_init:
 	ld	de, $bd00
 	call	moon_fm1_out
 
-	; Set WaveTable header
+	; WaveTableのセット
 	ld	de, $0210
 	call	moon_wave_out
 
@@ -173,15 +150,22 @@ moon_init:
 
 
 ;********************************************
-; Workarea for the driver
+; ワークエリア
 	db "work"
 
 moon_work_start:
 
 seq_cur_ch:
 	db $00
-seq_use_ch:
+seq_max_ch:
 	db $00
+seq_tmp_jmptbl:
+	dw $0000
+seq_tmp_wrtadr:
+	dw $0000
+seq_tmp_wrtdata:
+	dw $0000
+
 seq_start_fm:
 	db $00
 seq_cur_bank:
@@ -190,9 +174,6 @@ seq_opsel:
 	db $00
 seq_reg_bd:
 	db $00
-seq_jump_flag:
-	db $00
-
 seq_tmp_note:
 	db $00
 seq_tmp_ch:
@@ -202,12 +183,25 @@ seq_tmp_oct:
 seq_tmp_fnum:
 	dw $0000
 
+; skip until jump_flag is off
+seq_jump_flag:
+	db $00
+
+
 ;********************************************
 ;Workarea for channels in the driver
 ;
 seq_work:
 seq_ch1_dsel:
 	db $00
+seq_ch1_chnum:
+	db $00
+seq_ch1_jmptbl:
+	dw $0000
+seq_ch1_wrtadr:
+	dw $0000
+seq_ch1_wrtdat:
+	dw $0000
 seq_ch1_opsel:
 	db $00
 seq_ch1_synth:
@@ -275,6 +269,10 @@ seq_ch1_venv_adr:
 seq_work_end:
 
 IDX_DSEL:     equ (seq_ch1_dsel    - seq_work) ; Device Select
+IDX_CHNUM:    equ (seq_ch1_chnum   - seq_work) ; Channel No
+IDX_JMPTBL:   equ (seq_ch1_jmptbl  - seq_work) ; Jump Table
+IDX_WRTADR:   equ (seq_ch1_wrtadr  - seq_work) ; Write Address
+IDX_WRTDAT:   equ (seq_ch1_wrtdat  - seq_work) ; Write Data
 IDX_OPSEL:    equ (seq_ch1_opsel   - seq_work) ; Operator Select
 IDX_SYNTH:    equ (seq_ch1_synth   - seq_work) ; FeedBack,Synth and OpMode
 IDX_EFX1:     equ (seq_ch1_efx1    - seq_work) ; Effect flags
@@ -386,22 +384,6 @@ piano_tone:
 	dw	0
 	db  $00,$00,$00,$00,$00
 
-; F-Number table for OPL3
-;fm_fnumtbl_old:
-;	dw	346 ; C
-;	dw	367 ; C+
-;	dw	389 ; D
-;	dw	412 ; D+
-;	dw	436 ; E
-;	dw	462 ; F
-;	dw	490 ; F+
-;	dw	519 ; G
-;	dw	550 ; G+
-;	dw	582 ; A
-;	dw	617 ; A+
-;	dw	654 ; B
-;	dw	693 ; C
-
 fm_fnumtbl:
 	dw	345 ; C 523.300000
 	dw	365 ; C+ 554.400000
@@ -420,7 +402,7 @@ fm_fnumtbl:
 ;
 ; Tonedata for OPL3
 ;
-fm_testtone:
+opl3_testtone:
 	db	$00 ; FBS
 	db	$00 ; FBS2
 	db	$00 ; BD
@@ -514,6 +496,12 @@ fm_drum_oct:
 	db $00 ; C
 	db $02 ; H
 
+;////////////////////////////////////
+; utility
+;////////////////////////////////////
+
+call_hl:
+	jp	(hl)
 
 ;////////////////////////////////////
 ; Memory access routines
@@ -603,138 +591,130 @@ get_a_table
 ; dest : ALL
 moon_seq_init:
 	xor	a
-	ld	(seq_use_ch), a
+	ld	(seq_max_ch), a
 	ld	(seq_cur_ch), a
 	call	change_page3  ; Page to Top
 
 	ld	a, (S_DEVICE_FLAGS)
 	or	a
 	jr	nz, skip_def_device
-	ld	a, $01 ; OPL4 by default
+	ld	a, $01 ; OPL4のみがデフォルト
 skip_def_device:
-	ld	b,a
+	ld	b, a
 
 	ld	iy, fm_opbtbl
 	ld	ix, seq_work
 
-	ld	d, $00
+	; OPL4
+	ld	d, $00 ; device id
 	ld	e, $18 ; 24channels ; OPL4
+
+	; OPL4初期化アドレス
+	ld	hl, init_opl4tone
+	ld	(init_gen_adrs), hl
 
 	rr	b
 	call	c, seq_init_chan
 
+	; OPL3
 	inc	d
 	ld	e, $12 ; 18channels
-	rr	b
-	call	c, seq_init_chan ; OPL3
 
+	; OPL3初期化アドレス
+	ld	hl, init_opl3tone
+	ld	(init_gen_adrs), hl
+
+	rr	b
+	jr	nc, skip_use_opl3
+
+	; 現在の位置をFM音源の先頭にする
+	ld	a, (seq_max_ch)
+	ld	(seq_start_fm), a
+
+	call seq_init_chan ; OPL3
+
+skip_use_opl3:
 	ld	ix, seq_work
 	ret
 
 ;********************************************
 ; seq_init_chan
-; in   : D = device, E = channels
+; in   : D = device id, E = channels
 ; dest : AF,E
 seq_init_chan:
-
-	ld	a,d
-	or	a
-	jr	z,skip_set_start_fm ; if device isn't OPL3 then skip
-
-	ld	a, (seq_use_ch)
-	ld	(seq_start_fm), a
-
-skip_set_start_fm:
-
-	ld	a, (seq_use_ch)
-	add	a,e
-	ld	(seq_use_ch), a
-
+	; 使用チャンネル数を加算
+	ld	a, (seq_max_ch)
+	add	a, e
+	ld	(seq_max_ch), a
 
 seq_init_chan_lp:
-	xor	a
-	ld	(ix + IDX_CNT),a
-	ld	a,d
-	ld	(ix + IDX_DSEL),a
-
 	push	de
-	ld	a, $ff
-	ld	(ix + IDX_VENV), a
-	ld	(ix + IDX_PENV), a
-	ld	(ix + IDX_NENV), a
-	ld	(ix + IDX_DETUNE), a
+	call	init_common
+	ld		hl, (init_gen_adrs)
+	call	call_hl
 
-
-	ld	a,(ix + IDX_DSEL)
-	or	a
-	jr 	z,init_op4tone
-
-init_fmtone:
-	ld	hl,fm_testtone
-	ld	(ix + IDX_TADR), l
-	ld	(ix + IDX_TADR+1), h
-	ld	a,$30
-	ld	(ix + IDX_PAN), a
-	ld	a,$02
-	ld	(ix + IDX_VOLOP), a
-	ld	a,$3f
-	ld	(ix + IDX_VOL),a
-	ld	a,(iy)
-	ld	(ix + IDX_OPSEL),a
-	inc	iy
-
-	jr	init_tone_fin
-
-init_op4tone:
-	ld	hl,piano_tone
-	ld	(ix + IDX_TADR),l
-	ld	(ix + IDX_TADR+1),h
-	xor	a
-	ld	(ix + IDX_PAN),a
-
-
-init_tone_fin:
-
-	ld	hl, S_TRACK_TABLE
-	call	get_hl_table
-	ld	(ix + IDX_ADDR), l
-	ld	(ix + IDX_ADDR+1), h
-
-	ld	hl, S_TRACK_BANK
-	call	get_a_table
-	ld	(ix + IDX_BANK),a
-
-	; next work
+	; 次のワークへ
 	ld	de, SEQ_WORKSIZE
 	add	ix, de
 
-	pop	de
+	pop		de
 
-	; next channel
+	; 次のチャンネルへ
 	ld	a, (seq_cur_ch)
 	inc	a
 	ld	(seq_cur_ch), a
-
 	dec	e
-	jr	nz,seq_init_chan_lp
+	jr	nz, seq_init_chan_lp
 	ret
 
+init_gen_adrs:
+	dw		$0000
 
-;********************************************
-; seq_init_fmbase
-; initializes all fmbase
-; dest : ALL
-seq_init_fmbase:
-	ld	ix, seq_work
-	ld	b, 18 ; num of fmchan
-	ld	hl, fm_opbtbl
-seq_init_fmbase_lp1:
-	ld	a, (hl)
-	ld	(ix + IDX_OPSEL), a
-	inc	hl
-	ld	de, SEQ_WORKSIZE
-	add	ix, de
-	djnz	seq_init_fmbase_lp1
+init_common:
+	xor		a
+	ld		(ix + IDX_CNT),a
+	ld		a, d
+	ld		(ix + IDX_DSEL),a
+
+	ld		a, $ff
+	ld		(ix + IDX_VENV), a
+	ld		(ix + IDX_PENV), a
+	ld		(ix + IDX_NENV), a
+	ld		(ix + IDX_DETUNE), a
+
+	ld		hl, S_TRACK_TABLE
+	call	get_hl_table
+	ld		(ix + IDX_ADDR), l
+	ld		(ix + IDX_ADDR + 1), h
+
+	ld		hl, S_TRACK_BANK
+	call	get_a_table
+	ld		(ix + IDX_BANK), a
+	ret
+
+; OPL3音色初期化
+init_opl3tone:
+	ld		hl, opl3_testtone
+	ld		(ix + IDX_TADR), l
+	ld		(ix + IDX_TADR+1), h
+	ld		a, $30
+	ld		(ix + IDX_PAN), a
+	ld		a, $02
+	ld		(ix + IDX_VOLOP), a
+	ld		a, $3f
+	ld		(ix + IDX_VOL),a
+	ld		a, (iy)
+	ld		(ix + IDX_OPSEL),a
+	inc		iy
+	ret
+
+; OPL4音色初期化
+init_opl4tone:
+	ld		hl, piano_tone
+	ld		(ix + IDX_TADR),l
+	ld		(ix + IDX_TADR+1),h
+	xor		a
+	ld		(ix + IDX_PAN),a
 	ret
 
 ;********************************************
@@ -754,7 +734,7 @@ seq_all_keyoff_lp:
 	ld	de, SEQ_WORKSIZE
 	add	ix, de
 
-	ld	a, (seq_use_ch)
+	ld	a, (seq_max_ch)
 	ld	e, a
 	ld	a, (seq_cur_ch)
 	cp	e
@@ -812,6 +792,7 @@ moon_proc_tracks:
 	ld	ix,seq_work
 	xor	a
 	ld	(seq_cur_ch),a
+
 proc_tracks_lp:
 
 	call	proc_venv
@@ -823,12 +804,11 @@ proc_tracks_lp:
 
 	call	seq_track
 
-	ld	de,SEQ_WORKSIZE
-	add	ix,de
+	; 次のトラックへ
+	ld	de, SEQ_WORKSIZE
+	add	ix, de
 
-
-
-	ld	a, (seq_use_ch)
+	ld	a, (seq_max_ch)
 	ld	e, a
 	ld	a, (seq_cur_ch)
 	inc	a
@@ -958,6 +938,7 @@ seq_rep_jmp:
 	push	bc
 	push	hl
 
+	; 謎…。
 	ld	hl,seq_bank ; go to address
 	jp	(hl)
 

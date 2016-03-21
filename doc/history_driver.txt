@@ -1,0 +1,23 @@
+from moon_driver.asm
+
+
+; 2015-03-01
+; * Improved numbers of FM Fnum table
+; * Improved default Fnum/BLK for drum
+; * Added Version number and string.
+;
+; 2015-02-27
+; * Added Data Write command.
+; * Improved drumbit command to set Fnum
+; * Added drumnote command.
+;
+; 2015-02-24
+; * Removed wait to write FM.
+; * Fixed initializing process for OPL3
+; * Improved processing for jump command.
+;
+; 2015-02-22
+; * Removed TVP setting from W/WX command
+;
+; 2016-02-01
+; * Improved initialize work memory
