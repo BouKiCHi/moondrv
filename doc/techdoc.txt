@@ -9,15 +9,16 @@
 r = 8ビットレジスタ
 rr = 16ビットレジスタペア(BC,DE,HL)
 
-LD (HL),r ; 7
-LD (HL),r ; 7
-LD (nn),HL ; 16
-LD (nn),rr ; 20
+LD (HL), r ; 7
+LD (HL), r ; 7
+LD (nn), HL ; 16
+LD (nn), rr ; 20
 
 LD r, (IX + d) ; 19
 LD A, (nn) ; 13
-LD HL,(nn) ; 16
-LD rr,(nn) ; 20
+LD HL, (nn) ; 16
+LD rr, (nn) ; 20
+LD rr ,nn ; 10
 
 RR (HL) ; 15
 RL (HL) ; 15

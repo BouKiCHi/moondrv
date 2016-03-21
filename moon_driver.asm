@@ -6,40 +6,40 @@
 ;********************************************
 ; defines
 ;********************************************
-MOON_VERNUM: equ $0002
+MOON_VERNUM: 	equ $0002
 
 ; MoonSound I/O
-MOON_BASE:	equ	$00C4
-MOON_REG1:	equ	MOON_BASE
-MOON_DAT1:	equ	MOON_BASE+1
-MOON_REG2:	equ	MOON_BASE+2
-MOON_DAT2:	equ	MOON_BASE+3
-MOON_STAT:	equ	MOON_BASE
+MOON_BASE:		equ	$00C4
+MOON_REG1:		equ	MOON_BASE
+MOON_DAT1:		equ	MOON_BASE+1
+MOON_REG2:		equ	MOON_BASE+2
+MOON_DAT2:		equ	MOON_BASE+3
+MOON_STAT:		equ	MOON_BASE
 
 ; MoonSound Wave part I/O
-MOON_WREG:	equ	$7E
-MOON_WDAT:	equ	MOON_WREG+1
+MOON_WREG:		equ	$7E
+MOON_WDAT:		equ	MOON_WREG+1
 
-RAM_PAGE3: 	equ	$FE
+RAM_PAGE3: 		equ	$FE
 
 
-USE_CH: 		equ	24+18
-FM_BASECH:	equ	24
+USE_CH: 			equ	24+18
+FM_BASECH:		equ	24
 
 ;********************************************
 ; MDR file format
 ;********************************************
 
-MDR_ID:        equ $8000
-MDR_PACKED:    equ $802A ; 1 if packed
+MDR_ID:					equ $8000
+MDR_PACKED:			equ $802A ; 1 if packed
 
-MDR_DSTPCM:    equ $8030 ; destination address of PCM
-MDR_STPCM:     equ $8031 ; PCM start bank
-MDR_PCMBANKS:  equ $8032 ; PCM banks
-MDR_LASTS:     equ $8033 ; PCM size of lastbank
+MDR_DSTPCM:			equ $8030 ; destination address of PCM
+MDR_STPCM:			equ $8031 ; PCM start bank
+MDR_PCMBANKS:		equ $8032 ; PCM banks
+MDR_LASTS:			equ $8033 ; PCM size of lastbank
 
 
-S_DEVICE_FLAGS:	equ	$8007
+S_DEV_FLAGS:		equ	$8007
 
 S_TRACK_TABLE:	equ	$8010
 S_TRACK_BANK:	  equ	S_TRACK_TABLE + 2
@@ -55,11 +55,11 @@ S_LFO_TABLE:	  equ	S_TRACK_TABLE + 20
 S_INST_TABLE:	  equ	S_TRACK_TABLE + 22
 S_OPL3_TABLE:	  equ	S_TRACK_TABLE + 24
 
-	org	$4000
-
 ;********************************************
 ; Entry points
 ;********************************************
+	org	$4000
+
 	; $4000 初期化
 	jp	moon_init_all
 
@@ -122,7 +122,7 @@ moon_init_all:
 	ldir
 
 	call	moon_init
-	jp	moon_seq_init
+	jp		moon_seq_init
 
 
 ;********************************************
@@ -494,6 +494,7 @@ fm_drum_oct:
 ; jump utility
 ;////////////////////////////////////
 
+; HLを呼び出して戻る
 call_hl:
 	jp	(hl)
 
@@ -570,19 +571,18 @@ get_table_hl_2de:
 ; out  : A = (HL + (cur_ch * 2) )
 ; dest : HL,DE
 get_a_table
-	ld	a,(seq_cur_ch)
-	ld	e,a
-	ld	d,$00
+	ld		a, (seq_cur_ch)
+	ld		e, a
+	ld		d, $00
 
-	ld	a,(hl)
-	inc	hl
-	ld	h,(hl)
-	ld	l,a
+	ld		a, (hl)
+	inc		hl
+	ld		h, (hl)
+	ld		l, a
 
-	add	hl,de
+	add		hl, de
 
-	ld	a,(hl)
-
+	ld		a, (hl)
 	ret
 
 
@@ -591,16 +591,12 @@ get_a_table
 ; initializes all channel's work
 ; dest : ALL
 moon_seq_init:
-	; デバイス選択を無効状態にする
-	ld		a, $ff
-	ld		(seq_dsel), a
-
 	xor		a
 	ld		(seq_max_ch), a
 	ld		(seq_cur_ch), a
 	call	change_page3  ; Page to Top
 
-	ld		a, (S_DEVICE_FLAGS)
+	ld		a, (S_DEV_FLAGS)
 	or		a
 	jr		nz, skip_def_device
 	ld		a, $01 ; OPL4のみがデフォルト
@@ -615,7 +611,7 @@ skip_def_device:
 	ld		e, $18 ; 24channels ; OPL4
 
 	; OPL4音色初期化ルーチン
-	ld		hl, init_opl4tone
+	ld		hl, opl4_inittone
 	ld		(init_gen_adrs), hl
 
 	rr		b
@@ -626,7 +622,7 @@ skip_def_device:
 	ld		e, $12 ; 18channels
 
 	; OPL3音色初期化ルーチン
-	ld		hl, init_opl3tone
+	ld		hl, opl3_inittone
 	ld		(init_gen_adrs), hl
 
 	rr		b
@@ -653,7 +649,8 @@ seq_init_chan:
 seq_init_chan_lp:
 	push	de
 	call	init_common
-	ld		hl, (init_gen_adrs)
+
+	ld		hl,(init_gen_adrs)
 	call	call_hl
 
 	; 次のワークへ
@@ -703,7 +700,7 @@ init_common:
 	ret
 
 ; OPL3音色初期化
-init_opl3tone:
+opl3_inittone:
 	ld		hl, opl3_testtone
 	ld		(ix + IDX_TADR), l
 	ld		(ix + IDX_TADR+1), h
@@ -719,7 +716,7 @@ init_opl3tone:
 	ret
 
 ; OPL4音色初期化
-init_opl4tone:
+opl4_inittone:
 	ld		hl, piano_tone
 	ld		(ix + IDX_TADR),l
 	ld		(ix + IDX_TADR+1),h
@@ -873,7 +870,7 @@ moon_set_device:
 proc_set_opl4:
 	; テーブル
 	ld	hl, opl4_jumptable
-	ld	(seq_jmptable), hl
+	ld	(seq_read_table + 1), hl
 	; キーオン
 	ld	hl, opl4_keyon
 	ld	(moon_key_on + 1), hl
@@ -888,7 +885,7 @@ proc_set_opl4:
 proc_set_opl3:
 	; テーブル
 	ld	hl, opl3_jumptable
-	ld	(seq_jmptable), hl
+	ld	(seq_read_table + 1), hl
 	; キーオン
 	ld	hl, opl3_keyon
 	ld	(moon_key_on + 1), hl
@@ -898,9 +895,7 @@ proc_set_opl3:
 	; ノート
 	ld	hl, opl3_note
 	ld	(moon_note + 1), hl
-
 	ret
-
 
 
 ;********************************************
@@ -940,7 +935,8 @@ seq_command:
 	add		a, $20
 	sla		a
 	; ジャンプテーブルの読み出し
-	ld		hl, (seq_jmptable)
+seq_read_table:
+	ld		hl, opl4_jumptable
 	ld		c, a
 	ld		b, $00
 	add		hl, bc
@@ -1217,50 +1213,46 @@ proc_penv_start:
 	ld	(ix + IDX_PENV_ADR),l
 	ld	(ix + IDX_PENV_ADR + 1),h
 
-	push	af
-	ld	a, (ix + IDX_DSEL)
-	or	a
-	jr	nz,proc_penv_opl3
+proc_penv_body:
+	jp	proc_penv_opl4
 
 proc_penv_opl4:
-	pop	af
-
-	ld	l,(ix + IDX_PITCH)
-	ld	h,(ix + IDX_PITCH + 1)
+	ld		l, (ix + IDX_PITCH)
+	ld		h, (ix + IDX_PITCH + 1)
 	call	add_freq_offset
-	ld	(ix + IDX_PITCH),l
-	ld	(ix + IDX_PITCH+1),h
+	ld		(ix + IDX_PITCH), l
+	ld		(ix + IDX_PITCH+1), h
 
 	jp	moon_calc_opl4freq
-
 
 proc_penv_end:
 	jp	set_penv_loop
 
+
 proc_penv_opl3:
-	pop	af
-	ld	l,(ix + IDX_FNUM)
-	ld	h,(ix + IDX_FNUM + 1)
+	ld		l, (ix + IDX_FNUM)
+	ld		h, (ix + IDX_FNUM + 1)
 	call	add_freq_offset
 
-	ld	a,h
-	cp	$80
-	jr	nc,penv_fm_set_fnum
+	ld		a,h
+	cp		$80
+	jr		nc, penv_fm_set_fnum
 
-	ld	de,346
+	ld		de, 346
 	call	comp_hl_de
-	jr	c,penv_fm_dec_oct
-	jr	z,penv_fm_dec_oct
+	jr		c, penv_fm_dec_oct
+	jr		z, penv_fm_dec_oct
 
-	ld	de,693
+	ld		de, 693
 	call	comp_hl_de
-	jr	nc,penv_fm_inc_oct
-	jr	z, penv_fm_inc_oct
+	jr		nc, penv_fm_inc_oct
+	jr		z, penv_fm_inc_oct
 
 penv_fm_set_fnum:
 	ld	(ix + IDX_FNUM), l
 	ld	(ix + IDX_FNUM+1), h
 	jp	moon_key_fmfreq
+
 
 penv_fm_dec_oct:
 	; hl < de
