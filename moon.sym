@@ -127,7 +127,7 @@ moon_key_write_fmfreq_base: equ 05430H
 moon_load_fmvol: equ 05086H
 moon_load_fmvol_lp: equ 0508EH
 moon_load_pcm:	equ 05523H
-moon_note:	equ 04AF4H
+moon_note_on:	equ 04AF4H
 moon_opl4_set_keyreg: equ 05403H
 moon_pcm_bank:	equ 055B7H
 moon_pcm_bank_count: equ 055B6H
@@ -180,7 +180,7 @@ opl3_jumptable:	equ 04B6CH
 opl3_keyoff:	equ 05342H
 opl3_keyon:	equ 053A0H
 opl3_load_fnumtbl: equ 051A5H
-opl3_note:	equ 04AF7H
+opl3_note_on:	equ 04AF7H
 opl3_op2reg_tbl: equ 04840H
 opl3_opbtbl:	equ 04852H
 opl3_testtone:	equ 04829H
@@ -189,7 +189,7 @@ opl4_inittone:	equ 0496DH
 opl4_jumptable:	equ 04B2CH
 opl4_keyoff:	equ 0535BH
 opl4_keyon:	equ 053C9H
-opl4_note:	equ 04B06H
+opl4_note_on:	equ 04B06H
 opl4_vol_ch:	equ 0528DH
 pause_venv:	equ 04F7BH
 pcm_chk_last:	equ 0558DH

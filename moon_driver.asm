@@ -878,8 +878,8 @@ proc_set_opl4:
 	ld	hl, opl4_keyoff
 	ld	(moon_key_off + 1), hl
 	; ノート
-	ld	hl, opl4_note
-	ld	(moon_note + 1), hl
+	ld	hl, opl4_note_on
+	ld	(moon_note_on + 1), hl
 
 
 	; エンベロープ
@@ -904,9 +904,9 @@ proc_set_opl3:
 	; キーオフ
 	ld	hl, opl3_keyoff
 	ld	(moon_key_off + 1), hl
-	; ノート
-	ld	hl, opl3_note
-	ld	(moon_note + 1), hl
+	; ノートオン
+	ld	hl, opl3_note_on
+	ld	(moon_note_on + 1), hl
 
 	; エンベロープ
 	ld	hl, proc_penv_opl3
@@ -993,7 +993,7 @@ seq_next:
 
 seq_repeat_or_note:
 	cp	$90
-	jr	c, moon_note
+	jr	c, moon_note_on
 
 	cp	$a1
 	jr	z,seq_repeat_esc
@@ -1049,11 +1049,11 @@ seq_rep_jmp:
 	jp	(hl)
 
 ;********************************************
-moon_note:
-	jp opl4_note
+moon_note_on:
+	jp 	opl4_note_on
 
 ; Note command
-opl3_note:
+opl3_note_on:
 	push	hl
 	push	af
 	xor	a
@@ -1063,7 +1063,7 @@ opl3_note:
 	call 	moon_set_fmnote
 	jr	set_note_fin
 
-opl4_note:
+opl4_note_on:
 	push	hl
 	push	af
 	xor	a
