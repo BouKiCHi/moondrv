@@ -378,7 +378,7 @@ piano_tone:
 	dw	0
 	db  $00,$00,$00,$00,$00
 
-fm_fnumtbl:
+opl3_fnumtbl:
 	dw	345 ; C 523.300000
 	dw	365 ; C+ 554.400000
 	dw	387 ; D 587.300000
@@ -425,7 +425,7 @@ opl3_testtone:
 	db	$55
 	db	$00
 
-fm_op2reg_tbl:
+opl3_op2reg_tbl:
 	db	$00 ; 0
 	db	$01
 	db	$02 ; 2
@@ -447,7 +447,7 @@ fm_op2reg_tbl:
 
 
 
-fm_opbtbl:
+opl3_opbtbl:
 	db	$00 ; CH0
 	db	$01 ; CH1
 	db	$02 ; CH2
@@ -469,21 +469,21 @@ fm_opbtbl:
 
 ;********************************************
 ; BSMCH
-fm_drum_fnum:
+opl3_drum_fnum:
 	dw $0120 ; B
 	dw $0150 ; S
 	dw $01c0 ; M
 	dw $01c0 ; C
 	dw $0150 ; H
 
-fm_drum_fnum_map:
+opl3_drum_fnum_map:
 	db $06 ; B
 	db $07 ; S
 	db $08 ; M
 	db $08 ; C
 	db $07 ; H
 
-fm_drum_oct:
+opl3_drum_oct:
 	db $02 ; B
 	db $02 ; S
 	db $00 ; M
@@ -603,7 +603,7 @@ moon_seq_init:
 skip_def_device:
 	ld		b, a
 
-	ld		iy, fm_opbtbl
+	ld		iy, opl3_opbtbl
 	ld		ix, seq_work
 
 	; OPL4
@@ -768,7 +768,7 @@ moon_seq_all_release_fm:
   ; D = $80(reg adrs) E = (sl = $00, rr = $0f)
 	ld		de, $800F
 	ld		b, 18
-	ld		hl, fm_opbtbl
+	ld		hl, opl3_opbtbl
 
 	; channel loop
 moon_set_rr_ch_lp:
@@ -881,9 +881,17 @@ proc_set_opl4:
 	ld	hl, opl4_note
 	ld	(moon_note + 1), hl
 
-	; ピッチエンベロープ
+
+	; エンベロープ
 	ld	hl, proc_penv_opl4
 	ld	(proc_penv_body + 1), hl
+	ld	hl, proc_nenv_opl4
+	ld	(proc_nenv_body + 1), hl
+
+	; 音量
+	ld	hl, opl4_vol_ch
+	ld	(moon_set_vol_ch + 1), hl
+
 	ret
 
 proc_set_opl3:
@@ -900,9 +908,15 @@ proc_set_opl3:
 	ld	hl, opl3_note
 	ld	(moon_note + 1), hl
 
-	; ピッチエンベロープ
+	; エンベロープ
 	ld	hl, proc_penv_opl3
 	ld	(proc_penv_body + 1), hl
+	ld	hl, proc_nenv_opl3
+	ld	(proc_nenv_body + 1), hl
+
+	; 音量
+	ld	hl, opl3_vol_ch
+	ld	(moon_set_vol_ch + 1), hl
 
 	ret
 
@@ -1245,43 +1259,43 @@ proc_penv_opl3:
 
 	ld		a,h
 	cp		$80
-	jr		nc, penv_fm_set_fnum
+	jr		nc, penv_opl3_set_fnum
 
 	ld		de, 346
 	call	comp_hl_de
-	jr		c, penv_fm_dec_oct
-	jr		z, penv_fm_dec_oct
+	jr		c, penv_opl3_dec_oct
+	jr		z, penv_opl3_dec_oct
 
 	ld		de, 693
 	call	comp_hl_de
-	jr		nc, penv_fm_inc_oct
-	jr		z, penv_fm_inc_oct
+	jr		nc, penv_opl3_inc_oct
+	jr		z, penv_opl3_inc_oct
 
-penv_fm_set_fnum:
+penv_opl3_set_fnum:
 	ld	(ix + IDX_FNUM), l
 	ld	(ix + IDX_FNUM+1), h
 	jp	moon_key_fmfreq
 
 
-penv_fm_dec_oct:
+penv_opl3_dec_oct:
 	; hl < de
 	dec	(ix + IDX_OCT)
 	add	hl,de
 	call	comp_hl_de
-	jr	c,penv_fm_dec_oct
+	jr	c,penv_opl3_dec_oct
 
-	jr	penv_fm_set_fnum
+	jr	penv_opl3_set_fnum
 
-penv_fm_inc_oct:
+penv_opl3_inc_oct:
 	; hl > de
 	ld	bc,346
-penv_fm_inc_oct_lp:
+penv_opl3_inc_oct_lp:
 	inc	(ix + IDX_OCT)
 	xor	a
 	sbc	hl,bc
 	call	comp_hl_de
-	jr	nc,penv_fm_inc_oct_lp
-	jr	penv_fm_set_fnum
+	jr	nc,penv_opl3_inc_oct_lp
+	jr	penv_opl3_set_fnum
 
 
 ;********************************************
@@ -1326,22 +1340,19 @@ proc_nenv_start:
 	ld	(ix + IDX_NENV_ADR), l
 	ld	(ix + IDX_NENV_ADR + 1), h
 
-	push	af
-	ld	a, (ix + IDX_DSEL)
-	or	a
-	jr	nz, proc_nenv_fm
-	jr	proc_nenv_opl4
+proc_nenv_body:
+	jp	proc_nenv_opl4
 
 proc_nenv_opl4:
-	pop	af
 	bit	7, a
 	jr	nz, proc_nenv_nega_opl4
 
-	add	a, (ix + IDX_NOTE)
-	ld	(ix + IDX_NOTE), a
-proc_nenv_opl4_setnote
+	add		a, (ix + IDX_NOTE)
+	ld		(ix + IDX_NOTE), a
+
+proc_nenv_opl4_setnote:
 	call	moon_calc_midinote
-	jp	moon_calc_opl4freq
+	jp		moon_calc_opl4freq
 
 proc_nenv_nega_opl4:
 	and	$7f
@@ -1349,30 +1360,30 @@ proc_nenv_nega_opl4:
 	ld	a, (ix + IDX_NOTE)
 	sub	e
 	ld	(ix + IDX_NOTE), a
-	jr	proc_nenv_opl4_setnote
+	jr		proc_nenv_opl4_setnote
 
-proc_nenv_fm:
-	pop	af
-	ld	b, $00
-	bit	7, a
-	jr	nz, proc_nenv_fm_nega
-proc_nenv_fm_lp1:
-	cp	$0c
-	jr	c, proc_nenv_fm_add
-	sub	$0c
-	inc	b
-	jr	proc_nenv_fm_lp1
-proc_nenv_fm_add:
+proc_nenv_opl3:
+	pop		af
+	ld		b, $00
+	bit		7, a
+	jr		nz, proc_nenv_opl3_nega
+proc_nenv_opl3_lp1:
+	cp		$0c
+	jr		c, proc_nenv_opl3_add
+	sub		$0c
+	inc		b
+	jr		proc_nenv_opl3_lp1
+proc_nenv_opl3_add:
 	ld	c, a ; C = (note % 12)
 	ld	a, (ix + IDX_NOTE)
 	and	$0f
 	add	a, c
 	cp	$0c
-	jr	c, skip_nenv_inc_oct
+	jr	c, skip_nenv_opl3_inc_oct
 	add	a, $04
 	and	$0f
 	inc	b
-skip_nenv_inc_oct:
+skip_nenv_opl3_inc_oct:
 	ld	c, a ; C = (note & 0x0f)
 	ld	a, b ; B = oct
 	rlca
@@ -1388,16 +1399,16 @@ skip_nenv_inc_oct:
 	call	moon_set_fmnote
 	jp	moon_key_fmfreq
 
-proc_nenv_fm_nega:
+proc_nenv_opl3_nega:
 	and	$7f
 
-proc_nenv_fm_nega_lp1:
+proc_nenv_opl3_nega_lp1:
 	cp	$0c
-	jr	c,proc_nenv_fm_sub
+	jr	c,proc_nenv_opl3_sub
 	sub	$0c
 	inc	b
-	jr	proc_nenv_fm_nega_lp1
-proc_nenv_fm_sub:
+	jr	proc_nenv_opl3_nega_lp1
+proc_nenv_opl3_sub:
 	ld	c, a ; C = (note % 12)
 	ld	a,(ix + IDX_NOTE)
 	and	$0f
@@ -1708,7 +1719,7 @@ drumbit_with_length:
 ; dest : almost all
 drumbit_set_fnum:
 	; fnum
-	ld	hl, fm_drum_fnum
+	ld	hl, opl3_drum_fnum
 	ld	b, $00
 	add	hl, bc
 	add	hl, bc
@@ -1719,13 +1730,13 @@ drumbit_set_fnum:
 	ld	(seq_tmp_fnum + 1), a
 
 	; oct
-	ld	hl, fm_drum_oct
+	ld	hl, opl3_drum_oct
 	add	hl, bc
 	ld	a, (hl)
 	ld	(seq_tmp_oct), a
 
 	; ch
-	ld	hl, fm_drum_fnum_map
+	ld	hl, opl3_drum_fnum_map
 	add	hl, bc
 	ld	a, (hl)
 	ld	(seq_tmp_ch), a
@@ -1794,13 +1805,13 @@ drumnote_fnum:
 
 	; oct
 	ld	b, $00
-	ld	hl, fm_drum_oct
+	ld	hl, opl3_drum_oct
 	add	hl, bc
 	ld	a, (seq_tmp_oct)
 	ld	(hl), a
 
 	; fnum
-	ld	hl, fm_drum_fnum
+	ld	hl, opl3_drum_fnum
 	add	hl, bc
 	add	hl, bc
 	ld	a, (seq_tmp_fnum)
@@ -2579,10 +2590,10 @@ moon_calc_opl3note:
 	push	af
 	and	$0f
 	cp	$0c
-	jr	c, fm_load_fnumtbl
+	jr	c, opl3_load_fnumtbl
 	sub	$0c
-fm_load_fnumtbl:
-	ld	hl, fm_fnumtbl
+opl3_load_fnumtbl:
+	ld	hl, opl3_fnumtbl
 	ld	c, a
 	ld	b, $00
 	add	hl, bc
@@ -2623,7 +2634,7 @@ moon_write_fmop:
 	jr	c,skip_sub_a
 	sub	$12
 skip_sub_a:
-	ld	hl, fm_op2reg_tbl ; HL = HL + A
+	ld	hl, opl3_op2reg_tbl ; HL = HL + A
 	add	a,l
 	ld	l,a
 	jr	nc,add_hl_fin
@@ -2654,7 +2665,7 @@ moon_write_fmreg:
 
 ; A = ch
 moon_write_fmreg_nch:
-moon_write_fm_ch:
+moon_write_opl3_ch:
 ; first or second FM register
 	cp	$9
 	jr	nc, moon_write_fm2
@@ -2812,10 +2823,9 @@ moon_set_freq_ch_skip_reverb:
 ; in   : work
 ; dest : AF,DE
 moon_set_vol_ch:
-	ld	a, (ix + IDX_DSEL)
-	or	a
-	jr	nz, moon_set_fmvol_ch
+	jp		opl4_vol_ch
 
+opl4_vol_ch:
 	; volume ( 0x7f = -inf )
 	ld	a, (ix + IDX_VOL)
 	xor	$7f
@@ -2826,7 +2836,7 @@ moon_set_vol_ch:
 	call	moon_add_reg_ch
 	jp	moon_wave_out
 
-moon_set_fmvol_ch:
+opl3_vol_ch:
 	push	ix
 	push	hl
 	push	bc
