@@ -880,6 +880,10 @@ proc_set_opl4:
 	; ノート
 	ld	hl, opl4_note
 	ld	(moon_note + 1), hl
+
+	; ピッチエンベロープ
+	ld	hl, proc_penv_opl4
+	ld	(proc_penv_body + 1), hl
 	ret
 
 proc_set_opl3:
@@ -895,6 +899,11 @@ proc_set_opl3:
 	; ノート
 	ld	hl, opl3_note
 	ld	(moon_note + 1), hl
+
+	; ピッチエンベロープ
+	ld	hl, proc_penv_opl3
+	ld	(proc_penv_body + 1), hl
+
 	ret
 
 
