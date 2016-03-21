@@ -22,6 +22,10 @@ MOON_WDAT:		equ	MOON_WREG+1
 
 RAM_PAGE3: 		equ	$FE
 
+; PSG I/O
+PSG_ADRS:			equ $A0
+PSG_DATA:			equ $A1
+
 
 USE_CH: 			equ	24+18
 FM_BASECH:		equ	24
@@ -953,8 +957,8 @@ seq_track_lp:
 
 seq_command:
 	ld		bc, seq_track_lp
-	push	bc
-	push	hl ; <- Preserve HL as pointer
+	push	bc ; 戻るアドレス
+	push	hl ; 現在のデータポインタ
 	add		a, $20
 	sla		a
 	; ジャンプテーブルの読み出し
@@ -974,15 +978,13 @@ seq_read_table:
 
 ;********************************************
 ; seq_next
-; preserves  address and do next
+; 次のコマンドを処理する
 ; in   : HL
 ; dest : AF
 seq_next:
-	ld	(ix + IDX_ADDR),l
-	ld	(ix + IDX_ADDR+1),h
-	jr	seq_track
-
-	ret
+	ld	(ix + IDX_ADDR), l
+	ld	(ix + IDX_ADDR + 1), h
+	jp	seq_track
 
 ;********************************************
 ; seq_repeat_or_note
@@ -1078,14 +1080,15 @@ set_note_fin:
 	call	moon_key_on
 	pop		hl
 
-; note length
+	; カウントを読む
 	ld	a, (hl)
-	ld	(ix + IDX_CNT),a
+	ld	(ix + IDX_CNT), a
 	inc	hl
 	jr	seq_next
-;
-;
+
+
 read_cmd_length:
+	; 戻るアドレスを破棄
 	pop	af
 	ld	a, (hl)
 	ld	(ix + IDX_CNT),a
@@ -1110,8 +1113,8 @@ opl4_jumptable:
 	dw	seq_nop								; $ed : LFO mode
 	dw	seq_bank							; $ee : Bank change
 	dw	seq_lfosw							; $ef : Mode change
-	dw	seq_pan_opl4					; $f0 : Set Pan
-	dw	seq_inst_opl4					; $f1 : Load Instrument (4OP or OPL4)
+	dw	seq_pan								; $f0 : Set Pan
+	dw	seq_inst_opl4					; $f1 : Load Instrument
 	dw	seq_drum							; $f2 : Set Drum
 	dw	seq_nop								; $f3 :
 	dw	seq_wait							; $f4 : Wait
@@ -1145,11 +1148,45 @@ opl3_jumptable:
 	dw	seq_bank							; $ee : Bank change
 	dw	seq_lfosw							; $ef : Mode change
 	dw	seq_pan_opl3					; $f0 : Set Pan
-	dw	seq_inst_opl3					; $f1 : Load Instrument (4OP or OPL4)
+	dw	seq_inst_opl3					; $f1 : Load Instrument (4OP)
 	dw	seq_drum							; $f2 : Set Drum
 	dw	seq_nop								; $f3 :
 	dw	seq_wait							; $f4 : Wait
 	dw	seq_data_write_opl3		; $f5 : Data Write
+	dw	seq_nop								; $f6
+	dw	seq_nenv							; $f7 : Note	envelope
+	dw	seq_penv							; $f8 : Pitch envelope
+	dw	seq_skip_1						; $f9
+	dw	seq_detune						; $fa : Detune
+	dw	seq_nop								; $fb : LFO
+	dw	seq_rest							; $fc : Rest
+	dw	seq_volume						; $fd : Volume
+	dw	seq_skip_1						; $fe : Not used
+	dw	seq_loop							; $ff : Loop
+
+psg_jumptable:
+	dw	seq_nop								; $e0 : Set drum note
+	dw	seq_nop 							; $e1 : Set drum bits
+	dw	seq_jump							; $e2 :
+	dw	seq_nop								; $e3 : Set FBS
+	dw	seq_nop								; $e4 : Set TVP
+	dw	seq_nop								; $e5 : Load 2OP Instrument
+	dw	seq_nop								; $e6 : Set opbase
+	dw	seq_nop								; $e7 : Pitch shift
+	dw	seq_nop								; $e8 :
+	dw	seq_slar							; $e9 : Slar switch
+	dw	seq_nop 							; $ea : Reverb switch / VolumeOP
+	dw	seq_nop				 				; $eb : Damp switch / OPMODE
+	dw	seq_nop								; $ec : LFO freq
+	dw	seq_nop								; $ed : LFO mode
+	dw	seq_bank							; $ee : Bank change
+	dw	seq_nop								; $ef : Mode change
+	dw	seq_pan								; $f0 : Set Pan
+	dw	seq_nop								; $f1 : Load Instrument
+	dw	seq_drum							; $f2 : Set Drum
+	dw	seq_nop								; $f3 :
+	dw	seq_wait							; $f4 : Wait
+	dw	seq_skip_3						; $f5 : Data Write
 	dw	seq_nop								; $f6
 	dw	seq_nenv							; $f7 : Note	envelope
 	dw	seq_penv							; $f8 : Pitch envelope
@@ -1884,7 +1921,7 @@ seq_pan_opl3:
 
 	jr		seq_pan_fin
 
-seq_pan_opl4:
+seq_pan:
 	pop		hl
 
 	ld		a, (hl)
@@ -2749,10 +2786,22 @@ moon_wave_in:
 	in	a, (MOON_WDAT)
 	ret
 
+;********************************************
+; write PSG register
+; in   : D = address, E = data
+; dest : AF
+
+moon_psg_out:
+	ld	a, d
+	out	(PSG_ADRS), a
+	ld	a, e
+	out	(PSG_DATA), a
+	ret
 ;
 ;********************************************
 ; add number of channel to the index of register
-; in : D = index of register
+; in : D = index
+; out : D = index + dev_ch
 ; dest : AF
 moon_add_reg_ch:
 	ld	a, (seq_dev_ch)
@@ -2760,6 +2809,13 @@ moon_add_reg_ch:
 	ld	d, a
 	ret
 
+; out : D = index + (dev_ch * 2)
+moon_add_reg_chx2:
+	ld	a, (seq_dev_ch)
+	add	a, d
+	add	a, d
+	ld	d, a
+	ret
 ;
 ;********************************************
 ; set frequency on the channel
