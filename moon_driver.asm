@@ -62,16 +62,16 @@ S_OPL3_TABLE:	  equ	S_TRACK_TABLE + 24
 ;********************************************
 ; Entry points
 ;********************************************
-	org	$4000
+	org		$4000
 
 	; $4000 初期化
-	jp	moon_init_all
+	jp		moon_init_all
 
 	; $4003 1フレーム実行 (1/60)
-	jp	moon_proc_tracks
+	jp		moon_proc_tracks
 
 	; $4006 すべてのチャンネルをキーオフ
-	jp	moon_seq_all_keyoff
+	jp		moon_seq_all_keyoff
 
 	; $4009 H.TIMIのセット
 	ret
@@ -84,24 +84,24 @@ S_OPL3_TABLE:	  equ	S_TRACK_TABLE + 24
 	ret
 
 	; $400F バージョン番号
-	dw	MOON_VERNUM
+	dw		MOON_VERNUM
 
 	; $4011 バージョン文字列のアドレス
-	dw	str_moondrv
+	dw		str_moondrv
 
 	; $4013 PCM読み出し
-	jp  moon_load_pcm
+	jp		moon_load_pcm
 
-	org	$4020
+	org		$4020
 
 str_moondrv:
-	db "MOONDRIVER "
-	db "VER 160321"
-	db $0d,$0a,'$'
+	db		"MOONDRIVER "
+	db		"VER 160321"
+	db		$0d,$0a,'$'
 
 ;********************************************
 ; work for debug
-	IF DEFINED MOON_HOOT
+	IF		DEFINED MOON_HOOT
 
 MDB_BASE: equ $2F0
 
@@ -135,19 +135,19 @@ moon_init_all:
 ;
 moon_init:
 	; CONNECTION SEL
-	ld	de, $0400
+	ld		de, $0400
 	call	moon_fm2_out
 
 	; set 1 to NEW2, NEW
-	ld	de, $0503
+	ld		de, $0503
 	call	moon_fm2_out
 
 	; RHYTHM
-	ld	de, $bd00
+	ld		de, $bd00
 	call	moon_fm1_out
 
 	; WaveTableのセット
-	ld	de, $0210
+	ld		de, $0210
 	call	moon_wave_out
 
 	ret
@@ -160,36 +160,36 @@ moon_init:
 moon_work_start:
 
 seq_dsel:
-	db $00
+	db		$00
 
 seq_cur_ch:
-	db $00
+	db		$00
 seq_dev_ch:
-	db $00
+	db		$00
 seq_max_ch:
-	db $00
+	db		$00
 
 seq_jmptable:
-	dw $0000
+	dw		$0000
 
 seq_cur_bank:
-	db $00
+	db		$00
 seq_opsel:
-	db $00
+	db		$00
 seq_reg_bd:
-	db $00
+	db		$00
 seq_tmp_note:
-	db $00
+	db		$00
 seq_tmp_ch:
-	db $00
+	db		$00
 seq_tmp_oct:
-	db $00
+	db		$00
 seq_tmp_fnum:
-	dw $0000
+	dw		$0000
 
 ; 0でなければスキップ
 seq_skip_flag:
-	db $00
+	db		$00
 
 
 ;********************************************
@@ -197,73 +197,73 @@ seq_skip_flag:
 ;
 seq_work:
 seq_ch1_dsel:
-	db $00
+	db		$00
 seq_ch1_devch:
-	db $00
+	db		$00
 seq_ch1_opsel:
-	db $00
+	db		$00
 seq_ch1_synth:
-	db $00
+	db		$00
 seq_ch1_efx1:
-	db $00
+	db		$00
 seq_ch1_cnt:
-	db $00
+	db		$00
 seq_ch1_loop:
-	db $00
+	db		$00
 seq_ch1_bank:
-	db $00
+	db		$00
 seq_ch1_addr:
-	dw $0000
+	dw		$0000
 seq_ch1_tadr:
-	dw $0000
+	dw		$0000
 seq_ch1_tone:
-	dw $0000
+	dw		$0000
 seq_ch1_key:
-	db $00
+	db		$00
 seq_ch1_damp:
-	db $00
+	db		$00
 seq_ch1_lfo:
-	db $00
+	db		$00
 seq_ch1_lfo_vib:
-	db $00
+	db		$00
 seq_ch1_ar_d1r:
-	db $00
+	db		$00
 seq_ch1_dl_d2r:
-	db $00
+	db		$00
 seq_ch1_rc_rr:
-	db $00
+	db		$00
 seq_ch1_am:
-	db $00
+	db		$00
 seq_ch1_note:
-	db $00
+	db		$00
 seq_ch1_pitch:
-	dw $0000
+	dw		$0000
 seq_ch1_p_ofs:
-	dw $0000
+	dw		$0000
 seq_ch1_oct:
-	db $00
+	db		$00
 seq_ch1_fnum:
-	dw $0000
+	dw		$0000
 seq_ch1_reverb:
-	db $00
+	db		$00
 seq_ch1_vol:
-	db $00
+	db		$00
 seq_ch1_pan:
-	db $00
+	db		$00
 seq_ch1_detune:
-	db $00
+	db		$00
 seq_ch1_venv:
-	db $00
+	db		$00
 seq_ch1_nenv:
-	db $00
+	db		$00
 seq_ch1_penv:
-	db $00
+	db		$00
 seq_ch1_nenv_adr:
-	dw $0000
+	dw		$0000
 seq_ch1_penv_adr:
-	dw $0000
+	dw		$0000
 seq_ch1_venv_adr:
-	dw $0000
+	dw		$0000
 seq_work_end:
 
 ; IDX_DSEL
@@ -325,62 +325,62 @@ moon_work_end:
 ;********************************************
 	db	"PianoTone"			; Piano OPL4
 piano_tone:
-	db	$14,$27				; min -> max
-	dw	$012c				; tone
-	dw	7474				; pitch offset
-	db 	$20,$f2,$13,$08,$00 ;regs
+	db		$14,$27				; min -> max
+	dw		$012c				; tone
+	dw		7474				; pitch offset
+	db		$20,$f2,$13,$08,$00 ;regs
 
 
-	db	$28,$2d
-	dw	$012d
-	dw	6816
-	db	$20,$f2,$14,$08,$00
+	db		$28,$2d
+	dw		$012d
+	dw		6816
+	db		$20,$f2,$14,$08,$00
 
-	db	$2e,$33
-	dw	$012e
-	dw	5899
-	db	$20,$f2,$14,$08,$00
+	db		$2e,$33
+	dw		$012e
+	dw		5899
+	db		$20,$f2,$14,$08,$00
 
-	db	$34,$39
-	dw	$012f
-	dw	5290
-	db	$20,$f2,$14,$08,$00
+	db		$34,$39
+	dw		$012f
+	dw		5290
+	db		$20,$f2,$14,$08,$00
 
-	db	$3a,$3f
-	dw	$0130
-	dw	4260
-	db	$20,$f2,$14,$08,$00
+	db		$3a,$3f
+	dw		$0130
+	dw		4260
+	db		$20,$f2,$14,$08,$00
 
-	db	$40,$45
-	dw	$0131
-	dw	3625
-	db	$20,$f2,$14,$08,$00
+	db		$40,$45
+	dw		$0131
+	dw		3625
+	db		$20,$f2,$14,$08,$00
 
-	db	$46,$4b
-	dw	$0132
-	dw	3116
-	db	$20,$f2,$14,$08,$00
+	db		$46,$4b
+	dw		$0132
+	dw		3116
+	db		$20,$f2,$14,$08,$00
 
-	db	$4c,$52
-	dw	$0133
-	dw	2081
-	db	$20,$f2,$14,$18,$00
+	db		$4c,$52
+	dw		$0133
+	dw		2081
+	db		$20,$f2,$14,$18,$00
 
-	db	$53,$58
-	dw	$0134
-	dw	1444
-	db  $20,$f3,$14,$18,$00
+	db		$53,$58
+	dw		$0134
+	dw		1444
+	db		 $20,$f3,$14,$18,$00
 
-	db	$59,$6d
-	dw	$0135
-	dw	1915
-	db  $20,$f4,$15,$08,$00
+	db		$59,$6d
+	dw		$0135
+	dw		1915
+	db		 $20,$f4,$15,$08,$00
 
 	; terminator ( both min and max should be zero )
-	db	$00,$00
-	dw	$0000
-	dw	0
-	db  $00,$00,$00,$00,$00
+	db		$00,$00
+	dw		$0000
+	dw		0
+	db		$00,$00,$00,$00,$00
 
 opl3_fnumtbl:
 	dw	345 ; C 523.300000
@@ -401,98 +401,98 @@ opl3_fnumtbl:
 ; Tonedata for OPL3
 ;
 opl3_testtone:
-	db	$00 ; FBS
-	db	$00 ; FBS2
-	db	$00 ; BD
+	db		$00 ; FBS
+	db		$00 ; FBS2
+	db		$00 ; BD
 
-	db	$01 ; TREMOLO VIB SUS KSR MUL
-	db	$00 ; KSL OL
-	db	$11 ; AR DR
-	db	$13 ; SL RR
-	db	$01 ; WF
+	db		$01 ; TREMOLO VIB SUS KSR MUL
+	db		$00 ; KSL OL
+	db		$11 ; AR DR
+	db		$13 ; SL RR
+	db		$01 ; WF
 
-	db	$04 ;
-	db	$00 ;
-	db	$11 ;
-	db	$18 ;
-	db	$00 ; WF
+	db		$04 ;
+	db		$00 ;
+	db		$11 ;
+	db		$18 ;
+	db		$00 ; WF
 
-	db	$01
-	db	$3f
-	db	$55
-	db	$55
-	db	$00
+	db		$01
+	db		$3f
+	db		$55
+	db		$55
+	db		$00
 
-	db	$01
-	db	$3f
-	db	$55
-	db	$55
-	db	$00
+	db		$01
+	db		$3f
+	db		$55
+	db		$55
+	db		$00
 
 opl3_op2reg_tbl:
-	db	$00 ; 0
-	db	$01
-	db	$02 ; 2
-	db	$03
-	db	$04 ; 4
-	db	$05
-	db	$08 ; 6
-	db	$09
-	db	$0A ; 8
-	db	$0B
-	db	$0C ; 10
-	db	$0D
-	db	$10 ; 12
-	db	$11
-	db	$12 ; 14
-	db	$13
-	db	$14 ; 16
-	db	$15 ; 17
+	db		$00 ; 0
+	db		$01
+	db		$02 ; 2
+	db		$03
+	db		$04 ; 4
+	db		$05
+	db		$08 ; 6
+	db		$09
+	db		$0A ; 8
+	db		$0B
+	db		$0C ; 10
+	db		$0D
+	db		$10 ; 12
+	db		$11
+	db		$12 ; 14
+	db		$13
+	db		$14 ; 16
+	db		$15 ; 17
 
 
 
 opl3_opbtbl:
-	db	$00 ; CH0
-	db	$01 ; CH1
-	db	$02 ; CH2
-	db	$06 ; CH3
-	db	$07 ; CH4
-	db	$08 ; CH5
-	db	$0c ; CH6
-	db	$0d ; CH7
-	db	$0e ; CH8
-	db	$12 ; CH9
-	db	$13 ; CH10
-	db	$14 ; CH11
-	db	$18 ; CH12
-	db	$19 ; CH13
-	db	$1a ; CH14
-	db	$1e ; CH15
-	db	$1f ; CH16
-	db	$20 ; CH17
+	db		$00 ; CH0
+	db		$01 ; CH1
+	db		$02 ; CH2
+	db		$06 ; CH3
+	db		$07 ; CH4
+	db		$08 ; CH5
+	db		$0c ; CH6
+	db		$0d ; CH7
+	db		$0e ; CH8
+	db		$12 ; CH9
+	db		$13 ; CH10
+	db		$14 ; CH11
+	db		$18 ; CH12
+	db		$19 ; CH13
+	db		$1a ; CH14
+	db		$1e ; CH15
+	db		$1f ; CH16
+	db		$20 ; CH17
 
 ;********************************************
 ; BSMCH
 opl3_drum_fnum:
-	dw $0120 ; B
-	dw $0150 ; S
-	dw $01c0 ; M
-	dw $01c0 ; C
-	dw $0150 ; H
+	dw		$0120 ; B
+	dw		$0150 ; S
+	dw		$01c0 ; M
+	dw		$01c0 ; C
+	dw		$0150 ; H
 
 opl3_drum_fnum_map:
-	db $06 ; B
-	db $07 ; S
-	db $08 ; M
-	db $08 ; C
-	db $07 ; H
+	db		$06 ; B
+	db		$07 ; S
+	db		$08 ; M
+	db		$08 ; C
+	db		$07 ; H
 
 opl3_drum_oct:
-	db $02 ; B
-	db $02 ; S
-	db $00 ; M
-	db $00 ; C
-	db $02 ; H
+	db		$02 ; B
+	db		$02 ; S
+	db		$00 ; M
+	db		$00 ; C
+	db		$02 ; H
 
 ;////////////////////////////////////
 ; jump utility
@@ -500,15 +500,15 @@ opl3_drum_oct:
 
 ; HLを呼び出して戻る
 call_hl:
-	jp	(hl)
+	jp		(hl)
 
 ; 自己書き換えキーオン
 moon_key_on:
-	jp	opl4_keyon
+	jp		opl4_keyon
 
 ; 自己書き換えキーオフ
 moon_key_off:
-	jp	opl4_keyoff
+	jp		opl4_keyoff
 
 
 ;////////////////////////////////////
@@ -519,8 +519,8 @@ moon_key_off:
 ; set page3 to the bank of current channel
 ; dest : AF
 set_page3_ch:
-	ld	a, (ix + IDX_BANK)
-	jr	change_page3
+	ld		a, (ix + IDX_BANK)
+	jr		change_page3
 
 ;********************************************
 ; changes page3
@@ -528,9 +528,9 @@ set_page3_ch:
 ; dest : AF
 change_page3:
 
-	srl	a
-	add	a, $04 ; The system uses 4pages for initial work area
-	out	(RAM_PAGE3), a
+	srl		a
+	add		a, $04 ; The system uses 4pages for initial work area
+	out		(RAM_PAGE3), a
 	ret
 
 ;********************************************
@@ -539,9 +539,9 @@ change_page3:
 ; out  : HL = (HL + (A * 2) )
 ; dest : AF,DE
 get_table:
-	ld	e, a
-	ld	d, $00
-	jr	get_table_hl_2de
+	ld		e, a
+	ld		d, $00
+	jr		get_table_hl_2de
 
 ;********************************************
 ; get_hl_table
@@ -549,23 +549,23 @@ get_table:
 ; out  : HL = (HL + (cur_ch * 2) )
 ; dest : AF,DE
 get_hl_table:
-	ld	a, (seq_cur_ch)
-	ld	e, a
-	ld	d, $00
+	ld		a, (seq_cur_ch)
+	ld		e, a
+	ld		d, $00
 
 get_table_hl_2de:
-	ld	a, (hl)
-	inc	hl
-	ld	h, (hl)
-	ld	l, a
+	ld		a, (hl)
+	inc		hl
+	ld		h, (hl)
+	ld		l, a
 
-	add	hl, de
-	add	hl, de
+	add		hl, de
+	add		hl, de
 
-	ld	a, (hl)
-	inc	hl
-	ld	h, (hl)
-	ld	l, a
+	ld		a, (hl)
+	inc		hl
+	ld		h, (hl)
+	ld		l, a
 
 	ret
 
@@ -831,96 +831,96 @@ proc_tracks_lp:
 	call	seq_track
 
 	; 次のトラックへ
-	ld	de, SEQ_WORKSIZE
-	add	ix, de
+	ld		de, SEQ_WORKSIZE
+	add		ix, de
 
-	ld	a, (seq_max_ch)
-	ld	e, a
-	ld	a, (seq_cur_ch)
-	inc	a
-	cp	e
-	jr	nc, proc_tracks_end
-	ld	(seq_cur_ch), a
-	jr	proc_tracks_lp
+	ld		a, (seq_max_ch)
+	ld		e, a
+	ld		a, (seq_cur_ch)
+	inc		a
+	cp		e
+	jr		nc, proc_tracks_end
+	ld		(seq_cur_ch), a
+	jr		proc_tracks_lp
 
 proc_tracks_end:
-	ld a, (seq_skip_flag)
-	or a
-	ret z
-	jr moon_proc_tracks
+	ld		a, (seq_skip_flag)
+	or		a
+	ret		z
+	jr		moon_proc_tracks
 
 ; moon_set_device
 ; dest: AF, HL
 ; デバイスごとの処理アドレスをセットする
 moon_set_device:
-	ld	l, (ix + IDX_DSEL)
-	ld	a, (seq_dsel)
-	cp	l
-	ret z
+	ld		l, (ix + IDX_DSEL)
+	ld		a, (seq_dsel)
+	cp		l
+	ret		z
 
 	; 以前とは違うデバイス
-	ld	a, l
-	ld	(seq_dsel), a
+	ld		a, l
+	ld		(seq_dsel), a
 
-	or	a
-	jr	z, proc_set_opl4
+	or		a
+	jr		z, proc_set_opl4
 
-	cp	1
-	jp	proc_set_opl3
+	cp		1
+	jp		proc_set_opl3
 	; jr	z, proc_set_opl3
 
 	ret
 
 proc_set_opl4:
 	; テーブル
-	ld	hl, opl4_jumptable
-	ld	(seq_read_table + 1), hl
+	ld		hl, opl4_jumptable
+	ld		(seq_read_table + 1), hl
 	; キーオン
-	ld	hl, opl4_keyon
-	ld	(moon_key_on + 1), hl
+	ld		hl, opl4_keyon
+	ld		(moon_key_on + 1), hl
 	; キーオフ
-	ld	hl, opl4_keyoff
-	ld	(moon_key_off + 1), hl
+	ld		hl, opl4_keyoff
+	ld		(moon_key_off + 1), hl
 	; ノート
-	ld	hl, opl4_note_on
-	ld	(moon_note_on + 1), hl
+	ld		hl, opl4_note_on
+	ld		(moon_note_on + 1), hl
 
 
 	; エンベロープ
-	ld	hl, proc_penv_opl4
-	ld	(proc_penv_body + 1), hl
-	ld	hl, proc_nenv_opl4
-	ld	(proc_nenv_body + 1), hl
+	ld		hl, proc_penv_opl4
+	ld		(proc_penv_body + 1), hl
+	ld		hl, proc_nenv_opl4
+	ld		(proc_nenv_body + 1), hl
 
 	; 音量
-	ld	hl, opl4_vol_ch
-	ld	(moon_set_vol_ch + 1), hl
+	ld		hl, opl4_vol_ch
+	ld		(moon_set_vol_ch + 1), hl
 
 	ret
 
 proc_set_opl3:
 	; テーブル
-	ld	hl, opl3_jumptable
-	ld	(seq_read_table + 1), hl
+	ld		hl, opl3_jumptable
+	ld		(seq_read_table + 1), hl
 	; キーオン
-	ld	hl, opl3_keyon
-	ld	(moon_key_on + 1), hl
+	ld		hl, opl3_keyon
+	ld		(moon_key_on + 1), hl
 	; キーオフ
-	ld	hl, opl3_keyoff
-	ld	(moon_key_off + 1), hl
+	ld		hl, opl3_keyoff
+	ld		(moon_key_off + 1), hl
 	; ノートオン
-	ld	hl, opl3_note_on
-	ld	(moon_note_on + 1), hl
+	ld		hl, opl3_note_on
+	ld		(moon_note_on + 1), hl
 
 	; エンベロープ
-	ld	hl, proc_penv_opl3
-	ld	(proc_penv_body + 1), hl
-	ld	hl, proc_nenv_opl3
-	ld	(proc_nenv_body + 1), hl
+	ld		hl, proc_penv_opl3
+	ld		(proc_penv_body + 1), hl
+	ld		hl, proc_nenv_opl3
+	ld		(proc_nenv_body + 1), hl
 
 	; 音量
-	ld	hl, opl3_vol_ch
-	ld	(moon_set_vol_ch + 1), hl
+	ld		hl, opl3_vol_ch
+	ld		(moon_set_vol_ch + 1), hl
 
 	ret
 
@@ -982,9 +982,9 @@ seq_read_table:
 ; in   : HL
 ; dest : AF
 seq_next:
-	ld	(ix + IDX_ADDR), l
-	ld	(ix + IDX_ADDR + 1), h
-	jp	seq_track
+	ld		(ix + IDX_ADDR), l
+	ld		(ix + IDX_ADDR + 1), h
+	jp		seq_track
 
 ;********************************************
 ; seq_repeat_or_note
@@ -994,85 +994,85 @@ seq_next:
 ; $A1     =  repeat_esc
 
 seq_repeat_or_note:
-	cp	$90
-	jr	c, moon_note_on
+	cp		$90
+	jr		c, moon_note_on
 
-	cp	$a1
-	jr	z,seq_repeat_esc
+	cp		$a1
+	jr		z,seq_repeat_esc
 
 ;********************************************
 seq_repeat_end:
-	ld	a,(ix + IDX_LOOP)
-	cp	$01
-	jr	z,seq_skip_rep_jmp
+	ld		a,(ix + IDX_LOOP)
+	cp		$01
+	jr		z,seq_skip_rep_jmp
 
-	or	a
-	jr	nz,seq_skip_set_repcnt_end
+	or		a
+	jr		nz,seq_skip_set_repcnt_end
 
-	ld	a,(hl)    ; read repeat counter
+	ld		a,(hl)    ; read repeat counter
 
 seq_skip_set_repcnt_end:
-	jr	seq_rep_jmp
+	jr		seq_rep_jmp
 
 ;********************************************
 seq_repeat_esc:
-	ld	a,(ix + IDX_LOOP)
-	cp	$01
-	jr	z,seq_rep_jmp
+	ld		a,(ix + IDX_LOOP)
+	cp		$01
+	jr		z,seq_rep_jmp
 
-	or	a
-	jr	nz,seq_skip_set_repcnt_esc
+	or		a
+	jr		nz,seq_skip_set_repcnt_esc
 
-	ld	a,(hl)      ; read repeat counter
+	ld		a,(hl)      ; read repeat counter
 
 seq_skip_set_repcnt_esc:
-	jr	seq_skip_rep_jmp
+	jr		seq_skip_rep_jmp
 
 seq_skip_rep_jmp:
-	inc	hl
-	dec	a
-	ld	(ix + IDX_LOOP),a
-	inc	hl  ; bank
-	inc	hl  ; addr l
-	inc	hl  ; addr h
-	jr	seq_next
+	inc		hl
+	dec		a
+	ld		(ix + IDX_LOOP),a
+	inc		hl  ; bank
+	inc		hl  ; addr l
+	inc		hl  ; addr h
+	jr		seq_next
 
 seq_rep_jmp:
-	inc	hl
-	dec	a
-	ld	(ix + IDX_LOOP),a
+	inc		hl
+	dec		a
+	ld		(ix + IDX_LOOP),a
 
-	ld	bc,seq_next
+	ld		bc,seq_next
 	push	bc
 	push	hl
 
 	; 謎…。
-	ld	hl,seq_bank ; go to address
-	jp	(hl)
+	ld		hl, seq_bank ; go to address
+	jp		(hl)
 
 ;********************************************
 moon_note_on:
-	jp 	opl4_note_on
+	jp		opl4_note_on
 
 ; Note command
 opl3_note_on:
 	push	hl
 	push	af
-	xor	a
+	xor		a
 	call	change_page3
-	pop	af
-	ld	(ix + IDX_NOTE),a
+	pop		af
+	ld		(ix + IDX_NOTE),a
 	call 	moon_set_fmnote
-	jr	set_note_fin
+	jr		set_note_fin
 
 opl4_note_on:
 	push	hl
 	push	af
-	xor	a
+	xor		a
 	call	change_page3
-	pop	af
+	pop		af
 	call	conv_data_to_midi
-	ld	(ix + IDX_NOTE),a
+	ld		(ix + IDX_NOTE),a
 	call	moon_set_midinote
 
 set_note_fin:
@@ -1081,200 +1081,200 @@ set_note_fin:
 	pop		hl
 
 	; カウントを読む
-	ld	a, (hl)
-	ld	(ix + IDX_CNT), a
-	inc	hl
-	jr	seq_next
+	ld		a, (hl)
+	ld		(ix + IDX_CNT), a
+	inc		hl
+	jr		seq_next
 
 
 read_cmd_length:
 	; 戻るアドレスを破棄
-	pop	af
-	ld	a, (hl)
-	ld	(ix + IDX_CNT),a
-	inc	hl
-	jr	seq_next
+	pop		af
+	ld		a, (hl)
+	ld		(ix + IDX_CNT),a
+	inc		hl
+	jr		seq_next
 
 
 opl4_jumptable:
-	dw	seq_nop								; $e0 : Set drum note
-	dw	seq_nop								; $e1 : Set drum bits
-	dw	seq_jump							; $e2 :
-	dw	seq_fbs								; $e3 : Set FBS
-	dw	seq_tvp								; $e4 : Set TVP
-	dw	seq_ld2ops_opl4				; $e5 : Load 2OP Instrument
-	dw	seq_setop							; $e6 : Set opbase
-	dw	seq_nop								; $e7 : Pitch shift
-	dw	seq_nop								; $e8 :
-	dw	seq_slar	 						; $e9 : Slar switch
-	dw	seq_revbsw 						; $ea : Reverb switch / VolumeOP
-	dw	seq_damp_opl4					; $eb : Damp switch / OPMODE
-	dw	seq_nop								; $ec : LFO freq
-	dw	seq_nop								; $ed : LFO mode
-	dw	seq_bank							; $ee : Bank change
-	dw	seq_lfosw							; $ef : Mode change
-	dw	seq_pan								; $f0 : Set Pan
-	dw	seq_inst_opl4					; $f1 : Load Instrument
-	dw	seq_drum							; $f2 : Set Drum
-	dw	seq_nop								; $f3 :
-	dw	seq_wait							; $f4 : Wait
-	dw	seq_skip_3 						; $f5 : Data Write
-	dw	seq_nop								; $f6
-	dw	seq_nenv							; $f7 : Note envelope
-	dw	seq_penv	 						; $f8 : Pitch envelope
-	dw	seq_skip_1						; $f9
-	dw	seq_detune						; $fa : Detune
-	dw	seq_nop								; $fb : LFO
-	dw	seq_rest							; $fc : Rest
-	dw	seq_volume						; $fd : Volume
-	dw	seq_skip_1						; $fe : Not used
-	dw	seq_loop							; $ff : Loop
+	dw		seq_nop								; $e0 : Set drum note
+	dw		seq_nop								; $e1 : Set drum bits
+	dw		seq_jump							; $e2 :
+	dw		seq_fbs								; $e3 : Set FBS
+	dw		seq_tvp								; $e4 : Set TVP
+	dw		seq_ld2ops_opl4				; $e5 : Load 2OP Instrument
+	dw		seq_setop							; $e6 : Set opbase
+	dw		seq_nop								; $e7 : Pitch shift
+	dw		seq_nop								; $e8 :
+	dw		seq_slar	 						; $e9 : Slar switch
+	dw		seq_revbsw 						; $ea : Reverb switch / VolumeOP
+	dw		seq_damp_opl4					; $eb : Damp switch / OPMODE
+	dw		seq_nop								; $ec : LFO freq
+	dw		seq_nop								; $ed : LFO mode
+	dw		seq_bank							; $ee : Bank change
+	dw		seq_lfosw							; $ef : Mode change
+	dw		seq_pan								; $f0 : Set Pan
+	dw		seq_inst_opl4					; $f1 : Load Instrument
+	dw		seq_drum							; $f2 : Set Drum
+	dw		seq_nop								; $f3 :
+	dw		seq_wait							; $f4 : Wait
+	dw		seq_skip_3 						; $f5 : Data Write
+	dw		seq_nop								; $f6
+	dw		seq_nenv							; $f7 : Note envelope
+	dw		seq_penv	 						; $f8 : Pitch envelope
+	dw		seq_skip_1						; $f9
+	dw		seq_detune						; $fa : Detune
+	dw		seq_nop								; $fb : LFO
+	dw		seq_rest							; $fc : Rest
+	dw		seq_volume						; $fd : Volume
+	dw		seq_skip_1						; $fe : Not used
+	dw		seq_loop							; $ff : Loop
 
 opl3_jumptable:
-	dw	seq_drumnote					; $e0 : Set drum note
-	dw	seq_drumbit 					; $e1 : Set drum bits
-	dw	seq_jump							; $e2 :
-	dw	seq_fbs								; $e3 : Set FBS
-	dw	seq_tvp								; $e4 : Set TVP
-	dw	seq_ld2ops_opl3				; $e5 : Load 2OP Instrument
-	dw	seq_setop							; $e6 : Set opbase
-	dw	seq_nop								; $e7 : Pitch shift
-	dw	seq_nop								; $e8 :
-	dw	seq_slar							; $e9 : Slar switch
-	dw	seq_revbsw 						; $ea : Reverb switch / VolumeOP
-	dw	seq_damp_opl3	 				; $eb : Damp switch / OPMODE
-	dw	seq_nop								; $ec : LFO freq
-	dw	seq_nop								; $ed : LFO mode
-	dw	seq_bank							; $ee : Bank change
-	dw	seq_lfosw							; $ef : Mode change
-	dw	seq_pan_opl3					; $f0 : Set Pan
-	dw	seq_inst_opl3					; $f1 : Load Instrument (4OP)
-	dw	seq_drum							; $f2 : Set Drum
-	dw	seq_nop								; $f3 :
-	dw	seq_wait							; $f4 : Wait
-	dw	seq_data_write_opl3		; $f5 : Data Write
-	dw	seq_nop								; $f6
-	dw	seq_nenv							; $f7 : Note	envelope
-	dw	seq_penv							; $f8 : Pitch envelope
-	dw	seq_skip_1						; $f9
-	dw	seq_detune						; $fa : Detune
-	dw	seq_nop								; $fb : LFO
-	dw	seq_rest							; $fc : Rest
-	dw	seq_volume						; $fd : Volume
-	dw	seq_skip_1						; $fe : Not used
-	dw	seq_loop							; $ff : Loop
+	dw		seq_drumnote					; $e0 : Set drum note
+	dw		seq_drumbit 					; $e1 : Set drum bits
+	dw		seq_jump							; $e2 :
+	dw		seq_fbs								; $e3 : Set FBS
+	dw		seq_tvp								; $e4 : Set TVP
+	dw		seq_ld2ops_opl3				; $e5 : Load 2OP Instrument
+	dw		seq_setop							; $e6 : Set opbase
+	dw		seq_nop								; $e7 : Pitch shift
+	dw		seq_nop								; $e8 :
+	dw		seq_slar							; $e9 : Slar switch
+	dw		seq_revbsw 						; $ea : Reverb switch / VolumeOP
+	dw		seq_damp_opl3	 				; $eb : Damp switch / OPMODE
+	dw		seq_nop								; $ec : LFO freq
+	dw		seq_nop								; $ed : LFO mode
+	dw		seq_bank							; $ee : Bank change
+	dw		seq_lfosw							; $ef : Mode change
+	dw		seq_pan_opl3					; $f0 : Set Pan
+	dw		seq_inst_opl3					; $f1 : Load Instrument (4OP)
+	dw		seq_drum							; $f2 : Set Drum
+	dw		seq_nop								; $f3 :
+	dw		seq_wait							; $f4 : Wait
+	dw		seq_data_write_opl3		; $f5 : Data Write
+	dw		seq_nop								; $f6
+	dw		seq_nenv							; $f7 : Note	envelope
+	dw		seq_penv							; $f8 : Pitch envelope
+	dw		seq_skip_1						; $f9
+	dw		seq_detune						; $fa : Detune
+	dw		seq_nop								; $fb : LFO
+	dw		seq_rest							; $fc : Rest
+	dw		seq_volume						; $fd : Volume
+	dw		seq_skip_1						; $fe : Not used
+	dw		seq_loop							; $ff : Loop
 
 psg_jumptable:
-	dw	seq_nop								; $e0 : Set drum note
-	dw	seq_nop 							; $e1 : Set drum bits
-	dw	seq_jump							; $e2 :
-	dw	seq_nop								; $e3 : Set FBS
-	dw	seq_nop								; $e4 : Set TVP
-	dw	seq_nop								; $e5 : Load 2OP Instrument
-	dw	seq_nop								; $e6 : Set opbase
-	dw	seq_nop								; $e7 : Pitch shift
-	dw	seq_nop								; $e8 :
-	dw	seq_slar							; $e9 : Slar switch
-	dw	seq_nop 							; $ea : Reverb switch / VolumeOP
-	dw	seq_nop				 				; $eb : Damp switch / OPMODE
-	dw	seq_nop								; $ec : LFO freq
-	dw	seq_nop								; $ed : LFO mode
-	dw	seq_bank							; $ee : Bank change
-	dw	seq_nop								; $ef : Mode change
-	dw	seq_pan								; $f0 : Set Pan
-	dw	seq_nop								; $f1 : Load Instrument
-	dw	seq_drum							; $f2 : Set Drum
-	dw	seq_nop								; $f3 :
-	dw	seq_wait							; $f4 : Wait
-	dw	seq_skip_3						; $f5 : Data Write
-	dw	seq_nop								; $f6
-	dw	seq_nenv							; $f7 : Note	envelope
-	dw	seq_penv							; $f8 : Pitch envelope
-	dw	seq_skip_1						; $f9
-	dw	seq_detune						; $fa : Detune
-	dw	seq_nop								; $fb : LFO
-	dw	seq_rest							; $fc : Rest
-	dw	seq_volume						; $fd : Volume
-	dw	seq_skip_1						; $fe : Not used
-	dw	seq_loop							; $ff : Loop
+	dw		seq_nop								; $e0 : Set drum note
+	dw		seq_nop 							; $e1 : Set drum bits
+	dw		seq_jump							; $e2 :
+	dw		seq_nop								; $e3 : Set FBS
+	dw		seq_nop								; $e4 : Set TVP
+	dw		seq_nop								; $e5 : Load 2OP Instrument
+	dw		seq_nop								; $e6 : Set opbase
+	dw		seq_nop								; $e7 : Pitch shift
+	dw		seq_nop								; $e8 :
+	dw		seq_slar							; $e9 : Slar switch
+	dw		seq_nop 							; $ea : Reverb switch / VolumeOP
+	dw		seq_nop				 				; $eb : Damp switch / OPMODE
+	dw		seq_nop								; $ec : LFO freq
+	dw		seq_nop								; $ed : LFO mode
+	dw		seq_bank							; $ee : Bank change
+	dw		seq_nop								; $ef : Mode change
+	dw		seq_pan								; $f0 : Set Pan
+	dw		seq_nop								; $f1 : Load Instrument
+	dw		seq_drum							; $f2 : Set Drum
+	dw		seq_nop								; $f3 :
+	dw		seq_wait							; $f4 : Wait
+	dw		seq_skip_3						; $f5 : Data Write
+	dw		seq_nop								; $f6
+	dw		seq_nenv							; $f7 : Note	envelope
+	dw		seq_penv							; $f8 : Pitch envelope
+	dw		seq_skip_1						; $f9
+	dw		seq_detune						; $fa : Detune
+	dw		seq_nop								; $fb : LFO
+	dw		seq_rest							; $fc : Rest
+	dw		seq_volume						; $fd : Volume
+	dw		seq_skip_1						; $fe : Not used
+	dw		seq_loop							; $ff : Loop
 
 ;********************************************
 ; Volume envelope stuff
 ;
 start_venv:
-	ld	a,(ix + IDX_VENV)
-	cp	$ff
-	ret	z
+	ld		a,(ix + IDX_VENV)
+	cp		$ff
+	ret		z
 
 	call	set_venv_head
-	jr	proc_venv_start
+	jr		proc_venv_start
 
 proc_venv:
-	ld	a,(ix + IDX_VENV)
-	cp	$ff
-	ret	z
+	ld		a,(ix + IDX_VENV)
+	cp		$ff
+	ret		z
 
 proc_venv_start:
-	ld	l,(ix + IDX_VENV_ADR)
-	ld	h,(ix + IDX_VENV_ADR + 1)
-	ld	a,l
-	or	h
-	ret	z
+	ld		l,(ix + IDX_VENV_ADR)
+	ld		h,(ix + IDX_VENV_ADR + 1)
+	ld		a,l
+	or		h
+	ret		z
 
 	call	read_effect_value
-	cp	$ff
-	jr	z,proc_venv_end
-	inc	hl
-	ld	(ix + IDX_VENV_ADR),l
-	ld	(ix + IDX_VENV_ADR + 1),h
+	cp		$ff
+	jr		z,proc_venv_end
+	inc		hl
+	ld		(ix + IDX_VENV_ADR),l
+	ld		(ix + IDX_VENV_ADR + 1),h
 
-	ld	(ix + IDX_VOL),a
+	ld		(ix + IDX_VOL),a
 	ret
 
 
 proc_venv_end:
-	jp	set_venv_loop
+	jp		set_venv_loop
 
 ;********************************************
 ; Set venv's volume to register actually
 ;
 proc_venv_reg:
-	ld	a,(ix + IDX_VENV)
-	cp	$ff
-	ret	z
-	jp	moon_set_vol_ch
+	ld		a,(ix + IDX_VENV)
+	cp		$ff
+	ret		z
+	jp		moon_set_vol_ch
 
 
 ;********************************************
 ; Pitch envelope stuff
 ;
 start_penv:
-	ld	a,(ix + IDX_PENV)
-	cp	$ff
-	ret	z
+	ld		a,(ix + IDX_PENV)
+	cp		$ff
+	ret		z
 
 	call	set_penv_head
-	jr	proc_penv_start
+	jr		proc_penv_start
 
 
 proc_penv:
-	ld	a,(ix + IDX_PENV)
-	cp	$ff
-	ret	z
+	ld		a,(ix + IDX_PENV)
+	cp		$ff
+	ret		z
 proc_penv_start:
-	ld	l,(ix + IDX_PENV_ADR)
-	ld	h,(ix + IDX_PENV_ADR + 1)
+	ld		l,(ix + IDX_PENV_ADR)
+	ld		h,(ix + IDX_PENV_ADR + 1)
 
 	call	read_effect_value
-	cp	$ff
-	jr	z,proc_penv_end
+	cp		$ff
+	jr		z,proc_penv_end
 
-	inc	hl
-	ld	(ix + IDX_PENV_ADR),l
-	ld	(ix + IDX_PENV_ADR + 1),h
+	inc		hl
+	ld		(ix + IDX_PENV_ADR),l
+	ld		(ix + IDX_PENV_ADR + 1),h
 
 proc_penv_body:
-	jp	proc_penv_opl4
+	jp		proc_penv_opl4
 
 proc_penv_opl4:
 	ld		l, (ix + IDX_PITCH)
@@ -1283,10 +1283,10 @@ proc_penv_opl4:
 	ld		(ix + IDX_PITCH), l
 	ld		(ix + IDX_PITCH+1), h
 
-	jp	moon_calc_opl4freq
+	jp		moon_calc_opl4freq
 
 proc_penv_end:
-	jp	set_penv_loop
+	jp		set_penv_loop
 
 
 proc_penv_opl3:
@@ -1309,30 +1309,30 @@ proc_penv_opl3:
 	jr		z, penv_opl3_inc_oct
 
 penv_opl3_set_fnum:
-	ld	(ix + IDX_FNUM), l
-	ld	(ix + IDX_FNUM+1), h
-	jp	moon_key_fmfreq
+	ld		(ix + IDX_FNUM), l
+	ld		(ix + IDX_FNUM+1), h
+	jp		moon_key_fmfreq
 
 
 penv_opl3_dec_oct:
 	; hl < de
-	dec	(ix + IDX_OCT)
-	add	hl,de
+	dec		(ix + IDX_OCT)
+	add		hl, de
 	call	comp_hl_de
-	jr	c,penv_opl3_dec_oct
+	jr		c, penv_opl3_dec_oct
 
-	jr	penv_opl3_set_fnum
+	jr		penv_opl3_set_fnum
 
 penv_opl3_inc_oct:
 	; hl > de
-	ld	bc,346
+	ld		bc, 346
 penv_opl3_inc_oct_lp:
-	inc	(ix + IDX_OCT)
-	xor	a
-	sbc	hl,bc
+	inc		(ix + IDX_OCT)
+	xor		a
+	sbc		hl, bc
 	call	comp_hl_de
-	jr	nc,penv_opl3_inc_oct_lp
-	jr	penv_opl3_set_fnum
+	jr		nc, penv_opl3_inc_oct_lp
+	jr		penv_opl3_set_fnum
 
 
 ;********************************************
@@ -1342,47 +1342,47 @@ penv_opl3_inc_oct_lp:
 ; out  : C = (HL < DE), NC = (HL > DE), Z = (HL == DE)
 ; dest : AF
 comp_hl_de:
-	ld	a,h
-	cp	d
-	ret	nz
-	ld	a,l
-	cp	e
+	ld		a,h
+	cp		d
+	ret		nz
+	ld		a,l
+	cp		e
 	ret
 
 ;********************************************
 ; Note envelope stuff
 ;
 start_nenv:
-	ld	a,(ix + IDX_NENV)
-	cp	$ff
-	ret	z
+	ld		a,(ix + IDX_NENV)
+	cp		$ff
+	ret		z
 
 	call	set_nenv_head
-	jr	proc_nenv_start
+	jr		proc_nenv_start
 
 proc_nenv:
-	ld	a,(ix + IDX_NENV)
-	cp	$ff
-	ret	z
+	ld		a,(ix + IDX_NENV)
+	cp		$ff
+	ret		z
 
 proc_nenv_start:
-	ld	l, (ix + IDX_NENV_ADR)
-	ld	h, (ix + IDX_NENV_ADR + 1)
+	ld		l, (ix + IDX_NENV_ADR)
+	ld		h, (ix + IDX_NENV_ADR + 1)
 
 	call	read_effect_value
-	cp	$ff
-	jp	z, set_nenv_loop
+	cp		$ff
+	jp		z, set_nenv_loop
 
-	inc	hl
-	ld	(ix + IDX_NENV_ADR), l
-	ld	(ix + IDX_NENV_ADR + 1), h
+	inc		hl
+	ld		(ix + IDX_NENV_ADR), l
+	ld		(ix + IDX_NENV_ADR + 1), h
 
 proc_nenv_body:
-	jp	proc_nenv_opl4
+	jp		proc_nenv_opl4
 
 proc_nenv_opl4:
-	bit	7, a
-	jr	nz, proc_nenv_nega_opl4
+	bit		7, a
+	jr		nz, proc_nenv_nega_opl4
 
 	add		a, (ix + IDX_NOTE)
 	ld		(ix + IDX_NOTE), a
@@ -1392,11 +1392,11 @@ proc_nenv_opl4_setnote:
 	jp		moon_calc_opl4freq
 
 proc_nenv_nega_opl4:
-	and	$7f
-	ld	e, a
-	ld	a, (ix + IDX_NOTE)
-	sub	e
-	ld	(ix + IDX_NOTE), a
+	and		$7f
+	ld		e, a
+	ld		a, (ix + IDX_NOTE)
+	sub		e
+	ld		(ix + IDX_NOTE), a
 	jr		proc_nenv_opl4_setnote
 
 proc_nenv_opl3:
@@ -1411,64 +1411,64 @@ proc_nenv_opl3_lp1:
 	inc		b
 	jr		proc_nenv_opl3_lp1
 proc_nenv_opl3_add:
-	ld	c, a ; C = (note % 12)
-	ld	a, (ix + IDX_NOTE)
-	and	$0f
-	add	a, c
-	cp	$0c
-	jr	c, skip_nenv_opl3_inc_oct
-	add	a, $04
-	and	$0f
-	inc	b
+	ld		c, a ; C = (note % 12)
+	ld		a, (ix + IDX_NOTE)
+	and		$0f
+	add		a, c
+	cp		$0c
+	jr		c, skip_nenv_opl3_inc_oct
+	add		a, $04
+	and		$0f
+	inc		b
 skip_nenv_opl3_inc_oct:
-	ld	c, a ; C = (note & 0x0f)
-	ld	a, b ; B = oct
+	ld		c, a ; C = (note & 0x0f)
+	ld		a, b ; B = oct
 	rlca
 	rlca
 	rlca
 	rlca
-	ld	b, a
-	ld	a, (ix + IDX_NOTE)
-	and	$f0
-	add	a, b
-	or	c
-	ld	(ix + IDX_NOTE), a
+	ld		b, a
+	ld		a, (ix + IDX_NOTE)
+	and		$f0
+	add		a, b
+	or		c
+	ld		(ix + IDX_NOTE), a
 	call	moon_set_fmnote
-	jp	moon_key_fmfreq
+	jp		moon_key_fmfreq
 
 proc_nenv_opl3_nega:
-	and	$7f
+	and		$7f
 
 proc_nenv_opl3_nega_lp1:
-	cp	$0c
-	jr	c,proc_nenv_opl3_sub
-	sub	$0c
-	inc	b
-	jr	proc_nenv_opl3_nega_lp1
+	cp		$0c
+	jr		c,proc_nenv_opl3_sub
+	sub		$0c
+	inc		b
+	jr		proc_nenv_opl3_nega_lp1
 proc_nenv_opl3_sub:
-	ld	c, a ; C = (note % 12)
-	ld	a,(ix + IDX_NOTE)
-	and	$0f
-	sub	c
-	jr	nc,skip_nenv_dec_oct
-	sub	$04
-	and	$0f
-	inc	b
+	ld		c, a ; C = (note % 12)
+	ld		a,(ix + IDX_NOTE)
+	and		$0f
+	sub		c
+	jr		nc,skip_nenv_dec_oct
+	sub		$04
+	and		$0f
+	inc		b
 skip_nenv_dec_oct:
-	ld	c,a ; C = (note & 0x0f)
-	ld	a,b ; B = oct
+	ld		c,a ; C = (note & 0x0f)
+	ld		a,b ; B = oct
 	rlca
 	rlca
 	rlca
 	rlca
-	ld	b,a
-	ld	a,(ix + IDX_NOTE)
-	and	$f0
-	sub	b
-	or	c
-	ld	(ix + IDX_NOTE),a
+	ld		b,a
+	ld		a,(ix + IDX_NOTE)
+	and		$f0
+	sub		b
+	or		c
+	ld		(ix + IDX_NOTE),a
 	call	moon_set_fmnote
-	jp	moon_key_fmfreq
+	jp		moon_key_fmfreq
 
 
 
@@ -1476,15 +1476,15 @@ skip_nenv_dec_oct:
 ;Set frequency to registers actually
 ;
 proc_freq_reg:
-	ld	a,(ix + IDX_PENV)
-	cp	$ff
-	jr	nz,proc_freq_to_moon
-	ld	a,(ix + IDX_NENV)
-	cp	$ff
-	jr	nz,proc_freq_to_moon
+	ld		a,(ix + IDX_PENV)
+	cp		$ff
+	jr		nz,proc_freq_to_moon
+	ld		a,(ix + IDX_NENV)
+	cp		$ff
+	jr		nz,proc_freq_to_moon
 	ret
 proc_freq_to_moon:
-	jp	moon_set_freq_ch
+	jp		moon_set_freq_ch
 
 
 
@@ -1494,46 +1494,46 @@ proc_freq_to_moon:
 
 ; No Program
 seq_nop:
-	pop	hl
+	pop		hl
 	ret
 
 ; Skip 1 argument
 seq_skip_1:
-	pop	hl
-	inc	hl
+	pop		hl
+	inc		hl
 	ret
 
 ; Skip 2 arguments
 seq_skip_2:
-	pop	hl
-	inc	hl
-	inc	hl
+	pop		hl
+	inc		hl
+	inc		hl
 	ret
 
 ; Skip 3 arguments
 seq_skip_3:
-	pop	hl
-	inc	hl
-	inc	hl
+	pop		hl
+	inc		hl
+	inc		hl
 	ret
 
 ; cmd $FF : loop point
 seq_loop:
-	pop	hl
-	xor	a
+	pop		hl
+	xor		a
 	call	change_page3
 
-	ld	hl, S_LOOP_TABLE
+	ld		hl, S_LOOP_TABLE
 	call	get_hl_table
 
 	push	hl
 
-	ld	hl, S_LOOP_BANK
+	ld		hl, S_LOOP_BANK
 	call	get_a_table
-	ld	(ix + IDX_BANK),a
+	ld		(ix + IDX_BANK),a
 	call	change_page3
 
-	pop	hl
+	pop		hl
 
 
 	ret
@@ -1541,30 +1541,30 @@ seq_loop:
 
 ; cmd $FD : volume
 seq_volume:
-	pop	hl
+	pop		hl
 
-	ld	a,(hl)
-	ld	(ix + IDX_VENV),a
+	ld		a,(hl)
+	ld		(ix + IDX_VENV),a
 
-	bit	7,a
-	jr	z,seq_venv
-	and	$7f
+	bit		7,a
+	jr		z,seq_venv
+	and		$7f
 
-	ld	(ix + IDX_VOL),a
+	ld		(ix + IDX_VOL),a
 
-	ld	a, $ff
-	ld	(ix + IDX_VENV),a  ; venv = off
+	ld		a, $ff
+	ld		(ix + IDX_VENV),a  ; venv = off
 
 	call	moon_set_vol_ch
 
-	inc	hl
+	inc		hl
 	ret
 
 seq_venv:
 
 	call	set_venv_head
 
-	inc	hl
+	inc		hl
 	ret
 
 ; cmd $FC : rest
@@ -1575,35 +1575,35 @@ seq_rest:
 
 ; cmd $FA : detune
 seq_detune:
-	pop	hl
+	pop		hl
 
-	ld	a,(hl)
-	ld	(ix + IDX_DETUNE),a
-	inc	hl
+	ld		a,(hl)
+	ld		(ix + IDX_DETUNE),a
+	inc		hl
 	ret
 
 ; cmd $F8 : pitch env
 seq_penv:
-	pop	hl
+	pop		hl
 
-	ld	a, (hl)
-	inc	hl
+	ld		a, (hl)
+	inc		hl
 
-	ld	(ix + IDX_PENV),a
-	cp	$ff
+	ld		(ix + IDX_PENV),a
+	cp		$ff
 	call	nz,set_penv_head
 
 	ret
 
 ; cmd $F7 : note env
 seq_nenv:
-	pop	hl
+	pop		hl
 
-	ld	a, (hl)
-	inc	hl
+	ld		a, (hl)
+	inc		hl
 
-	ld	(ix + IDX_NENV), a
-	cp	$ff
+	ld		(ix + IDX_NENV), a
+	cp		$ff
 	call	nz,set_nenv_head
 
 	ret
@@ -1612,92 +1612,92 @@ seq_nenv:
 ; cmd $F5 : data_write
 ; in: low, high, data
 seq_data_write_opl3:
-	pop	hl
-	ld	a, (hl)
-	ld	d, a ; Address Low
-	inc	hl
-	ld	a, (hl) ; Address High
-	or	a
-	jr	z, write_data_cur_fm ; (a >> 8) == 0
-	dec a
-	jr	z, write_data_fm1 ; (a >> 8) == 1
-	dec a
-	jr	z, write_data_fm2 ; (a >> 8) == 2
-	inc	hl
+	pop		hl
+	ld		a, (hl)
+	ld		d, a ; Address Low
+	inc		hl
+	ld		a, (hl) ; Address High
+	or		a
+	jr		z, write_data_cur_fm ; (a >> 8) == 0
+	dec		a
+	jr		z, write_data_fm1 ; (a >> 8) == 1
+	dec		a
+	jr		z, write_data_fm2 ; (a >> 8) == 2
+	inc		hl
 	ret
 
 write_data_cur_fm:
-	inc	hl
-	ld	a, (hl)
-	ld	e, a ; Data
-	inc	hl
+	inc		hl
+	ld		a, (hl)
+	ld		e, a ; Data
+	inc		hl
 
 	; チャンネルによって振り分ける
-	ld	a, (seq_dev_ch)
-	cp	$9
-	jp	c, moon_fm1_out
-	jp	moon_fm2_out
+	ld		a, (seq_dev_ch)
+	cp		$9
+	jp		c, moon_fm1_out
+	jp		moon_fm2_out
 
 write_data_fm1:
-	inc	hl
-	ld	a, (hl)
-	ld	e, a ; Data
-	inc	hl
-	jp	moon_fm1_out
+	inc		hl
+	ld		a, (hl)
+	ld		e, a ; Data
+	inc		hl
+	jp		moon_fm1_out
 
 write_data_fm2:
-	inc	hl
-	ld	a, (hl)
-	ld	e, a ; Data
-	inc	hl
-	jp	moon_fm2_out
+	inc		hl
+	ld		a, (hl)
+	ld		e, a ; Data
+	inc		hl
+	jp		moon_fm2_out
 
 ; cmd $F4 : wait
 seq_wait:
-	pop	hl
-	jp	read_cmd_length
+	pop		hl
+	jp		read_cmd_length
 
 ; cmd $F2 : drum
 seq_drum:
-	pop	hl
-	ld	a, (hl)
-	and	$1f
-	ld	e, a
-	ld	a, (seq_reg_bd)
-	and	$e0
-	or	e
-	ld	(seq_reg_bd), a
-	ld	e, a
-	ld	d, $bd
+	pop		hl
+	ld		a, (hl)
+	and		$1f
+	ld		e, a
+	ld		a, (seq_reg_bd)
+	and		$e0
+	or		e
+	ld		(seq_reg_bd), a
+	ld		e, a
+	ld		d, $bd
 	call	moon_fm1_out
-	inc	hl
+	inc		hl
 	ret
 
 ; cmd $E1 : drumbit
 seq_drumbit:
-	pop	hl
+	pop		hl
 
 	; drums key-off
-	ld	a, (hl)
-	and	$1f
-	xor	$ff
+	ld		a, (hl)
+	and		$1f
+	xor		$ff
 
 	; e = mask bits of drums
-	ld	e, a
-	ld	a, (seq_reg_bd)
-	and	e
-	ld	(seq_reg_bd), a
-	ld	e, a
-	ld	d, $bd
+	ld		e, a
+	ld		a, (seq_reg_bd)
+	and		e
+	ld		(seq_reg_bd), a
+	ld		e, a
+	ld		d, $bd
 	call	moon_fm1_out
 
 	; set fnum
 	push	hl
-	ld	a, (hl)
-	and	$1f
+	ld		a, (hl)
+	and		$1f
 
-	ld	c, $00
-	ld	b, $05
+	ld		c, $00
+	ld		b, $05
 
 	rlca
 	rlca
@@ -1707,48 +1707,48 @@ seq_drumbit:
 drumbit_fnum_lp:
 	rlca
 
-	jr	nc, drumbit_fnum_next
+	jr		nc, drumbit_fnum_next
 	push	af
 	push	bc
 	call	drumbit_set_fnum ; set Fnum for drums
-	pop	bc
-	pop	af
+	pop		bc
+	pop		af
 
 drumbit_fnum_next:
-	inc	c
+	inc		c
 	djnz	drumbit_fnum_lp
 
-	pop	hl
+	pop		hl
 
 	; skip if jump flag is true
-	ld	a, (seq_skip_flag)
-	or	a
-	jr	nz, drumbit_skip_keyon
+	ld		a, (seq_skip_flag)
+	or		a
+	jr		nz, drumbit_skip_keyon
 
 	; drums key-on
-	ld	a, (hl)
-	and	$1f
-	ld	e, a
-	ld	a, (seq_reg_bd)
-	and	$e0
-	or	e
-	ld	(seq_reg_bd), a
-	ld	e, a
-	ld	d, $bd
+	ld		a, (hl)
+	and		$1f
+	ld		e, a
+	ld		a, (seq_reg_bd)
+	and		$e0
+	or		e
+	ld		(seq_reg_bd), a
+	ld		e, a
+	ld		d, $bd
 	call	moon_fm1_out
 
 drumbit_skip_keyon:
 	; length check
-	ld	a, (hl)
-	and $80 ; Lxxxxxxx L = the command has length
-	jr	nz, drumbit_with_length
-	inc	hl
+	ld		a, (hl)
+	and		$80 ; Lxxxxxxx L = the command has length
+	jr		nz, drumbit_with_length
+	inc		hl
 	ret
 
 ; drumbit with length
 drumbit_with_length:
-	inc hl
-	jp	read_cmd_length
+	inc		hl
+	jp		read_cmd_length
 
 ;
 ; Set Fnum for drum
@@ -1756,58 +1756,58 @@ drumbit_with_length:
 ; dest : almost all
 drumbit_set_fnum:
 	; fnum
-	ld	hl, opl3_drum_fnum
-	ld	b, $00
-	add	hl, bc
-	add	hl, bc
-	ld	a, (hl)
-	ld	(seq_tmp_fnum), a
-	inc	hl
-	ld	a, (hl)
-	ld	(seq_tmp_fnum + 1), a
+	ld		hl, opl3_drum_fnum
+	ld		b, $00
+	add		hl, bc
+	add		hl, bc
+	ld		a, (hl)
+	ld		(seq_tmp_fnum), a
+	inc		hl
+	ld		a, (hl)
+	ld		(seq_tmp_fnum + 1), a
 
 	; oct
-	ld	hl, opl3_drum_oct
-	add	hl, bc
-	ld	a, (hl)
-	ld	(seq_tmp_oct), a
+	ld		hl, opl3_drum_oct
+	add		hl, bc
+	ld		a, (hl)
+	ld		(seq_tmp_oct), a
 
 	; ch
-	ld	hl, opl3_drum_fnum_map
-	add	hl, bc
-	ld	a, (hl)
-	ld	(seq_tmp_ch), a
+	ld		hl, opl3_drum_fnum_map
+	add		hl, bc
+	ld		a, (hl)
+	ld		(seq_tmp_ch), a
 
 	; write FnumL
 	call	moon_key_write_fmfreq_base
 
-	ld	e, a
-	ld	d, $b0
-	ld	a, (seq_tmp_ch)
+	ld		e, a
+	ld		d, $b0
+	ld		a, (seq_tmp_ch)
 
 	; write FnumH and BLK
-	jp	moon_write_fmreg_nch
+	jp		moon_write_fmreg_nch
 
 
 ; cmd $E0 : drum note
 seq_drumnote:
-	pop	hl
+	pop		hl
 
 	; set fnum
-	ld	a, (hl) ; drum bits
-	and	$1f
+	ld		a, (hl) ; drum bits
+	and		$1f
 
 	push	af
-	inc	hl
-	ld	a, (hl) ; note
-	ld	(seq_tmp_note), a
-	inc	hl
-	pop	af
+	inc		hl
+	ld		a, (hl) ; note
+	ld		(seq_tmp_note), a
+	inc		hl
+	pop		af
 
 	push	hl
 
-	ld	c, $00
-	ld	b, $05
+	ld		c, $00
+	ld		b, $05
 
 	rlca
 	rlca
@@ -1817,71 +1817,71 @@ seq_drumnote:
 drumnote_lp:
 	rlca
 
-	jr	nc, drumnote_next
+	jr		nc, drumnote_next
 	push	af
 	push	bc
 	call	drumnote_fnum ; set Fnum for drums
-	pop	bc
-	pop	af
+	pop		bc
+	pop		af
 
 drumnote_next:
-	inc c
+	inc		c
 	djnz	drumnote_lp
 
-	pop	hl
-	inc	hl
+	pop		hl
+	inc		hl
 	ret
 
 ; C = index
 ; dest: AF, BC, HL
 drumnote_fnum:
 	push	bc
-	ld	a, (seq_tmp_note)
+	ld		a, (seq_tmp_note)
 	call	moon_calc_opl3note
-	pop	bc
+	pop		bc
 
 	; oct
-	ld	b, $00
-	ld	hl, opl3_drum_oct
-	add	hl, bc
-	ld	a, (seq_tmp_oct)
-	ld	(hl), a
+	ld		b, $00
+	ld		hl, opl3_drum_oct
+	add		hl, bc
+	ld		a, (seq_tmp_oct)
+	ld		(hl), a
 
 	; fnum
-	ld	hl, opl3_drum_fnum
-	add	hl, bc
-	add	hl, bc
-	ld	a, (seq_tmp_fnum)
-	ld	(hl), a
-	inc	hl
-	ld	a, (seq_tmp_fnum + 1)
-	ld	(hl), a
+	ld		hl, opl3_drum_fnum
+	add		hl, bc
+	add		hl, bc
+	ld		a, (seq_tmp_fnum)
+	ld		(hl), a
+	inc		hl
+	ld		a, (seq_tmp_fnum + 1)
+	ld		(hl), a
 
 	ret
 
 
 ; cmd $F1 : Load instrument
 seq_inst_opl3:
-	pop	hl
-	ld	a, (hl)
+	pop		hl
+	ld		a, (hl)
 
 	push	af
-	xor	a
+	xor		a
 	call	change_page3
 
 	; Load OPL3 instrument
-	pop	af
+	pop		af
 	push	hl
-	ld	hl, S_OPL3_TABLE
+	ld		hl, S_OPL3_TABLE
 	call	get_table
 
-	ld	(ix + IDX_TADR), l
-	ld	(ix + IDX_TADR+1), h
+	ld		(ix + IDX_TADR), l
+	ld		(ix + IDX_TADR+1), h
 
 	; set tone to FM
 	call	moon_set_fmtone
 
-	jr	seq_inst_fin
+	jr		seq_inst_fin
 
 ; cmd $F1 : Load instrument
 seq_inst_opl4:
@@ -1910,7 +1910,7 @@ seq_inst_fin:
 ; cmd $F0 : pan
 seq_pan_opl3:
 	pop		hl
-	ld		a,(hl)
+	ld		a, (hl)
 	and		$0f
 	rlca
 	rlca
@@ -1932,31 +1932,31 @@ seq_pan_fin:
 
 ; cmd $EF : mode change
 seq_lfosw:
-	pop	hl
+	pop		hl
 
-	ld	a,(hl)
-	ld	(ix + IDX_LFO),a
-	inc	hl
+	ld		a, (hl)
+	ld		(ix + IDX_LFO),a
+	inc		hl
 	ret
 
 
 ; cmd $EE : change bank
 seq_bank:
-	pop	hl
+	pop		hl
 
-	ld	a,(hl) ; read number of bank
-	inc	hl
+	ld		a, (hl) ; read number of bank
+	inc		hl
 
 	push	af
 
-	ld	a,(hl) ; read address
-	inc	hl
-	ld	h,(hl)
-	ld	l,a
+	ld		a, (hl) ; read address
+	inc		hl
+	ld		h, (hl)
+	ld		l, a
 
-	pop	af
+	pop		af
 
-	ld	(ix + IDX_BANK),a
+	ld		(ix + IDX_BANK), a
 	call	change_page3
 	ret
 
@@ -1964,12 +1964,12 @@ seq_bank:
 seq_damp_opl3:
 	pop		hl
 
-	ld	a,(hl)
-	and	$3f
-	ld	e,a
-	ld	d,$04
+	ld		a, (hl)
+	and		$3f
+	ld		e, a
+	ld		d, $04
 	call	moon_fm2_out
-	jr	seq_damp_fin
+	jr		seq_damp_fin
 
 seq_damp_opl4:
 	pop		hl
@@ -1982,25 +1982,25 @@ seq_damp_fin:
 
 ; cmd $EA : reverb sw / VolumeOP
 seq_revbsw:
-	pop	hl
-	ld	a,(hl)
-	ld	(ix + IDX_REVERB),a
-	inc	hl
+	pop		hl
+	ld		a, (hl)
+	ld		(ix + IDX_REVERB),a
+	inc		hl
 	ret
 
 ; cmd $E9 : slar sw
 seq_slar:
-	pop	hl
-	set	0,(ix + IDX_EFX1)
+	pop		hl
+	set		0, (ix + IDX_EFX1)
 	ret
 
 
 ; cmd $E6 : set opbase
 seq_setop:
-	pop	hl
-	ld	a, (hl)
-	ld	(ix + IDX_OPSEL), a
-	inc	hl
+	pop		hl
+	ld		a, (hl)
+	ld		(ix + IDX_OPSEL), a
+	inc		hl
 	ret
 
 ; cmd $E5 : load 2ops
@@ -2012,19 +2012,19 @@ seq_ld2ops_opl4:
 seq_ld2ops_opl3:
 	pop		hl
 
-	ld	a,(hl)
+	ld		a,(hl)
 
 	push	af
-	xor	a
+	xor		a
 	call	change_page3
-	pop	af
+	pop		af
 
 	push	hl
-	ld	hl, S_OPL3_TABLE
+	ld		hl, S_OPL3_TABLE
 	call	get_table
 
-	ld	(ix + IDX_TADR), l
-	ld	(ix + IDX_TADR+1), h
+	ld		(ix + IDX_TADR), l
+	ld		(ix + IDX_TADR+1), h
 
 	; Set 2OP tone to FM
 	call	moon_set_fmtone2
@@ -2037,46 +2037,46 @@ seq_ld2ops_opl3:
 
 ; cmd $E4 : tvp
 seq_tvp:
-	pop	hl
-	ld	a, (hl)
-	and	$07
+	pop		hl
+	ld		a, (hl)
+	and		$07
 	rrca
 	rrca
 	rrca
-	ld	e, a
-	ld	a, (seq_reg_bd)
-	and	$1f
-	or	e
+	ld		e, a
+	ld		a, (seq_reg_bd)
+	and		$1f
+	or		e
 
-	ld	(seq_reg_bd), a
-	ld	e, a
-	ld	d, $bd
+	ld		(seq_reg_bd), a
+	ld		e, a
+	ld		d, $bd
 	call	moon_fm1_out
 
-	inc	hl
+	inc		hl
 	ret
 
 ; cmd $E3 : fb
 seq_fbs:
-	pop	hl
-	ld	a, (hl)
-	and	$7
+	pop		hl
+	ld		a, (hl)
+	and		$7
 	rlca
 	rlca
-	ld	e, a
-	ld	a,(ix + IDX_SYNTH)
-	and	$e3
-	or	e
-	ld	(ix + IDX_SYNTH),a
-	inc	hl
+	ld		e, a
+	ld		a,(ix + IDX_SYNTH)
+	and		$e3
+	or		e
+	ld		(ix + IDX_SYNTH),a
+	inc		hl
 	ret
 
 ; cmd $E2 : set jump flag
 seq_jump:
-	pop	hl
-	ld	a, (hl)
-	ld (seq_skip_flag), a
-	inc	hl
+	pop		hl
+	ld		a, (hl)
+	ld		(seq_skip_flag), a
+	inc		hl
 	ret
 
 
@@ -2084,9 +2084,9 @@ seq_jump:
 ; pause_venv
 ; dest : AF
 pause_venv:
-	xor	a
-	ld	(ix + IDX_VENV_ADR), a
-	ld	(ix + IDX_VENV_ADR+1), a
+	xor		a
+	ld		(ix + IDX_VENV_ADR), a
+	ld		(ix + IDX_VENV_ADR+1), a
 	ret
 
 ;********************************************
@@ -2098,19 +2098,19 @@ pause_venv:
 ; dest : AF
 read_effect_table:
 	push	ix
-	add	ix, de
+	add		ix, de
 
 	push	af
-	xor	a
+	xor		a
 	call	change_page3
-	pop	af
+	pop		af
 
 	call	get_table
 
-	ld	(ix), l
-	ld	(ix+1), h
+	ld		(ix), l
+	ld		(ix+1), h
 
-	pop	ix
+	pop		ix
 	call	set_page3_ch
 	ret
 
@@ -2120,21 +2120,21 @@ read_effect_table:
 ; dest : AF,DE
 set_venv_loop:
 	push	hl
-	ld	hl, S_VENV_LOOP
-	jr	set_venv_hl
+	ld		hl, S_VENV_LOOP
+	jr		set_venv_hl
 
 ;********************************************
 ; set_venv_head
 ; dest : AF,DE
 set_venv_head:
 	push	hl
-	ld	hl, S_VENV_TABLE
+	ld		hl, S_VENV_TABLE
 set_venv_hl:
-	ld	de, IDX_VENV_ADR
-	ld	a, (ix + IDX_VENV)
-	and	$7f
+	ld		de, IDX_VENV_ADR
+	ld		a, (ix + IDX_VENV)
+	and		$7f
 	call	read_effect_table
-	pop	hl
+	pop		hl
 	ret
 
 
@@ -2143,20 +2143,20 @@ set_venv_hl:
 ; dest : AF, DE
 set_penv_loop:
 	push	hl
-	ld	hl, S_PENV_LOOP
-	jr	set_penv_hl
+	ld		hl, S_PENV_LOOP
+	jr		set_penv_hl
 
 ;********************************************
 ; set_penv_head
 ; dest : AF, DE
 set_penv_head:
 	push	hl
-	ld	hl, S_PENV_TABLE
+	ld		hl, S_PENV_TABLE
 set_penv_hl:
-	ld	de, IDX_PENV_ADR
-	ld	a, (ix + IDX_PENV)
+	ld		de, IDX_PENV_ADR
+	ld		a, (ix + IDX_PENV)
 	call	read_effect_table
-	pop	hl
+	pop		hl
 	ret
 
 ;********************************************
@@ -2164,22 +2164,21 @@ set_penv_hl:
 ; dest : AF, DE
 set_nenv_loop:
 	push	hl
-	ld	hl, S_NENV_LOOP
-	jr	set_nenv_hl
+	ld		hl, S_NENV_LOOP
+	jr		set_nenv_hl
 
 ;********************************************
 ; set_nenv_head
 ; dest : AF, DE
 set_nenv_head:
 	push	hl
-	ld	hl, S_NENV_TABLE
+	ld		hl, S_NENV_TABLE
 set_nenv_hl:
-	ld	de, IDX_NENV_ADR
-	ld	a, (ix + IDX_NENV)
+	ld		de, IDX_NENV_ADR
+	ld		a, (ix + IDX_NENV)
 	call	read_effect_table
-	pop	hl
+	pop		hl
 	ret
-
 
 
 ;********************************************
@@ -2188,13 +2187,13 @@ set_nenv_hl:
 ; in  : HL = address
 ; out : A = data
 read_effect_value:
-	xor	a
+	xor		a
 	call	change_page3
 
-	ld	a, (hl)
+	ld		a, (hl)
 	push	af
 	call	set_page3_ch
-	pop	af
+	pop		af
 	ret
 
 ;********************************************
@@ -2205,27 +2204,27 @@ read_effect_value:
 ; dest : AF,DE
 
 conv_data_to_midi:
-	ld	d,$00
-	ld	e,a
+	ld		d,$00
+	ld		e,a
 
 	rrca
 	rrca
 	rrca
 	rrca
-	and	$0f
-	ld	d,a
-	jr	z,skip_conv_midi_lp
-	xor	a
+	and		$0f
+	ld		d, a
+	jr		z, skip_conv_midi_lp
+	xor		a
 conv_midi_lp:
-	add	a,$0c
-	dec	d
-	jr	nz,conv_midi_lp
+	add		a, $0c
+	dec		d
+	jr		nz, conv_midi_lp
 skip_conv_midi_lp:
-	ld	d,a
-	ld	a,e
-	and	$0f
-	add	a,d
-	add	a,$0c
+	ld		d, a
+	ld		a, e
+	and		$0f
+	add		a, d
+	add		a, $0c
 	ret
 
 
@@ -2237,14 +2236,14 @@ skip_conv_midi_lp:
 ; out  : L = octave
 ; dest : AF
 oct_div:
-	ld	a,h
-	ld	l,$00
+	ld		a, h
+	ld		l, $00
 
 oct_div_lp:
-	add	a,$fa
-	ret	nc
-	inc	l
-	jr	oct_div_lp
+	add		a, $fa
+	ret		nc
+	inc		l
+	jr		oct_div_lp
 
 ;********************************************
 ; make_fnum
@@ -2255,23 +2254,23 @@ oct_div_lp:
 ; dest : AF, DE
 
 make_fnum:
-	ld	de, $fa00
+	ld		de, $fa00
 make_fnum_lp:
-	add	hl, de
-	jr	c, make_fnum_lp
-	ld	de, $0600
-	add	hl, de
+	add		hl, de
+	jr		c, make_fnum_lp
+	ld		de, $0600
+	add		hl, de
 
-	ex	de,hl
+	ex		de, hl
 
-	ld	hl, freq_table
-	add	hl, de
-	add	hl, de
+	ld		hl, freq_table
+	add		hl, de
+	add		hl, de
 
-	ld	a, (hl)
-	inc	hl
-	ld	h, (hl)
-	ld	l, a
+	ld		a, (hl)
+	inc		hl
+	ld		h, (hl)
+	ld		l, a
 
 	ret
 
@@ -2287,9 +2286,9 @@ moon_set_fmtone2:
 	push	hl
 
 	; repeat 2times
-	ld	c, $02
+	ld		c, $02
 
-	jr	moon_set_fmtone_start_lp
+	jr		moon_set_fmtone_start_lp
 
 ;********************************************
 ; moon_set_fmtone
@@ -2303,122 +2302,122 @@ moon_set_fmtone:
 	push	hl
 
  ; repeat 4 times
-	ld	c, $04
+	ld		c, $04
 
 moon_set_fmtone_start_lp:
-	ld	l, (ix + IDX_TADR)
-	ld	h, (ix + IDX_TADR+1)
+	ld		l, (ix + IDX_TADR)
+	ld		h, (ix + IDX_TADR+1)
 
-	ld	a, (ix + IDX_OPSEL)
-	ld	(seq_opsel), a
+	ld		a, (ix + IDX_OPSEL)
+	ld		(seq_opsel), a
 
 	; FBS   store to IDX_SYNTH( OxxFFFSS )
-	ld	a, (hl)
-	and	$0e
+	ld		a, (hl)
+	and		$0e
 	rlca
-	ld	e, a
-	ld	a, (hl)
-	and	$01
-	or	e
-	ld	e, a
-	inc	hl
+	ld		e, a
+	ld		a, (hl)
+	and		$01
+	or		e
+	ld		e, a
+	inc		hl
 
-	ld	a, (ix + IDX_SYNTH)
-	and	$e2
-	or	e
-	ld	(ix + IDX_SYNTH), a ; xxxFFFxS
+	ld		a, (ix + IDX_SYNTH)
+	and		$e2
+	or		e
+	ld		(ix + IDX_SYNTH), a ; xxxFFFxS
 
-	ld	a, c
-	cp	$04
-	jr	nz, fmtone_skip_set_fbs2
+	ld		a, c
+	cp		$04
+	jr		nz, fmtone_skip_set_fbs2
 
 	; FBS-2  Store SynthType for 4OP
-	ld	a, (hl)
-	and	$01
+	ld		a, (hl)
+	and		$01
 	rlca
-	or	$80    ; 4OP flag
-	ld	e, a
+	or		$80    ; 4OP flag
+	ld		e, a
 
-	ld	a, (ix + IDX_SYNTH)
-	and	$7d    ; mask for 4OP and 2nd SynthType
-	or	e
-	ld	(ix + IDX_SYNTH), a ; OxxFFFSS
-	inc	hl
+	ld		a, (ix + IDX_SYNTH)
+	and		$7d    ; mask for 4OP and 2nd SynthType
+	or		e
+	ld		(ix + IDX_SYNTH), a ; OxxFFFSS
+	inc		hl
 
-	jr	fmtone_set_tvp
+	jr		fmtone_set_tvp
 
 fmtone_skip_set_fbs2:
-	ld	a, (ix + IDX_SYNTH)
-	and	$7f
-	ld	(ix + IDX_SYNTH), a
-	inc	hl
+	ld		a, (ix + IDX_SYNTH)
+	and		$7f
+	ld		(ix + IDX_SYNTH), a
+	inc		hl
 
 fmtone_set_tvp:
 	; TYP in W/WX is removed
-	inc	hl
+	inc		hl
 	call	moon_load_fmvol
 
 moon_set_fmtone_lp1:
 	call	moon_set_fmop
-	ld	a, (seq_opsel)
-	add	a, $03
-	ld	(seq_opsel), a
+	ld		a, (seq_opsel)
+	add		a, $03
+	ld		(seq_opsel), a
 
-	dec	c
-	jr	nz, moon_set_fmtone_lp1
+	dec		c
+	jr		nz, moon_set_fmtone_lp1
 
-	call moon_write_fmpan
+	call 	moon_write_fmpan
 
-	pop	hl
-	pop	bc
-	pop	af
+	pop		hl
+	pop		bc
+	pop		af
 	ret
 
 moon_load_fmvol:
 	push	hl
 	push	bc
 	push	ix
-	inc	hl ; skip Reg.$20
-	ld	de, $0005
+	inc		hl ; skip Reg.$20
+	ld		de, $0005
 moon_load_fmvol_lp:
-	ld	a, (hl)
-	ld	(ix + IDX_OLDAT1), a
-	inc	ix
-	add	hl, de
-	dec	c
-	jr	nz, moon_load_fmvol_lp
+	ld		a, (hl)
+	ld		(ix + IDX_OLDAT1), a
+	inc		ix
+	add		hl, de
+	dec		c
+	jr		nz, moon_load_fmvol_lp
 
-	pop	ix
-	pop	bc
-	pop	hl
+	pop		ix
+	pop		bc
+	pop		hl
 	ret
 
 moon_set_fmop:
-	ld	a, (hl)
-	ld	e, a
-	ld	d, $20
+	ld		a, (hl)
+	ld		e, a
+	ld		d, $20
 	call	moon_write_fmop
-	inc	hl
-	ld	a, (hl)
-	ld	e, a
-	ld	d, $40
+	inc		hl
+	ld		a, (hl)
+	ld		e, a
+	ld		d, $40
 	call	moon_write_fmop  ; OL
-	inc	hl
-	ld	a, (hl)
-	ld	e, a
-	ld	d, $60
+	inc		hl
+	ld		a, (hl)
+	ld		e, a
+	ld		d, $60
 	call	moon_write_fmop
-	inc	hl
-	ld	a, (hl)
-	ld	e, a
-	ld	d, $80
+	inc		hl
+	ld		a, (hl)
+	ld		e, a
+	ld		d, $80
 	call	moon_write_fmop
-	inc	hl
-	ld	a, (hl)
-	ld	e, a
-	ld	d, $e0
+	inc		hl
+	ld		a, (hl)
+	ld		e, a
+	ld		d, $e0
 	call	moon_write_fmop
-	inc	hl
+	inc		hl
 	ret
 
 ;********************************************
@@ -2428,73 +2427,78 @@ moon_set_fmop:
 ; dest : flags, HL
 ;
 moon_tonesel:
-	ld	l,(ix + IDX_TADR)
-	ld	h,(ix + IDX_TADR+1)
+	ld		l, (ix + IDX_TADR)
+	ld		h, (ix + IDX_TADR+1)
 tonesel_lp01:
 	push	af
 	push	hl
-	ld	a,(hl)
-	inc	hl
-	or	(hl)
-	jr	z,tonesel_fin ; if min == 0 && max == 0
-	pop	hl
-	pop	af
+	ld		a, (hl)
+	inc		hl
+	or		(hl)
 
-	cp	(hl)
-	jr	c,tonesel_skip01    ; if a < (hl)
-	inc	hl
-	cp	(hl)
-	jr	c,tonesel_loadtone  ; if a < (hl)
-	jr	z,tonesel_loadtone  ; if a == (hl)
-	jr	tonesel_skip02
+	 ; if min == 0 && max == 0
+	jr		z, tonesel_fin
+	pop		hl
+	pop		af
+
+	cp		(hl)
+	; if a < (hl)
+	jr		c, tonesel_skip01
+	inc		hl
+	cp		(hl)
+	; if a < (hl)
+	jr		c, tonesel_loadtone
+	; if a == (hl)
+	jr		z, tonesel_loadtone
+	jr		tonesel_skip02
 
 tonesel_fin:
-	pop	hl
-	pop	af
+	pop		hl
+	pop		af
 	ret
 
 tonesel_skip01:
-	inc	hl
+	inc		hl
 tonesel_skip02:
 	push	de
-	ld	de, $000a
-	add	hl, de
-	pop	de
+	ld		de, $000a
+	add		hl, de
+	pop		de
 
-	jr	tonesel_lp01
+	jr		tonesel_lp01
 
 tonesel_loadtone:
 	push	af
-	inc	hl
-	ld	a,(hl)
-	ld	(ix + IDX_TONE),a
-	inc	hl
-	ld	a,(hl)
-	ld	(ix + IDX_TONE+1),a
-	inc	hl
-	ld	a,(hl)
-	ld	(ix + IDX_P_OFS),a
-	inc	hl
-	ld	a,(hl)
-	ld	(ix + IDX_P_OFS+1),a
+	inc		hl
+	ld		a, (hl)
+	ld		(ix + IDX_TONE), a
+	inc		hl
+	ld		a, (hl)
+	ld		(ix + IDX_TONE+1), a
+	inc		hl
+	ld		a, (hl)
+	ld		(ix + IDX_P_OFS), a
+	inc		hl
+	ld		a, (hl)
+	ld		(ix + IDX_P_OFS+1), a
 
-	inc	hl
-	ld	a,(hl)
-	ld	(ix + IDX_LFO_VIB),a
-	inc	hl
-	ld	a,(hl)
-	ld	(ix + IDX_AR_D1R),a
-	inc	hl
-	ld	a,(hl)
-	ld	(ix + IDX_DL_D2R),a
-	inc	hl
-	ld	a,(hl)
-	ld	(ix + IDX_RC_RR),a
-	inc	hl
-	ld	a,(hl)
-	ld	(ix + IDX_AM),a
+	inc		hl
+	ld		a, (hl)
+	ld		(ix + IDX_LFO_VIB), a
+	inc		hl
+	ld		a, (hl)
+	ld		(ix + IDX_AR_D1R), a
+	inc		hl
+	ld		a, (hl)
+	ld		(ix + IDX_DL_D2R), a
+	inc		hl
+	ld		a, (hl)
+	ld		(ix + IDX_RC_RR), a
+	inc		hl
+	ld		a, (hl)
+	ld		(ix + IDX_AM), a
 
-	pop	af
+	pop		af
 	ret
 
 ;********************************************
@@ -2505,15 +2509,15 @@ tonesel_loadtone:
 moon_calc_opl4freq:
 	push	hl
 	call	oct_div
-	ld	a,l
-	add	a,$f8
-	ld	(ix + IDX_OCT),a
-	pop	hl
+	ld		a, l
+	add		a, $f8
+	ld		(ix + IDX_OCT), a
+	pop		hl
 
 	call	make_fnum
 
-	ld	(ix + IDX_FNUM),l
-	ld	(ix + IDX_FNUM+1),h
+	ld		(ix + IDX_FNUM), l
+	ld		(ix + IDX_FNUM+1), h
 	ret
 
 ;********************************************
@@ -2524,35 +2528,37 @@ moon_calc_opl4freq:
 ; dest : AF,DE
 
 moon_calc_midinote:
-	add	a,$c4	; a -= $3c
+	; a -= $3c
+	add		a, $c4
 
-	ld	l,$00
-	srl	a
-	ld	h,a
-	rr	l
-	and	$40
-	jr	z,skip_set_nega ; if a >= $80 then it's negative
-	ld	a,h
-	or	$80
-	ld	h,a
+	ld		l, $00
+	srl		a
+	ld		h, a
+	rr		l
+	and		$40
+	; if a >= $80 then it's negative
+	jr		z, skip_set_nega
+	ld		a, h
+	or		$80
+	ld		h, a
 skip_set_nega:
-	ld	de,$1e00 ; 7680
-	add	hl,de
-	ld	e,(ix + IDX_P_OFS)
-	ld	d,(ix + IDX_P_OFS+1)
-	add	hl,de
+	ld		de, $1e00 ; 7680
+	add		hl, de
+	ld		e, (ix + IDX_P_OFS)
+	ld		d, (ix + IDX_P_OFS+1)
+	add		hl, de
 
-	ld	a,(ix + IDX_DETUNE)
+	ld		a, (ix + IDX_DETUNE)
 	call	add_freq_offset
 
 skip_detune:
-	ld	a,h
-	cp	$60
-	jr	c,skip_set_pitch ; if a < $60
-	ld	hl,$5fff
+	ld		a, h
+	cp		$60
+	jr		c, skip_set_pitch ; if a < $60
+	ld		hl, $5fff
 skip_set_pitch:
-	ld	(ix + IDX_PITCH),l
-	ld	(ix + IDX_PITCH + 1),h
+	ld		(ix + IDX_PITCH), l
+	ld		(ix + IDX_PITCH + 1), h
 	ret
 
 ;********************************************
@@ -2562,42 +2568,39 @@ skip_set_pitch:
 ; dest : DE
 
 add_freq_offset:
+	cp		$ff
+	ret		z
 
-	cp	$ff
-	ret	z
+	bit		7, a
+	jr		nz, add_freq_nega
 
-	bit	7,a
-	jr	nz,add_freq_nega
-
-	ld	e,a
-	ld	d,$00
-	jr	add_freq_de
+	ld		e, a
+	ld		d, $00
+	jr		add_freq_de
 
 add_freq_nega:
-	and	$7f
-	ld	d,$00
-	ld	e,a
-	xor	a
-	sub	e
-	jr	nc,add_freq_de
-	dec	d
+	and		$7f
+	ld		d, $00
+	ld		e, a
+	xor		a
+	sub		e
+	jr		nc, add_freq_de
+	dec		d
 add_freq_de:
-	ld	e,a
-	add	hl,de
-	add	hl,de
+	ld		e, a
+	add		hl, de
+	add		hl, de
 	ret
-
-
 
 ;********************************************
 ; moon_set_midinote
 ; in : A = note
 ;
 moon_set_midinote:
-	bit	0,(ix + IDX_EFX1)
-	call	z,moon_tonesel
+	bit		0, (ix + IDX_EFX1)
+	call	z, moon_tonesel
 	call	moon_calc_midinote
-	jp	moon_calc_opl4freq
+	jp		moon_calc_opl4freq
 
 
 ;********************************************
@@ -2608,13 +2611,13 @@ moon_set_fmnote:
 	call	moon_calc_opl3note
 
 	; oct
-	ld	a, (seq_tmp_oct)
-	ld	(ix + IDX_OCT), a
+	ld		a, (seq_tmp_oct)
+	ld		(ix + IDX_OCT), a
 
 	; Fnum
-	ld	hl, (seq_tmp_fnum)
-	ld	(ix + IDX_FNUM), l
-	ld	(ix + IDX_FNUM+1), h
+	ld		hl, (seq_tmp_fnum)
+	ld		(ix + IDX_FNUM), l
+	ld		(ix + IDX_FNUM+1), h
 	ret
 
 ;********************************************
@@ -2625,36 +2628,36 @@ moon_set_fmnote:
 
 moon_calc_opl3note:
 	push	af
-	and	$0f
-	cp	$0c
-	jr	c, opl3_load_fnumtbl
-	sub	$0c
+	and		$0f
+	cp		$0c
+	jr		c, opl3_load_fnumtbl
+	sub		$0c
 opl3_load_fnumtbl:
-	ld	hl, opl3_fnumtbl
-	ld	c, a
-	ld	b, $00
-	add	hl, bc
-	add	hl, bc
-	ld	a, (hl)
-	ld	(seq_tmp_fnum), a
-	inc	hl
-	ld	a, (hl)
-	ld	(seq_tmp_fnum + 1), a
-	pop	af
+	ld		hl, opl3_fnumtbl
+	ld		c, a
+	ld		b, $00
+	add		hl, bc
+	add		hl, bc
+	ld		a, (hl)
+	ld		(seq_tmp_fnum), a
+	inc		hl
+	ld		a, (hl)
+	ld		(seq_tmp_fnum + 1), a
+	pop		af
 	rra
 	rra
 	rra
 	rra
-	and	$0f
-	ld	(seq_tmp_oct), a
+	and		$0f
+	ld		(seq_tmp_oct), a
 
 	; Add detune effect
-	ld	hl, (seq_tmp_fnum)
+	ld		hl, (seq_tmp_fnum)
 
-	ld	a, (ix + IDX_DETUNE)
+	ld		a, (ix + IDX_DETUNE)
 	call	add_freq_offset
 
-	ld	(seq_tmp_fnum), hl
+	ld		(seq_tmp_fnum), hl
 
 	ret
 
@@ -2666,28 +2669,28 @@ opl3_load_fnumtbl:
 ; dest : AF, DE
 moon_write_fmop:
 	push	hl
-	ld	a, (seq_opsel)
-	cp	$12
-	jr	c,skip_sub_a
-	sub	$12
+	ld		a, (seq_opsel)
+	cp		$12
+	jr		c,skip_sub_a
+	sub		$12
 skip_sub_a:
-	ld	hl, opl3_op2reg_tbl ; HL = HL + A
-	add	a,l
-	ld	l,a
-	jr	nc,add_hl_fin
-	inc	h
+	ld		hl, opl3_op2reg_tbl ; HL = HL + A
+	add		a,l
+	ld		l,a
+	jr		nc,add_hl_fin
+	inc		h
 add_hl_fin:
-	ld	a,(hl)
-	add	a,d
-	ld	d,a
-	pop	hl
+	ld		a,(hl)
+	add		a,d
+	ld		d,a
+	pop		hl
 
-	ld	a,(seq_opsel)
-	cp	$12
-	jr	c,moon_write_fmop_1
-	jp	moon_fm2_out
+	ld		a,(seq_opsel)
+	cp		$12
+	jr		c,moon_write_fmop_1
+	jp		moon_fm2_out
 moon_write_fmop_1:
-	jp	moon_fm1_out
+	jp		moon_fm1_out
 
 ;********************************************
 ; moon_write_fmreg
@@ -2697,37 +2700,37 @@ moon_write_fmop_1:
 ; dest : AF, DE
 ;
 moon_write_fmreg:
-	ld	a, (seq_dev_ch)
-	jr	moon_write_fmreg_nch
+	ld		a, (seq_dev_ch)
+	jr		moon_write_fmreg_nch
 
 ; A = ch
 moon_write_fmreg_nch:
 moon_write_opl3_ch:
 ; first or second FM register
-	cp	$9
-	jr	nc, moon_write_fm2
+	cp		$9
+	jr		nc, moon_write_fm2
 
 ; first register
 moon_write_fm1:
-	add	a, d
-	ld	d, a
-	jp	moon_fm1_out
+	add		a, d
+	ld		d, a
+	jp		moon_fm1_out
 
 ; second register
 moon_write_fm2:
-	sub	$9
-	add	a, d
-	ld	d, a
-	jp	moon_fm2_out
+	sub		$9
+	add		a, d
+	ld		d, a
+	jp		moon_fm2_out
 
 ;********************************************
 ; wait while BUSY
 ; dest : AF
 
 moon_wait:
-	in	a, (MOON_STAT)
-	and	$01
-	jr	nz, moon_wait
+	in		a, (MOON_STAT)
+	and		$01
+	jr		nz, moon_wait
 	ret
 
 ;********************************************
@@ -2737,11 +2740,11 @@ moon_wait:
 
 moon_fm1_out:
 	call	moon_wait
-	ld	a, d
-	out	(MOON_REG1), a
+	ld		a, d
+	out		(MOON_REG1), a
 	call	moon_wait
-	ld	a, e
-	out	(MOON_DAT1), a
+	ld		a, e
+	out		(MOON_DAT1), a
 	ret
 
 ;********************************************
@@ -2751,11 +2754,11 @@ moon_fm1_out:
 
 moon_fm2_out:
 	call	moon_wait
-	ld	a, d
-	out	(MOON_REG2), a
+	ld		a, d
+	out		(MOON_REG2), a
 	call	moon_wait
-	ld	a, e
-	out	(MOON_DAT2), a
+	ld		a, e
+	out		(MOON_DAT2), a
 	ret
 
 
@@ -2766,11 +2769,11 @@ moon_fm2_out:
 
 moon_wave_out:
 	call	moon_wait
-	ld	a, d
-	out	(MOON_WREG),a
+	ld		a, d
+	out		(MOON_WREG),a
 	call	moon_wait
-	ld	a, e
-	out	(MOON_WDAT),a
+	ld		a, e
+	out		(MOON_WDAT),a
 	ret
 
 ;********************************************
@@ -2780,10 +2783,10 @@ moon_wave_out:
 
 moon_wave_in:
 	call	moon_wait
-	ld	a, d
-	out	(MOON_WREG),a
+	ld		a, d
+	out		(MOON_WREG),a
 	call	moon_wait
-	in	a, (MOON_WDAT)
+	in		a, (MOON_WDAT)
 	ret
 
 ;********************************************
@@ -2792,10 +2795,10 @@ moon_wave_in:
 ; dest : AF
 
 moon_psg_out:
-	ld	a, d
-	out	(PSG_ADRS), a
-	ld	a, e
-	out	(PSG_DATA), a
+	ld		a, d
+	out		(PSG_ADRS), a
+	ld		a, e
+	out		(PSG_DATA), a
 	ret
 ;
 ;********************************************
@@ -2804,17 +2807,17 @@ moon_psg_out:
 ; out : D = index + dev_ch
 ; dest : AF
 moon_add_reg_ch:
-	ld	a, (seq_dev_ch)
-	add	a, d
-	ld	d, a
+	ld		a, (seq_dev_ch)
+	add		a, d
+	ld		d, a
 	ret
 
 ; out : D = index + (dev_ch * 2)
 moon_add_reg_chx2:
-	ld	a, (seq_dev_ch)
-	add	a, d
-	add	a, d
-	ld	d, a
+	ld		a, (seq_dev_ch)
+	add		a, d
+	add		a, d
+	ld		d, a
 	ret
 ;
 ;********************************************
@@ -2822,55 +2825,55 @@ moon_add_reg_chx2:
 ; in   : work
 ; dest : AF,DE
 moon_set_freq_ch:
-	ld	a, (ix + IDX_DSEL)
-	or	a
-	ret	nz
+	ld		a, (ix + IDX_DSEL)
+	or		a
+	ret		nz
 
 set_freq_ch_opl4:
 	; ocatve and f-number(hi)
-	ld	a, (ix + IDX_FNUM + 1)
+	ld		a, (ix + IDX_FNUM + 1)
 	rlca
-	and	$0e
-	ld	e,a
-	ld	a, (ix + IDX_FNUM)
+	and		$0e
+	ld		e,a
+	ld		a, (ix + IDX_FNUM)
 	rlca
-	and	$01
-	or	e
-	ld	e,a
+	and		$01
+	or		e
+	ld		e,a
 
-	ld	a, (ix + IDX_OCT)
-	and	$0f
+	ld		a, (ix + IDX_OCT)
+	and		$0f
 	rlca
 	rlca
 	rlca
 	rlca
-	or	e
-	ld	e, a
+	or		e
+	ld		e, a
 
-	ld	a, (ix + IDX_REVERB)
-	or	a
-	jr	z, moon_set_freq_ch_skip_reverb
-	set	3, e
+	ld		a, (ix + IDX_REVERB)
+	or		a
+	jr		z, moon_set_freq_ch_skip_reverb
+	set		3, e
 moon_set_freq_ch_skip_reverb:
 
-	ld	d, $38
+	ld		d, $38
 	call	moon_add_reg_ch
 	call	moon_wave_out
 
 	; f-number(lo)
-	ld	a, (ix + IDX_TONE+1)
-	and	$01
-	ld	e,a
+	ld		a, (ix + IDX_TONE+1)
+	and		$01
+	ld		e,a
 
-	ld	a, (ix + IDX_FNUM)
+	ld		a, (ix + IDX_FNUM)
 	rlca
-	and	$fe
-	or	e
-	ld	e, a
+	and		$fe
+	or		e
+	ld		e, a
 
-	ld	d, $20
+	ld		d, $20
 	call	moon_add_reg_ch
-	jp	moon_wave_out
+	jp		moon_wave_out
 
 
 
@@ -2883,73 +2886,73 @@ moon_set_vol_ch:
 
 opl4_vol_ch:
 	; volume ( 0x7f = -inf )
-	ld	a, (ix + IDX_VOL)
-	xor	$7f
+	ld		a, (ix + IDX_VOL)
+	xor		$7f
 	rlca
-	or	$01
-	ld	e, a
-	ld	d, $50
+	or		$01
+	ld		e, a
+	ld		d, $50
 	call	moon_add_reg_ch
-	jp	moon_wave_out
+	jp		moon_wave_out
 
 opl3_vol_ch:
 	push	ix
 	push	hl
 	push	bc
 
-	ld	a, (ix + IDX_OPSEL)
-	ld	(seq_opsel), a
+	ld		a, (ix + IDX_OPSEL)
+	ld		(seq_opsel), a
 
-	ld	b, (ix + IDX_VOL)
+	ld		b, (ix + IDX_VOL)
 
-	ld	h, (ix + IDX_VOLOP)
+	ld		h, (ix + IDX_VOLOP)
 
-	ld	c, $02
-	ld	a, (ix + IDX_SYNTH)
-	and	$80
-	jr	z,moon_set_fmvol_lp ; 4OP check
-	ld	c,$04
+	ld		c, $02
+	ld		a, (ix + IDX_SYNTH)
+	and		$80
+	jr		z,moon_set_fmvol_lp ; 4OP check
+	ld		c,$04
 moon_set_fmvol_lp
-	rr	h
-	jr	nc, skip_set_fmvol
+	rr		h
+	jr		nc, skip_set_fmvol
 	call	moon_calc_current_fmvol
-	ld	e, a
-	ld	d, $40
+	ld		e, a
+	ld		d, $40
 	call	moon_write_fmop
 skip_set_fmvol:
-	inc	ix
-	ld	a, (seq_opsel)
-	add	a, $03
-	ld	(seq_opsel), a
+	inc		ix
+	ld		a, (seq_opsel)
+	add		a, $03
+	ld		(seq_opsel), a
 
-	dec	c
-	jr	nz, moon_set_fmvol_lp
+	dec		c
+	jr		nz, moon_set_fmvol_lp
 
-	pop	bc
-	pop	hl
-	pop	ix
+	pop		bc
+	pop		hl
+	pop		ix
 	ret
 
 moon_calc_current_fmvol:
 	; A = (OL + (63-VOL))
-	ld	a,b
-	and	$3f
-	xor	$3f
-	ld	e,a
+	ld		a,b
+	and		$3f
+	xor		$3f
+	ld		e,a
 
-	ld	a, (ix + IDX_OLDAT1)
-	and	$3f
-	add	a, e
-	cp	$40
-	jr	nc, set_fmvol_min
-	ld	e, a
-	jr	set_fmvol_ks
+	ld		a, (ix + IDX_OLDAT1)
+	and		$3f
+	add		a, e
+	cp		$40
+	jr		nc, set_fmvol_min
+	ld		e, a
+	jr		set_fmvol_ks
 set_fmvol_min:
-	ld	e, $3f
+	ld		e, $3f
 set_fmvol_ks:
-	ld	a, (ix + IDX_OLDAT1)
-	and	$c0
-	or	e
+	ld		a, (ix + IDX_OLDAT1)
+	and		$c0
+	or		e
 	ret
 
 
@@ -2959,26 +2962,26 @@ set_fmvol_ks:
 ; in   : work
 ; dest : AF,DE
 moon_set_adsr:
-	ld	e, (ix + IDX_LFO_VIB)
-	ld	d, $80
+	ld		e, (ix + IDX_LFO_VIB)
+	ld		d, $80
 	call	moon_add_reg_ch
 	call	moon_wave_out
-	ld	e, (ix + IDX_AR_D1R)
-	ld	d, $98
+	ld		e, (ix + IDX_AR_D1R)
+	ld		d, $98
 	call	moon_add_reg_ch
 	call	moon_wave_out
-	ld	e, (ix + IDX_DL_D2R)
-	ld	d, $B0
+	ld		e, (ix + IDX_DL_D2R)
+	ld		d, $B0
 	call	moon_add_reg_ch
 	call	moon_wave_out
-	ld	e, (ix + IDX_RC_RR)
-	ld	d, $C8
+	ld		e, (ix + IDX_RC_RR)
+	ld		d, $C8
 	call	moon_add_reg_ch
 	call	moon_wave_out
-	ld	e, (ix + IDX_AM)
-	ld	d, $E0
+	ld		e, (ix + IDX_AM)
+	ld		d, $E0
 	call	moon_add_reg_ch
-	jp	moon_wave_out
+	jp		moon_wave_out
 
 ;********************************************
 ; moon_key_data
@@ -2987,21 +2990,21 @@ moon_set_adsr:
 ; out  : E = data for key
 ; dest : almost all
 moon_key_data:
-	ld	a, (ix + IDX_PAN)
-	and	$0f
+	ld		a, (ix + IDX_PAN)
+	and		$0f
 
 ;;	or	$10 ; PCM-MIX
 
-	ld	e,a
-	ld	a,(ix + IDX_LFO)
-	or	a
-	jr	nz,moon_key_data_lfo_on
-	set	5,e  ; LFO deactive
+	ld		e,a
+	ld		a,(ix + IDX_LFO)
+	or		a
+	jr		nz,moon_key_data_lfo_on
+	set		5,e  ; LFO deactive
 moon_key_data_lfo_on:
-	ld	a,(ix + IDX_DAMP)
-	or	a
-	jr	z,moon_key_data_damp_off
-	set	6,e  ; Damp on
+	ld		a,(ix + IDX_DAMP)
+	or		a
+	jr		z,moon_key_data_damp_off
+	set		6,e  ; Damp on
 moon_key_data_damp_off:
 	ret
 
@@ -3047,41 +3050,41 @@ opl4_keyoff:
 ; dest AF, DE
 
 moon_write_fmpan:
-	ld	a, (ix + IDX_SYNTH)
-	ld	d, a
-	and	$1c ; 000FFF00
+	ld		a, (ix + IDX_SYNTH)
+	ld		d, a
+	and		$1c ; 000FFF00
 	rrca
-	ld	e, a
-	ld	a, d
-	and	$01 ; SynthType
-	or	e
-	or	(ix + IDX_PAN)
+	ld		e, a
+	ld		a, d
+	and		$01 ; SynthType
+	or		e
+	or		(ix + IDX_PAN)
 
 	; E -> $C0
-	ld	e,a
-	ld	d,$c0
-	call moon_write_fmreg
+	ld		e,a
+	ld		d,$c0
+	call	moon_write_fmreg
 
 	; 4OP
-	ld	a, (ix + IDX_SYNTH)
-	ld	d, a
-	and	$80
+	ld		a, (ix + IDX_SYNTH)
+	ld		d, a
+	and		$80
 
 	; skip if not 4op
-	ret z
+	ret		z
 
 	; 4 OP
-	ld	a, d
+	ld		a, d
 	rrca
-	and	$01 ; 2nd SynthType
-	or	(ix + IDX_PAN)
-	ld	e, a
-	ld	d, $c0
+	and		$01 ; 2nd SynthType
+	or		(ix + IDX_PAN)
+	ld		e, a
+	ld		d, $c0
 
 	; E -> $C0 + 3 + ch
-	ld	a, (seq_dev_ch)
-	add	a, $03
-	jp	moon_write_fmreg_nch
+	ld		a, (seq_dev_ch)
+	add		a, $03
+	jp		moon_write_fmreg_nch
 
 
 ;********************************************
@@ -3174,29 +3177,29 @@ slar_opl4_on:
 ; out : A = Reg.$B0 ( FnumH + BLK )
 ; dest : almost all
 moon_key_write_fmfreq:
-	ld	a, (ix + IDX_OCT)
-	ld	(seq_tmp_oct), a
+	ld		a, (ix + IDX_OCT)
+	ld		(seq_tmp_oct), a
 
-	ld	l, (ix + IDX_FNUM)
-	ld	h, (ix + IDX_FNUM + 1)
-	ld	(seq_tmp_fnum), hl
+	ld		l, (ix + IDX_FNUM)
+	ld		h, (ix + IDX_FNUM + 1)
+	ld		(seq_tmp_fnum), hl
 
 moon_key_write_fmfreq_base:
-	ld	a, (seq_tmp_fnum)
-	ld	e, a
-	ld	d, $a0
-	ld	a, (seq_dev_ch)
+	ld		a, (seq_tmp_fnum)
+	ld		e, a
+	ld		d, $a0
+	ld		a, (seq_dev_ch)
 	call	moon_write_fmreg_nch
 
-	ld	a, (seq_tmp_fnum + 1)
-	and	$03
-	ld	e, a
+	ld		a, (seq_tmp_fnum + 1)
+	and		$03
+	ld		e, a
 
-	ld	a, (seq_tmp_oct)
+	ld		a, (seq_tmp_oct)
 	rlca
 	rlca
-	and	$1c ; mask for Octave
-	or	e   ; F-Number
+	and		$1c ; mask for Octave
+	or		e   ; F-Number
 	ret
 
 ;********************************************
@@ -3205,21 +3208,21 @@ moon_key_write_fmfreq_base:
 
 moon_key_fmfreq:
 	call	moon_key_write_fmfreq
-	ld	e,a
-	ld	a, (ix + IDX_KEY)
-	and	$20
-	or	e
+	ld		e,a
+	ld		a, (ix + IDX_KEY)
+	and		$20
+	or		e
 
-	ld	(ix + IDX_KEY), a
-	ld	e, a
-	ld	d, $b0
+	ld		(ix + IDX_KEY), a
+	ld		e, a
+	ld		d, $b0
 
 	; 0でなければスキップ
-	ld	a, (seq_skip_flag)
-	or	a
-	ret nz
+	ld		a, (seq_skip_flag)
+	or		a
+	ret		nz
 
-	jp	moon_write_fmreg ; key-on
+	jp		moon_write_fmreg ; key-on
 
 
 ;********************************************
@@ -3453,7 +3456,7 @@ pcm_copy_bank:
 	ld		a, (moon_pcm_bank)
 	push	af
 	call	change_page3
-	pop 	af
+	pop		af
 
 	inc		a
 	ld		(moon_pcm_bank), a
@@ -3508,16 +3511,16 @@ pcm_copy_end:
 	jp		moon_wave_out
 
 moon_pcm_bank_count:
-	db	$00
+	db		$00
 
 moon_pcm_bank:
-	db	$00
+	db		$00
 
 moon_pcm_numbanks:
-	db	$00
+	db		$00
 
 moon_pcm_lastsize:
-	db	$00
+	db		$00
 
 
 
