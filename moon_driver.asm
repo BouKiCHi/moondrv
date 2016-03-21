@@ -157,6 +157,8 @@ moon_work_start:
 
 seq_cur_ch:
 	db $00
+seq_dev_ch:
+	db $00
 seq_max_ch:
 	db $00
 seq_tmp_jmptbl:
@@ -183,8 +185,8 @@ seq_tmp_oct:
 seq_tmp_fnum:
 	dw $0000
 
-; skip until jump_flag is off
-seq_jump_flag:
+; 0でなければスキップ
+seq_skip_flag:
 	db $00
 
 
@@ -194,7 +196,7 @@ seq_jump_flag:
 seq_work:
 seq_ch1_dsel:
 	db $00
-seq_ch1_chnum:
+seq_ch1_devch:
 	db $00
 seq_ch1_jmptbl:
 	dw $0000
@@ -269,7 +271,7 @@ seq_ch1_venv_adr:
 seq_work_end:
 
 IDX_DSEL:     equ (seq_ch1_dsel    - seq_work) ; Device Select
-IDX_CHNUM:    equ (seq_ch1_chnum   - seq_work) ; Channel No
+IDX_DEVCH:    equ (seq_ch1_devch   - seq_work) ; Device Channel
 IDX_JMPTBL:   equ (seq_ch1_jmptbl  - seq_work) ; Jump Table
 IDX_WRTADR:   equ (seq_ch1_wrtadr  - seq_work) ; Write Address
 IDX_WRTDAT:   equ (seq_ch1_wrtdat  - seq_work) ; Write Data
@@ -561,8 +563,6 @@ get_table_hl_2de:
 
 	ret
 
-
-
 ;********************************************
 ; get_a_table
 ; in   : HL = address
@@ -590,51 +590,51 @@ get_a_table
 ; initializes all channel's work
 ; dest : ALL
 moon_seq_init:
-	xor	a
-	ld	(seq_max_ch), a
-	ld	(seq_cur_ch), a
+	xor		a
+	ld		(seq_max_ch), a
+	ld		(seq_cur_ch), a
 	call	change_page3  ; Page to Top
 
-	ld	a, (S_DEVICE_FLAGS)
-	or	a
-	jr	nz, skip_def_device
-	ld	a, $01 ; OPL4のみがデフォルト
+	ld		a, (S_DEVICE_FLAGS)
+	or		a
+	jr		nz, skip_def_device
+	ld		a, $01 ; OPL4のみがデフォルト
 skip_def_device:
-	ld	b, a
+	ld		b, a
 
-	ld	iy, fm_opbtbl
-	ld	ix, seq_work
+	ld		iy, fm_opbtbl
+	ld		ix, seq_work
 
 	; OPL4
-	ld	d, $00 ; device id
-	ld	e, $18 ; 24channels ; OPL4
+	ld		d, $00 ; device id
+	ld		e, $18 ; 24channels ; OPL4
 
-	; OPL4初期化アドレス
-	ld	hl, init_opl4tone
-	ld	(init_gen_adrs), hl
+	; OPL4音色初期化ルーチン
+	ld		hl, init_opl4tone
+	ld		(init_gen_adrs), hl
 
-	rr	b
+	rr		b
 	call	c, seq_init_chan
 
 	; OPL3
-	inc	d
-	ld	e, $12 ; 18channels
+	inc		d
+	ld		e, $12 ; 18channels
 
-	; OPL3初期化アドレス
-	ld	hl, init_opl3tone
-	ld	(init_gen_adrs), hl
+	; OPL3音色初期化ルーチン
+	ld		hl, init_opl3tone
+	ld		(init_gen_adrs), hl
 
-	rr	b
-	jr	nc, skip_use_opl3
+	rr		b
+	jr		nc, skip_use_opl3
 
 	; 現在の位置をFM音源の先頭にする
-	ld	a, (seq_max_ch)
-	ld	(seq_start_fm), a
+	ld		a, (seq_max_ch)
+	ld		(seq_start_fm), a
 
-	call seq_init_chan ; OPL3
+	call 	seq_init_chan
 
 skip_use_opl3:
-	ld	ix, seq_work
+	ld		ix, seq_work
 	ret
 
 ;********************************************
@@ -642,10 +642,14 @@ skip_use_opl3:
 ; in   : D = device id, E = channels
 ; dest : AF,E
 seq_init_chan:
+	; デバイス内チャンネル番号
+	xor		a
+	ld		(seq_dev_ch), a
+
 	; 使用チャンネル数を加算
-	ld	a, (seq_max_ch)
-	add	a, e
-	ld	(seq_max_ch), a
+	ld		a, (seq_max_ch)
+	add		a, e
+	ld		(seq_max_ch), a
 
 seq_init_chan_lp:
 	push	de
@@ -660,6 +664,11 @@ seq_init_chan_lp:
 	pop		de
 
 	; 次のチャンネルへ
+	ld		a, (seq_dev_ch)
+	inc		a
+	ld		(seq_dev_ch), a
+
+	; 次のトラックへ
 	ld	a, (seq_cur_ch)
 	inc	a
 	ld	(seq_cur_ch), a
@@ -674,7 +683,9 @@ init_common:
 	xor		a
 	ld		(ix + IDX_CNT),a
 	ld		a, d
-	ld		(ix + IDX_DSEL),a
+	ld		(ix + IDX_DSEL), a
+	ld		a, (seq_dev_ch)
+	ld		(ix + IDX_DEVCH), a
 
 	ld		a, $ff
 	ld		(ix + IDX_VENV), a
@@ -722,78 +733,85 @@ init_opl4tone:
 ;this makes all keys off
 ;
 moon_seq_all_keyoff:
-	call moon_seq_all_release_fm
+	xor		a
+	ld		(seq_cur_ch), a
+	ld		(seq_dev_ch), a
 
-	ld	ix,seq_work
-	xor	a
-	ld	(seq_cur_ch), a
+	call	moon_seq_all_release_fm
+
+
+	ld		ix, seq_work
 seq_all_keyoff_lp:
+	ld		a, (ix + IDX_DEVCH)
+	ld		(seq_dev_ch), a
 
 	call	moon_key_off
 
-	ld	de, SEQ_WORKSIZE
-	add	ix, de
+	; 次のワークへ
+	ld		de, SEQ_WORKSIZE
+	add		ix, de
 
-	ld	a, (seq_max_ch)
-	ld	e, a
-	ld	a, (seq_cur_ch)
-	cp	e
-	jr	nc,seq_all_keyoff_end
+	; 次のチャンネルがあれば処理する
+	ld		a, (seq_max_ch)
+	ld		e, a
+	ld		a, (seq_cur_ch)
+	cp		e
+	ret		nc
 
-	inc	a
-	ld	(seq_cur_ch), a
-	jr	seq_all_keyoff_lp
+	inc		a
+	ld		(seq_cur_ch), a
 
-seq_all_keyoff_end:
-	ret
-;
-; set RR to all fm channnels.
+	jr		seq_all_keyoff_lp
+
+
+; RRをすべてのFMチャンネルに設定する
 moon_seq_all_release_fm:
   ; D = $80(reg adrs) E = (sl = $00, rr = $0f)
-	ld	de, $800F
-	ld	b, 18
-	ld	hl, fm_opbtbl
+	ld		de, $800F
+	ld		b, 18
+	ld		hl, fm_opbtbl
 
-; channel loop
+	; channel loop
 moon_set_rr_ch_lp:
 	; read opsel tbl
-	ld	a, (hl)
-	ld  (seq_opsel), a
-	inc	hl
+	ld		a, (hl)
+	ld		(seq_opsel), a
+	inc		hl
 
-	ld	c, 4
+	ld		c, 4
 moon_set_rr_op_lp:
 	; write fm op
-	push de
-	call moon_write_fmop
-	pop  de
+	push	de
+	call	moon_write_fmop
+	pop		de
 
 	; add opsel
-	ld	a, (seq_opsel)
-	add	a, $03
-	ld	(seq_opsel), a
+	ld		a, (seq_opsel)
+	add		a, $03
+	ld		(seq_opsel), a
 
 	;
-	dec	c
-	jr	nz, moon_set_rr_op_lp
-	djnz moon_set_rr_ch_lp
+	dec		c
+	jr		nz, moon_set_rr_op_lp
+	djnz	moon_set_rr_ch_lp
 	ret
-
 
 ;********************************************
 ; moon_proc_tracks
-; Process tracks in 1/60 interrupts
+; 次のフレームを処理 (1/60)
 ;
 moon_proc_tracks:
-	; reset mapper
+	; マッパーメモリを変更
 	xor	a
 	call	change_page3
 
-	ld	ix,seq_work
+	ld	ix, seq_work
 	xor	a
-	ld	(seq_cur_ch),a
+	ld	(seq_cur_ch), a
 
 proc_tracks_lp:
+	ld	a, (ix + IDX_DEVCH)
+	ld	(seq_dev_ch), a
 
 	call	proc_venv
 	call	proc_penv
@@ -813,39 +831,44 @@ proc_tracks_lp:
 	ld	a, (seq_cur_ch)
 	inc	a
 	cp	e
-	jr	nc,proc_tracks_end
-	ld	(seq_cur_ch),a
+	jr	nc, proc_tracks_end
+	ld	(seq_cur_ch), a
 	jr	proc_tracks_lp
 
 proc_tracks_end:
-	ld a,(seq_jump_flag)
+	ld a, (seq_skip_flag)
 	or a
 	ret z
 	jr moon_proc_tracks
 
 ;********************************************
 ;seq_track
-;Count down and process in a channel
+; カウントダウンとトラック処理
 ;
 seq_track:
-	ld	a,(ix + IDX_CNT)
-	or	a
-	jr	z,seq_cnt_zero
-	dec	a
-	ld	(ix + IDX_CNT),a
+	ld		a, (ix + IDX_CNT)
+	or		a
+	jr		z, seq_cnt_zero
+	dec		a
+	ld		(ix + IDX_CNT),a
 	ret
 
+; カウントゼロ
 seq_cnt_zero:
-	ld	l, (ix + IDX_ADDR)
-	ld	h, (ix + IDX_ADDR + 1)
+	; 現在のチャンネル
+	ld		a, (ix + IDX_DEVCH)
+	ld		(seq_dev_ch), a
+
+	ld		l, (ix + IDX_ADDR)
+	ld		h, (ix + IDX_ADDR + 1)
 seq_track_lp:
 	; Read command from memory
 	call	set_page3_ch
-	ld	a, (hl)
-	inc	hl
-	cp	$e0
-	jr	nc, seq_command
-	jp	seq_repeat_or_note
+	ld		a, (hl)
+	inc		hl
+	cp		$e0
+	jr		nc, seq_command
+	jp		seq_repeat_or_note
 
 seq_command:
 	ld	bc, seq_track_lp
@@ -1448,7 +1471,8 @@ write_data_cur_fm:
 	ld	e, a ; Data
 	inc	hl
 
-	ld	a, (seq_cur_ch)
+	; チャンネルによって振り分ける
+	ld	a, (seq_dev_ch)
 	cp	$9
 	jp	c, moon_fm1_out
 	jp	moon_fm2_out
@@ -1536,7 +1560,7 @@ drumbit_fnum_next:
 	pop	hl
 
 	; skip if jump flag is true
-	ld	a, (seq_jump_flag)
+	ld	a, (seq_skip_flag)
 	or	a
 	jr	nz, drumbit_skip_keyon
 
@@ -1899,7 +1923,7 @@ seq_fbs:
 seq_jump:
 	pop	hl
 	ld	a, (hl)
-	ld (seq_jump_flag), a
+	ld (seq_skip_flag), a
 	inc	hl
 	ret
 
@@ -2521,31 +2545,15 @@ moon_write_fmop_1:
 ; dest : AF, DE
 ;
 moon_write_fmreg:
-	ld	a, (seq_cur_ch)
+	ld	a, (seq_dev_ch)
 	jr	moon_write_fmreg_nch
 
 ; A = ch
 moon_write_fmreg_nch:
-	push	de
-	ld	e, a
-	ld	a, (seq_start_fm)
-	ld	d, a
-	ld	a, e
-	sub	d ; a = ch, d = start_fm
-	pop	de
-	jr moon_write_fm_ch
-
-; Write fm ( A = ch )
 moon_write_fm_ch:
 ; first or second FM register
 	cp	$9
-	jr	c, moon_write_fm1
-
-; second register
-	sub	$9
-	add	a, d
-	ld	d, a
-	jp	moon_fm2_out
+	jr	nc, moon_write_fm2
 
 ; first register
 moon_write_fm1:
@@ -2553,6 +2561,12 @@ moon_write_fm1:
 	ld	d, a
 	jp	moon_fm1_out
 
+; second register
+moon_write_fm2:
+	sub	$9
+	add	a, d
+	ld	d, a
+	jp	moon_fm2_out
 
 ;********************************************
 ; wait while BUSY
@@ -2626,7 +2640,7 @@ moon_wave_in:
 ; in : D = index of register
 ; dest : AF
 moon_add_reg_ch:
-	ld	a, (seq_cur_ch)
+	ld	a, (seq_dev_ch)
 	add	a, d
 	ld	d, a
 	ret
@@ -2844,8 +2858,8 @@ moon_key_fmoff:
 	ld	d, $b0
 	ld	(ix + IDX_KEY), e
 
-	; skip if jump flag is true
-	ld	a, (seq_jump_flag)
+	; 0でなければスキップする
+	ld	a, (seq_skip_flag)
 	or	a
 	ret nz
 
@@ -2890,8 +2904,9 @@ moon_write_fmpan:
 	and	$80
 
 	; skip if not 4op
-	jr	z, moon_write_fmpan_4op_fin
+	ret z
 
+	; 4 OP
 	ld	a, d
 	rrca
 	and	$01 ; 2nd SynthType
@@ -2900,12 +2915,9 @@ moon_write_fmpan:
 	ld	d, $c0
 
 	; E -> $C0 + 3 + ch
-	ld	a, (seq_cur_ch)
+	ld	a, (seq_dev_ch)
 	add	a, $03
 	jp	moon_write_fmreg_nch
-
-moon_write_fmpan_4op_fin:
-	ret
 
 
 ;********************************************
@@ -2937,8 +2949,8 @@ slar_fm_on:
 	ld	d, $b0
 	ld	(ix + IDX_KEY), e
 
-	; skip if jump flag is true
-	ld	a, (seq_jump_flag)
+	; 0でなければスキップ
+	ld	a, (seq_skip_flag)
 	or	a
 	ret nz
 
@@ -2980,8 +2992,8 @@ moon_wavechg_lp:
 
 moon_opl4_set_keyreg:
 	; OPL4 key-on
-	; skip if jump flag is true
-	ld	a, (seq_jump_flag)
+	; 0でなければスキップ
+	ld	a, (seq_skip_flag)
 	or	a
 	ret nz
 
@@ -3006,9 +3018,6 @@ slar_opl4_on:
 ; out : A = Reg.$B0 ( FnumH + BLK )
 ; dest : almost all
 moon_key_write_fmfreq:
-	ld	a, (seq_cur_ch)
-	ld	(seq_tmp_ch), a
-
 	ld	a, (ix + IDX_OCT)
 	ld	(seq_tmp_oct), a
 
@@ -3020,7 +3029,7 @@ moon_key_write_fmfreq_base:
 	ld	a, (seq_tmp_fnum)
 	ld	e, a
 	ld	d, $a0
-	ld	a, (seq_tmp_ch)
+	ld	a, (seq_dev_ch)
 	call	moon_write_fmreg_nch
 
 	ld	a, (seq_tmp_fnum + 1)
@@ -3049,8 +3058,8 @@ moon_key_fmfreq:
 	ld	e, a
 	ld	d, $b0
 
-	; skip if jump flag is true
-	ld	a, (seq_jump_flag)
+	; 0でなければスキップ
+	ld	a, (seq_skip_flag)
 	or	a
 	ret nz
 
