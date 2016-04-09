@@ -128,8 +128,8 @@ int wavGetSample(wavfmt_t *lf,int outBit)
 		{
 			// probably 8bit
 			fread(buf,2,1,lf->fp);
-			mixch = 0x80-buf[0];
-			mixch += ((long)0x80-buf[1]);
+			mixch = buf[0] - 0x80;
+			mixch += ((long)buf[1] - 0x80);
 			mixch /= 2;
 		}
 	}
@@ -146,7 +146,7 @@ int wavGetSample(wavfmt_t *lf,int outBit)
 		{
 			// probably 8bit
 			fread(buf,1,1,lf->fp);
-			mixch = 0x80 - buf[0];
+			mixch = buf[0] - 0x80;
 		}
 	}
 

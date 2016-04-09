@@ -446,7 +446,7 @@ int main(int argc,char *argv[])
 	char outfn[512];
 	char *ptr;
 
-	printf("PCMTOOL for OPL4 ver 0.2 by BKC\n");
+	printf("PCMTOOL for OPL4 ver 0.3 by BouKiCHi\n");
 	
 	if (argc < 2)
 	{
