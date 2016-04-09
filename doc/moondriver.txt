@@ -1,10 +1,10 @@
 
- MoonDriver by BouKiCHi
+ MoonDriver+ by BouKiCHi
 
-◇MoonDriverとは？
+◇MoonDriver+とは？
 
 
-　MSXのサウンドカートリッジである、MoonSound(OPL4)を制御するドライバです。
+　MSXのサウンドカートリッジである、MoonSound(OPL4)などを制御するドライバです。
 　付属のMMLコンパイラを使用することで作成したデータを再生できます。
 　(必要Main RAMサイズ 128Kbytes以上)
 

@@ -1,4 +1,4 @@
-; MoonDriver for MoonSound / Programmed by BKC
+; MoonDriver+ for MoonSound / Programmed by BKC
 ; DRIVER (PAGE1)
 ; TAB:2 UTF-8
 
@@ -95,8 +95,8 @@ S_OPL3_TABLE:	  equ	S_TRACK_TABLE + 24
 	org		$4020
 
 str_moondrv:
-	db		"MOONDRIVER "
-	db		"VER 160321"
+	db		"MOONDRIVER+ "
+	db		"VER 160409"
 	db		$0d,$0a,'$'
 
 ;********************************************
