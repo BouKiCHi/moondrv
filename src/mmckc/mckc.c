@@ -88,7 +88,7 @@ int main( int argc , char *argv[] )
 // サブタイトル表示
 	printf("%s", moon_verstr);
 	//printf("patches by [OK] and 2ch mck thread people\n");
-	printf("DATE: %s\n", __DATE__);
+	printf("Built at %s\n", __DATE__);
 	printf("%s", patchstr);
 	printf("%s", hogereleasestr);
 // コマンドライン解析

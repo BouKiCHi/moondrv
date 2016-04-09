@@ -9,9 +9,13 @@
 
 CFLAGS = 
 
+
 ifdef WIN32
-CFLAGS += -finput-charset=utf-8 -fexec-charset=cp932
+ifneq ($(OS),Windows_NT)
 PFX=i586-mingw32-
+endif
+
+CFLAGS += -finput-charset=utf-8 -fexec-charset=cp932
 EXESFX = .exe
 OBJDIR = objs_w32
 
