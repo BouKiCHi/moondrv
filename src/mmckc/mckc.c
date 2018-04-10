@@ -27,7 +27,7 @@ extern	int data_make( void );
 extern	int		message_flag;			// 表示メッセージの出力設定( 0:Jp 1:En )
 
 /*--------------------------------------------------------------
-	ヘルプ表示
+    ヘルプ表示
  Input:
 
  Output:
@@ -35,190 +35,192 @@ extern	int		message_flag;			// 表示メッセージの出力設定( 0:Jp 1:En )
 --------------------------------------------------------------*/
 void dispHelpMessage( void )
 {
-	if( message_flag == 0 ) {
+    if( message_flag == 0 ) {
 
-		puts(	"使用方法:mmckc [switch] InputFile.mml [OutputFile.h]\n"
-			"もしくは:mmckc [switch] -u InputFile1.mml InputFile2.mml ... \n"
-				"\t[switch]\n"
-				"\t-h -?	 : ヘルプを表示\n"
-				"\t-i			: 音色/エンベロープファイルに曲データを追加する\n"
-				"\t-m<num> : エラー/ワーニング表示の選択(0:Jpn 1:Eng)\n"
-				"\t-o<str> : 音色/エンベロープファイルのファイル名を<str>にする\n"
-				"\t-w			: Warningメッセージを表示しません\n"
-				"\t-u			: 複数曲登録NSF作成\n"
-			);
+        puts(
+            "使用方法:mmckc [switch] InputFile.mml [OutputFile.h]\n"
+            "もしくは:mmckc [switch] -u InputFile1.mml InputFile2.mml ... \n"
+            "\t[switch]\n"
+            "\t-h -?   : ヘルプを表示\n"
+            "\t-i      : 音色/エンベロープファイルに曲データを追加する\n"
+            "\t-m<num> : エラー/ワーニング表示の選択(0:Jpn 1:Eng)\n"
+            "\t-o<str> : 音色/エンベロープファイルのファイル名を<str>にする\n"
+            "\t-w      : Warningメッセージを表示しません\n"
+            "\t-u      : 複数曲登録NSF作成\n"
+            );
 
-	} else {
-		puts(	"Usage:mmckc [switch] InputFile.mml [OutputFile.h]\n"
-			"	or :mmckc [switch] -u InputFile1.mml InputFile2.mml ... \n"
-				"\t[switch]\n"
-				"\t-h -?	 : Display this help message\n"
-				"\t-i			: Including song data in tone/envelope file\n"
-				"\t-m<num> : Select message language(0:Jpn 1:Eng)\n"
-				"\t-o<str> : Output tone/envelope file name is <str>\n"
-				"\t-w			: Don't display warning message\n"
-				"\t-u			: Multiple song NSF creation\n"
-			);
-	}
-	exit( 1 );
+    } else {
+        puts(
+            "Usage:mmckc [switch] InputFile.mml [OutputFile.h]\n"
+            "  or :mmckc [switch] -u InputFile1.mml InputFile2.mml ... \n"
+            "\t[switch]\n"
+            "\t-h -?    : Display this help message\n"
+            "\t-i       : Including song data in tone/envelope file\n"
+            "\t-m<num>  : Select message language(0:Jpn 1:Eng)\n"
+            "\t-o<str>  : Output tone/envelope file name is <str>\n"
+            "\t-w       : Don't display warning message\n"
+            "\t-u       : Multiple song NSF creation\n"
+            );
+    }
+    exit( 1 );
 }
 
 
 
 /*--------------------------------------------------------------
-	メインルーチン
+    メインルーチン
  Input:
-	int	argc		: コマンドライン引数の個数
-	char *argv[]	: コマンドライン引数のポインタ
+    int	argc		: コマンドライン引数の個数
+    char *argv[]	: コマンドライン引数のポインタ
  Output:
-	0:正常終了 0:以外以上終了
+    0:正常終了 0:以外以上終了
 --------------------------------------------------------------*/
 int main( int argc , char *argv[] )
 {
-	int	i,in,out;
-	char	path[256],name[256],ext[256];
-	int	multiple_song_nsf = 0;
+    int	i,in,out;
+    char	path[256],name[256],ext[256];
+    int	multiple_song_nsf = 0;
 
-	in = out = 0;
+    in = out = 0;
 
 // タイトル表示
-	printf("MML to MCK Data Converter Ver %d.%02d by Manbow-J\n",
-				 (VersionNo / 100), (VersionNo % 100) );
+    printf("MML to MCK Data Converter Ver %d.%02d by Manbow-J\n",
+                 (VersionNo / 100), (VersionNo % 100) );
 
 // サブタイトル表示
-	printf("%s", moon_verstr);
-	//printf("patches by [OK] and 2ch mck thread people\n");
-	printf("DATE: %s\n", __DATE__);
-	printf("%s", patchstr);
-	printf("%s", hogereleasestr);
+    printf("%s", moon_verstr);
+    //printf("patches by [OK] and 2ch mck thread people\n");
+    printf("DATE: %s\n", __DATE__);
+    printf("%s", patchstr);
+    printf("%s", hogereleasestr);
 // コマンドライン解析
-	if( argc == 1 ) {
-		dispHelpMessage();
-		return -1;
-	}
+    if( argc == 1 ) {
+        dispHelpMessage();
+        return -1;
+    }
 
-	for ( i = 1; i < argc; i++ ) {
-		// スイッチ？
-		if ( argv[i][0] == '-' ) {
-			switch( toupper( argv[i][1] ) ) {
-				case 'H':
-				case '?':
-				dispHelpMessage();
-				return 1;
-				case 'X':
-				debug_flag = 1;
-				break;
-				case 'I':
-				include_flag = 1;
-				break;
-				case 'M':
-				message_flag = atoi( &(argv[i][2]) );
-				if( message_flag > 1 ) {
-					dispHelpMessage();
-					return 1;
-				}
-				break;
-				case 'N':
-				//obsolete
-				break;
-				case 'O':
-				strcpy( ef_name, skipSpace( &(argv[i][2]) ) );
-				break;
-				case 'W':
-				warning_flag = 0;
-				break;
-				case 'U':
-				multiple_song_nsf = 1;
-				break;
-				default:
-				if( message_flag == 0 ) {
-					puts( "スイッチの指定が違います\n" );
-				} else {
-					puts( "Invalid switch!\n" );
-				}
-				dispHelpMessage();
-				return -1;
-			}
-		// 入力/出力ファイルの格納
-		} else {
-			if ( in < MML_MAX ) {
-				mml_names[in] = argv[i];
-				mml_short_names[in] = malloc(MML_MAX_NAME);
+    for ( i = 1; i < argc; i++ ) {
+        // スイッチ？
+        if ( argv[i][0] == '-' ) {
+            switch( toupper( argv[i][1] ) ) {
+                case 'H':
+                case '?':
+                dispHelpMessage();
+                return 1;
+                case 'X':
+                debug_flag = 1;
+                break;
+                case 'I':
+                include_flag = 1;
+                break;
+                case 'M':
+                message_flag = atoi( &(argv[i][2]) );
+                if( message_flag > 1 ) {
+                    dispHelpMessage();
+                    return 1;
+                }
+                break;
+                case 'N':
+                //obsolete
+                break;
+                case 'O':
+                strcpy( ef_name, skipSpace( &(argv[i][2]) ) );
+                break;
+                case 'W':
+                warning_flag = 0;
+                break;
+                case 'U':
+                multiple_song_nsf = 1;
+                break;
+                default:
+                if( message_flag == 0 ) {
+                    puts( "スイッチの指定が違います\n" );
+                } else {
+                    puts( "Invalid switch!\n" );
+                }
+                dispHelpMessage();
+                return -1;
+            }
+        // 入力/出力ファイルの格納
+        } else {
+            if ( in < MML_MAX ) {
+                mml_names[in] = argv[i];
+                mml_short_names[in] = malloc(MML_MAX_NAME);
 
-				char *p = strrchr(argv[i],'/');
-				if (!p)
-					p = strrchr(argv[i], '\\');
+                char *p = strrchr(argv[i],'/');
+                if (!p)
+                    p = strrchr(argv[i], '\\');
 
-				if (p)
-					p++;
-				else
-					p = argv[i];
+                if (p)
+                    p++;
+                else
+                    p = argv[i];
 
-				strcpy(mml_short_names[in], p);
+                strcpy(mml_short_names[in], p);
 
-				in++;
-			} else {
-				if( message_flag == 0 ) {
-					puts( "パラメータが多すぎます\n" );
-				} else {
-					puts( "Too many parameters!\n" );
-				}
-				dispHelpMessage();
-				return -1;
-			}
-		}
-	}
+                in++;
+            } else {
+                if( message_flag == 0 ) {
+                    puts( "パラメータが多すぎます\n" );
+                } else {
+                    puts( "Too many parameters!\n" );
+                }
+                dispHelpMessage();
+                return -1;
+            }
+        }
+    }
 
-	if (in == 0) {
-		dispHelpMessage();
-		return -1;
-	}
-	if (multiple_song_nsf) {
-		splitPath( mml_names[0], path, name, ext );
-		makePath(	out_name, path, name, ".h" );
-	} else {
-		if (in == 1) {
-			splitPath( mml_names[0], path, name, ext );
-			makePath(	out_name, path, name, ".h" );
-		} else if (in == 2) {
-			strcpy(out_name, mml_names[1]);
-			in--;
-		} else {
-			if( message_flag == 0 ) {
-				puts( "パラメータが多すぎます\n" );
-			} else {
-				puts( "Too many parameters!\n" );
-			}
-			dispHelpMessage();
-			return -1;
-		}
-	}
+    if (in == 0) {
+        dispHelpMessage();
+        return -1;
+    }
+    if (multiple_song_nsf) {
+        splitPath( mml_names[0], path, name, ext );
+        makePath(	out_name, path, name, ".h" );
+    } else {
+        if (in == 1) {
+            splitPath( mml_names[0], path, name, ext );
+            makePath(	out_name, path, name, ".h" );
+        } else if (in == 2) {
+            strcpy(out_name, mml_names[1]);
+            in--;
+        } else {
+            if( message_flag == 0 ) {
+                puts( "パラメータが多すぎます\n" );
+            } else {
+                puts( "Too many parameters!\n" );
+            }
+            dispHelpMessage();
+            return -1;
+        }
+    }
 
-	mml_num = in;
-	for (i = 0; i < in - 1; i++) {
-		printf("%s + ", mml_names[i]);
-	}
-	printf( "%s -> %s\n" ,mml_names[i],	out_name );
+    mml_num = in;
+    for (i = 0; i < in - 1; i++) {
+        printf("%s + ", mml_names[i]);
+    }
+    printf( "%s -> %s\n" ,mml_names[i],	out_name );
 // コンバート
-	int ret = data_make();
+    int ret = data_make();
 // 終了
 
-	for (i = 0; i < in; i++)
-		free(mml_short_names[i]);
+    for (i = 0; i < in; i++)
+        free(mml_short_names[i]);
 
-	if (ret == 0) {
-		if( message_flag == 0 ) {
-			puts( "\n終了しました\n" );
-		} else {
-			puts( "\nCompleated!\n" );
-		}
-		return EXIT_SUCCESS;
-	} else {
-		if( message_flag == 0 ) {
-			puts( "\nコンパイルに失敗しました\n" );
-		} else {
-			puts( "\nCompilation failed!\n" );
-		}
-		return EXIT_FAILURE;
-	}
+    if (ret == 0) {
+        if( message_flag == 0 ) {
+            puts( "\n終了しました\n" );
+        } else {
+            puts( "\nCompleated!\n" );
+        }
+        return EXIT_SUCCESS;
+    } else {
+        if( message_flag == 0 ) {
+            puts( "\nコンパイルに失敗しました\n" );
+        } else {
+            puts( "\nCompilation failed!\n" );
+        }
+        return EXIT_FAILURE;
+    }
 }

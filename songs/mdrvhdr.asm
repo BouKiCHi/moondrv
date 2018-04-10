@@ -1,9 +1,10 @@
-; MDRV file header ver 0005 by BKC
+; MDRV file header ver 180410 by BKC
 ; 2007/04/21 first version
 ; 2007/05/15 second version
 ; 2007/05/22 third version
 ; 2015/03/02 Added PCMFILE definition.
 ; 2016/02/04 Improved packed PCM definition.
+; 2018/04/10 
 
 	.include "define.inc"
 
@@ -65,8 +66,8 @@ pcm_flags:
 	dw  $0000
 	.endif
 
-	; pos: 0x2e reserved
-	dw  $0000
+	; pos: 0x2e tag string(if not zero)
+	dw  tag_string
 
 	; pos: 0x30
 	db $00 ; start address of OPL4 SRAM(x * 0x10000)
@@ -84,5 +85,18 @@ userpcm_string:
 	.endif
 
 	.org $8080
+
+tag_string:
+	TITLE_TEXT ; Track name (en)
+	db $00 ; Track name(jp)
+	MAKER_TEXT ; Game name(en)
+	db $00 ; Game name(jp)
+	db $00 ; System name(en)
+	db $00 ; System name(jp)
+	COMPOSER_TEXT ; Track author(en)
+	db $00 ; Track author(jp)
+	db $00 ; Release date
+	db $00 ; Programmer
+	db $00 ; Notes
 
 	.include "effect.h"

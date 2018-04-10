@@ -24,3 +24,6 @@ xcuserdata
 *.moved-aside
 *.xcuserstate
 *.xcscmblueprint
+
+src/mmckc/objs_w32
+src/mmckc/*.exe
