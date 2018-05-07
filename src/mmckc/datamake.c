@@ -305,54 +305,9 @@ const	char	*WarningMessage[] = {
 // トラックマスク関数
 ---------------------------------------------------------------*/
 
-int isAllTrack(int trk)
-{
+int isAllTrack(int trk) {
     return 1;
 }
-
-int isHuLFO(int trk)
-{
-    if (trk == 1)
-        return 1;
-    return 0;
-}
-
-int isHuNOISE(int trk)
-{
-    if (trk >= 3 && trk <= 5)
-        return 1;
-    return 0;
-}
-
-int isNESNOISE(int trk)
-{
-    if (trk == BNOISETRACK)
-        return 1;
-    return 0;
-}
-
-int isNESFMTrack(int trk)
-{
-    if (trk == BFMTRACK)
-        return 1;
-    return 0;
-}
-
-int isVRC7Track(int trk)
-{
-    if (trk >= BVRC7TRACK && trk <= BVRC7TRACK+5)
-        return 1;
-    return 0;
-}
-
-int isVRC6Track(int trk)
-{
-    if (trk >= BVRC6TRACK && trk <= BVRC6TRACK+2)
-        return 1;
-    return 0;
-}
-
-
 
 // ヘッダ
 const HEAD head[] = {
@@ -600,34 +555,6 @@ void deleteCRemark( char *ptr )
 }
 
 
-//不要
-/*--------------------------------------------------------------
-    リマークの削除
- Input:
-    char	*ptr	:データ格納ポインタ
- Output:
-    無し
---------------------------------------------------------------*/
-void deleteRemark( char *ptr )
-{
-    while( *ptr != '\0' ) {
-        if ( *ptr == '/' || *ptr == ';' ) {
-            while( *ptr != '\0' ) {
-                if( *ptr != '\n' ) {
-                    *ptr++ = ' ';
-                } else {
-                    ptr++;
-                    break;
-                }
-            }
-        } else {
-            ptr++;
-        }
-    }
-}
-
-
-
 /*----------------------------------------------------------*/
 /*	ファイル行数を求める										*/
 /* Input:														*/
@@ -670,9 +597,6 @@ LINE *readMmlFile(char *fname, char *fname_short)
     }
 
     deleteCRemark(filestr);
-
-    //skipSpaceに組み込み
-    //deleteRemark(filestr);
 
     line_count = getLineCount(filestr);
     lptr = (LINE *)malloc( (line_count+1)*sizeof(LINE) );	/* ラインバッファを確保 */
