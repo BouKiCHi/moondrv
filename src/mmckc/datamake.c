@@ -6861,16 +6861,16 @@ void setSongLabel(void)
 
 void display_counts_sub(int i, char trk)
 {
-    printf( "	 %c	 |", trk);
+    printf( "   %c   |", trk);
     if( track_count[mml_idx][i][0].cnt != 0 ) {
-        printf (" %6d	 %5d|", double2int(track_count[mml_idx][i][0].cnt), track_count[mml_idx][i][0].frm );
+        printf(" %6d   %5d|", double2int(track_count[mml_idx][i][0].cnt), track_count[mml_idx][i][0].frm );
     } else {
-        printf( "							 |" );
+        printf("               |" );
     }
     if( track_count[mml_idx][i][1].cnt != 0 ) {
-        printf (" %6d	 %5d|\n", double2int(track_count[mml_idx][i][1].cnt),track_count[mml_idx][i][1].frm );
+        printf(" %6d   %5d|\n", double2int(track_count[mml_idx][i][1].cnt),track_count[mml_idx][i][1].frm );
     } else {
-        printf( "							 |\n" );
+        printf("               |\n" );
     }
 }
 
@@ -7246,7 +7246,7 @@ int data_make( void )
             }
             printf(
                 "-------+---------------+---------------+\n"
-                "Track	|	 Total		|	 Loop		|\n"
+                "Track  |    Total      |    Loop       |\n"
                 " Symbol|(count)|(frame)|(count)|(frame)|\n"
                 "-------+-------+-------+-------+-------+\n");
             for (i = 0; i < _TRACK_MAX; i++) {
