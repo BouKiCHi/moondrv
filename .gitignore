@@ -28,3 +28,4 @@ xcuserdata
 src/mmckc/objs_w32
 src/mmckc/*.exe
 src/pcmtool/*.o
+src/pcmtool/pcmtool.exe
