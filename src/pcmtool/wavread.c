@@ -63,15 +63,11 @@ int wavGetFormat(wavfmt_t *lf)
 	return 0;
 }
 
-int wavSeekDataChunk(wavfmt_t *lf)
-{
+int wavSeekDataChunk(wavfmt_t *lf) {
 	unsigned char buf[10];
-	long lslen;
-	
-	FILE *fp;
-	
-	fp = lf->fp;
-	
+	long lslen;	
+	FILE *fp = lf->fp;
+
 	do {
 	    fread(buf,4,1,fp);
 	    if (memcmp(buf,"data",4) == 0) {
@@ -87,63 +83,51 @@ int wavSeekDataChunk(wavfmt_t *lf)
 	return -1;
 }
 
-long wavConvBit(unsigned data,int inBit,int outBit)
-{
-	if (inBit==outBit)
-		return data;
+long wavConvBit(unsigned data,int inBit,int outBit) {
+	if (inBit==outBit) return data;
 		
-	if (inBit < outBit)
-		data <<= ( outBit - inBit );
-	else
-		data >>= ( inBit - outBit);
-	
+	if (inBit < outBit) data <<= ( outBit - inBit );
+	else data >>= ( inBit - outBit);
 	return data;
 }
 
+// EOF確認
+int wavIsEof(wavfmt_t *lf) {
+	return (feof(lf->fp) ? 1 : 0);
+}
 
-int wavGetSample(wavfmt_t *lf,int outBit)
-{
+// サンプルを得る
+int wavGetSample(wavfmt_t *lf,int outBit) {	
+	if (feof(lf->fp)) return 0;
+
 	unsigned char buf[8];
-	long mixch;
-	
-	mixch = 0;
-	if (lf->bit == 8)
-		memset(buf,0x80,sizeof(buf)); // 8bit is unsigned
-	else
-		memset(buf,0,sizeof(buf));
-	
 
-	if (lf->ch == 2)  
-	{
+	long mixch = 0;
+	if (lf->bit == 8) memset(buf,0x80,sizeof(buf)); // 8bit is unsigned
+	else memset(buf,0,sizeof(buf));
+
+	if (lf->ch == 2) {
 		// stereo
-		if (lf->bit == 16)	
-		{
+		if (lf->bit == 16) {
 			// 16bit
 			fread(buf,4,1,lf->fp);
 			mixch = (short)word_le(buf);
 			mixch += (short)word_le(buf+2);
 			mixch /= 2;
-		}
-		else
-		{
+		} else {
 			// probably 8bit
 			fread(buf,2,1,lf->fp);
 			mixch = buf[0] - 0x80;
 			mixch += ((long)buf[1] - 0x80);
 			mixch /= 2;
 		}
-	}
-	else 
-	{
+	} else {
 		// mono
-		if (lf->bit == 16)
-		{
+		if (lf->bit == 16) {
 			// 16bit
 			fread(buf,2,1,lf->fp);
 			mixch = (short)word_le(buf);
-		}
-		else
-		{
+		} else {
 			// probably 8bit
 			fread(buf,1,1,lf->fp);
 			mixch = buf[0] - 0x80;
@@ -154,14 +138,14 @@ int wavGetSample(wavfmt_t *lf,int outBit)
 	return mixch;
 }
 
-void wavClose(wavfmt_t *wfmt)
-{
+// wavを閉じる
+void wavClose(wavfmt_t *wfmt) {
 	fclose(wfmt->fp);
 	wfmt->fp = NULL;
 }
 
-int wavOpen(char *file,wavfmt_t *wfmt)
-{
+// wavを開く
+int wavOpen(char *file,wavfmt_t *wfmt) {
 	memset(wfmt,0,sizeof(wavfmt_t));
 
 	wfmt->fp = fopen(file,"rb");
@@ -171,18 +155,14 @@ int wavOpen(char *file,wavfmt_t *wfmt)
 	}
 
 	wfmt->freq = 11025;
-
-	if (wavGetFormat(wfmt)) 
-	{
+	if (wavGetFormat(wfmt)) {
 		printf("Error : Unsupported format file\n");
 		return -1;
 	}
 	
-	printf("freq = %d,bit = %d,ch = %d\n",
-		wfmt->freq,wfmt->bit,wfmt->ch);
+	printf("freq = %d,bit = %d,ch = %d\n", wfmt->freq,wfmt->bit,wfmt->ch);
 
-	if (wavSeekDataChunk(wfmt))
-	{
+	if (wavSeekDataChunk(wfmt)) {
 		printf("Error : data chank not found\n");
 		wavClose(wfmt);
 		return -1;
