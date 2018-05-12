@@ -2,3 +2,35 @@
 
 ■説明
 　このファイルはMoonDriverで利用されている技術の記録です。
+
+■Z80命令ステート数
+(ステート数 = クロック数)
+
+r = 8ビットレジスタ
+rr = 16ビットレジスタペア(BC,DE,HL)
+
+LD (HL), r ; 7
+LD (HL), r ; 7
+LD (nn), HL ; 16
+LD (nn), rr ; 20
+
+LD r, (IX + d) ; 19
+LD A, (nn) ; 13
+LD HL, (nn) ; 16
+LD rr, (nn) ; 20
+LD rr ,nn ; 10
+
+RR (HL) ; 15
+RL (HL) ; 15
+JP (HL) ; 4
+
+JR e ; 12
+
+JP nn ; 10
+CALL nn ; 17
+
+
+CP n  ; 7
+CP (HL) ; 7
+CP (IX+d) ; 19
+CP (IY+d) ; 19
