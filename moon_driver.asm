@@ -1448,43 +1448,29 @@ seq_nenv:
 ; in: low, high, data
 seq_data_write:
 	pop	hl
-	ld	a, (hl)
-	ld	d, a ; Address Low
+	ld	d, (hl)
 	inc	hl
 	ld	a, (hl) ; Address High
+	inc	hl
+	ld	e, (hl) ; Data
+	inc	hl
 	or	a
 	jr	z, write_data_cur_fm ; (a >> 8) == 0
 	dec a
-	jr	z, write_data_fm1 ; (a >> 8) == 1
+	jp	z, moon_fm1_out ; (a >> 8) == 1
 	dec a
-	jr	z, write_data_fm2 ; (a >> 8) == 2
-	inc	hl
+	jp	z, moon_fm2_out ; (a >> 8) == 2
+	dec a
+	jp	z, moon_wave_out ; (a >> 8) == 3
 	ret
 
 write_data_cur_fm:
-	inc	hl
-	ld	a, (hl)
-	ld	e, a ; Data
-	inc	hl
-
 	ld	a, (seq_cur_ch)
 	cp	$9
 	jp	c, moon_fm1_out
-	jp	moon_fm2_out
-
-write_data_fm1:
-	inc	hl
-	ld	a, (hl)
-	ld	e, a ; Data
-	inc	hl
-	jp	moon_fm1_out
-
-write_data_fm2:
-	inc	hl
-	ld	a, (hl)
-	ld	e, a ; Data
-	inc	hl
-	jp	moon_fm2_out
+	cp	$12
+	jp	c,moon_fm2_out
+	jp moon_wave_out
 
 ; cmd $F4 : wait
 seq_wait:

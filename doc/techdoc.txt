@@ -8,6 +8,7 @@
 
 r = 8ビットレジスタ
 rr = 16ビットレジスタペア(BC,DE,HL)
+cond = 条件
 
 LD (HL), r ; 7
 LD (HL), r ; 7
@@ -23,8 +24,9 @@ LD rr ,nn ; 10
 RR (HL) ; 15
 RL (HL) ; 15
 JP (HL) ; 4
-
 JR e ; 12
+
+JP cond,nn ; 10
 
 JP nn ; 10
 CALL nn ; 17
