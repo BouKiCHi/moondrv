@@ -9,7 +9,7 @@ rem echo MODE IS %MODE%
 SETLOCAL
 
 rem ルート設定
-SET MOONDIR=..\
+SET MOONDIR=%~dp0\..\
 
 rem 各ディレクトリ設定
 SET BINDIR=%MOONDIR%\bin
