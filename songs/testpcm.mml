@@ -1,0 +1,29 @@
+; 
+; mknsf.bat testpcm.txt
+; make_mdr_pcmpack testpcm.mml
+;
+
+#EX-OPL3
+
+#TITLE PCM Test Song
+
+#PCMFILE testpcm.pcm
+
+@TONE00 = { $00, $7F, $0180, 3000, $00,
+ $F0, $00, $0F, $00 }
+
+@TONE01 = { $00, $7F, $0181, 3000, $00,
+ $F0, $00, $0F, $00 }
+
+@TONE02 = { $00, $7F, $0182, 3000, $00,
+ $F0, $00, $0F, $00 }
+
+A l4 o4 
+A W0 v127
+A cdefgab>c1 r c<bagfedc1
+
+A W1 v127
+A cdefgab>c1 r c<bagfedc1
+
+A W2 v127
+A cdefgab>c1 r c<bagfedc1
