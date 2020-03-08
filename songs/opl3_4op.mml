@@ -1,0 +1,66 @@
+#EX-OPL3
+#OPL4-NOUSE
+
+#TITLE OPL3 4OP Test
+
+@OPF0 = {
+ ;FB ST T  V  P
+  1 ,1 ,0 ,0 ,0
+
+ ;TR VI SU KSR MUL KSL OL AR DR SL RR WF
+  0 ,0 ,0 ,0  ,2  ,0  ,$8 ,$f ,0 ,0 ,4 ,1,
+  0 ,0 ,0 ,0  ,0  ,0  ,$8 ,$f ,0 ,0 ,4 ,1,
+  0 ,0 ,0 ,0  ,0  ,0  ,0  ,5  ,5 ,5 ,5 ,0,
+  0 ,0 ,0 ,0  ,0  ,0  ,0  ,5  ,5 ,5 ,5 ,0
+}
+
+@OPF1 = {
+ ;FB ST T  V  P
+  2 ,2 ,0 ,0 ,0
+
+ ;TR VI SU KSR MUL KSL OL AR DR SL RR WF
+  0 ,0 ,0 ,0  ,2  ,0  ,$8 ,$f ,0 ,0 ,4 ,1,
+  0 ,0 ,0 ,0  ,0  ,0  ,$8 ,$f ,0 ,0 ,4 ,1,
+  0 ,0 ,0 ,0  ,0  ,0  ,0  ,5  ,5 ,5 ,5 ,0,
+  0 ,0 ,0 ,0  ,0  ,0  ,0  ,5  ,5 ,5 ,5 ,0
+}
+
+@OPF2 = {
+ ;FB ST T  V  P
+  2 ,3 ,0 ,0 ,0
+
+ ;TR VI SU KSR MUL KSL OL AR DR SL RR WF
+  0 ,0 ,0 ,0  ,2  ,0  ,$8 ,$f ,0 ,0 ,4 ,1,
+  0 ,0 ,0 ,0  ,0  ,0  ,$8 ,$f ,0 ,0 ,4 ,1,
+  0 ,0 ,0 ,0  ,0  ,0  ,0  ,5  ,5 ,5 ,5 ,0,
+  0 ,0 ,0 ,0  ,0  ,0  ,0  ,5  ,5 ,5 ,5 ,0
+}
+
+; OPMの並び LKJCBA
+A OPM%111111
+ABCJKL t120 l4 o4
+A W0 v127
+B W1 v127
+C W2 v127
+
+J W0 v127
+K W1 v127
+L W2 v127
+
+A c1
+BCJKL r1
+
+B c1
+ACJKL r1
+
+C c1
+ABJKL r1
+
+J c1
+ABCKL r1
+
+K c1
+ABCJL r1
+
+L c1
+ABCJK r1

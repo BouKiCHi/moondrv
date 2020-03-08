@@ -1,0 +1,122 @@
+#EX-OPL3
+#OPL4-NOUSE
+
+#TITLE OPL3 2OP Test
+
+@OPF0 = {
+ ;FB ST T  V  P
+  1 ,1 ,0 ,0 ,0
+
+ ;TR VI SU KSR MUL KSL OL AR DR SL RR WF
+  0 ,0 ,0 ,0  ,2  ,0  ,$8 ,$f ,0 ,0 ,4 ,1,
+  0 ,0 ,0 ,0  ,0  ,0  ,$8 ,$f ,0 ,0 ,4 ,1,
+  0 ,0 ,0 ,0  ,0  ,0  ,0  ,5  ,5 ,5 ,5 ,0,
+  0 ,0 ,0 ,0  ,0  ,0  ,0  ,5  ,5 ,5 ,5 ,0
+}
+
+@OPF1 = {
+ ;FB ST T  V  P
+  2 ,1 ,0 ,0 ,0
+
+ ;TR VI SU KSR MUL KSL OL AR DR SL RR WF
+  0 ,0 ,0 ,0  ,2  ,0  ,$8 ,$f ,0 ,0 ,4 ,3,
+  0 ,0 ,0 ,0  ,0  ,0  ,$8 ,$f ,0 ,0 ,4 ,1,
+  0 ,0 ,0 ,0  ,0  ,0  ,0  ,5  ,5 ,5 ,5 ,0,
+  0 ,0 ,0 ,0  ,0  ,0  ,0  ,5  ,5 ,5 ,5 ,0
+}
+
+@OPF2 = {
+ ;FB ST T  V  P
+  3 ,0 ,0 ,0 ,0
+
+ ;TR VI SU KSR MUL KSL OL AR DR SL RR WF
+  0 ,0 ,0 ,0  ,2  ,0  ,4  ,$f ,0 ,0 ,4 ,2,
+  0 ,0 ,0 ,0  ,0  ,0  ,$8 ,$f ,0 ,0 ,4 ,1,
+  0 ,0 ,0 ,0  ,0  ,0  ,0  ,5  ,5 ,5 ,5 ,0,
+  0 ,0 ,0 ,0  ,0  ,0  ,0  ,5  ,5 ,5 ,5 ,0
+}
+
+ABCDEFGHI t120 l4 o4
+JKLMNOPQR t120 l4 o4
+
+ADG WX0 v127
+JMP WX0 v127
+
+BEH WX1 v127
+KNQ WX1 v127
+
+CFI WX2 v127
+LOR WX2 v127
+
+
+
+A c1
+BCDEFGHI r1
+JKLMNOPQR r1
+
+B c1
+ACDEFGHI r1
+JKLMNOPQR r1
+
+C c1
+ABDEFGHI r1
+JKLMNOPQR r1
+D c1
+ABCEFGHI r1
+JKLMNOPQR r1
+E c1
+ABCDFGHI r1
+JKLMNOPQR r1
+
+F c1
+ABCDEGHI r1
+JKLMNOPQR r1
+
+G c1
+ABCDEFHI r1
+JKLMNOPQR r1
+
+H c1
+ABCDEFGI r1
+JKLMNOPQR r1
+
+I c1
+ABCDEFGH r1
+JKLMNOPQR r1
+
+J c1
+ABCDEFGHI r1
+KLMNOPQR r1
+
+K c1
+ABCDEFGHI r1
+JLMNOPQR r1
+
+L c1
+ABCDEFGHI r1
+JKMNOPQR r1
+
+M c1
+ABCDEFGHI r1
+JKLNOPQR r1
+
+N c1
+ABCDEFGHI r1
+JKLMOPQR r1
+
+O c1
+ABCDEFGHI r1
+JKLMNPQR r1
+
+P c1
+ABCDEFGHI r1
+JKLMNOQR r1
+
+Q c1
+ABCDEFGHI r1
+JKLMNOPR r1
+
+R c1
+ABCDEFGHI r1
+JKLMNOPQ r1
+
