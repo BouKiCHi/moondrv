@@ -39,6 +39,16 @@
 | 10  | ![cnt10](img/cnt/cnt_4op_10.png) |
 | 11  | ![cnt11](img/cnt/cnt_4op_11.png) |
 
+## キャリア 4OP
+
+CNT = CNT(C0)<<1 + CNT(C3)
+
+| CNT | キャリア    |
+| --- | ----------- |
+| 00  | OP4         |
+| 01  | OP2 OP4     |
+| 10  | OP1 OP4     |
+| 11  | OP1 OP3 OP4 |
 
 # OPL4 WaveTable Part
 
